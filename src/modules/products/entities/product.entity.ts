@@ -16,4 +16,7 @@ export class ProductEntity implements Product {
 
   @ApiProperty()
   updatedAt: Date;
+
+  @ApiProperty()
+  categoryId: number;
 }

@@ -6,4 +6,7 @@ export class CreateProductDto {
 
   @ApiProperty({ required: false })
   description?: string;
+
+  @ApiProperty({ required: true })
+  categoryId: number;
 }

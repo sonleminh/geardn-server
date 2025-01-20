@@ -6,6 +6,8 @@ import { ProductsModule } from './modules/products/products.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
+import { AuthModule } from './modules/auth/auth.module';
+import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import configuration from './config/configuration';
       load: [configuration],
       envFilePath: ['.env.production', '.env.local'],
     }),
+    AuthModule,
+    AdminAuthModule,
     PrismaModule,
     ProductsModule,
     CategoriesModule,
