@@ -31,11 +31,11 @@ export class AdminAuthService {
   }
 
   async validateUser(email: string, password: string) {
-    // const userData = await this.userService.findAndVerify({
-    //   email,
-    //   password,
-    // });
-    // return userData;
+    const userData = await this.userService.findAndVerify({
+      email,
+      password,
+    });
+    return userData;
   }
 
   // async signUp(registerDTO) {
@@ -58,7 +58,7 @@ export class AdminAuthService {
       this.storeToken(res, 'at', accessToken, 2);
       this.storeToken(res, 'rt', refreshToken, 48);
 
-      const { password, ...tempUser } = user['_doc'];
+      const { password, ...tempUser } = user;
       return tempUser;
     } catch (error) {
       throw error;

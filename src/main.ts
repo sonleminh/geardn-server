@@ -19,6 +19,24 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
+  const whiteList = configService
+    .get<string>('WHITE_LIST')
+    ?.toString()
+    .split(',')
+    .map((val) => val.trim());
+
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin || whiteList.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET, HEAD, PUT, POST, DELETE, OPTIONS, PATCH',
+    credentials: true,
+    allowedHeaders: 'Content-Type, Authorization',
+  });
   app.setGlobalPrefix(apiPrefix);
   await app.listen(port);
 }

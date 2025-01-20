@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -23,6 +24,8 @@ import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
     CategoriesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    { provide: APP_FILTER, useClass: AllExceptionFilter },
+  ],
 })
 export class AppModule {}

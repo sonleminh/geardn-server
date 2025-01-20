@@ -11,11 +11,10 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'admin-local') {
   }
 
   async validate(email: string, password: string) {
-    // const user = await this.adminAuthService.validateUser(email, password);
-    // if (!user || user.role !== 'admin') {
-    //   throw new UnauthorizedException('Access denied. Admins only.');
-    // }
-
-    // return user;
+    const user = await this.adminAuthService.validateUser(email, password);
+    if (!user || user.role !== 'admin') {
+      throw new UnauthorizedException('Access denied. Admins only.');
+    }
+    return user;
   }
 }
