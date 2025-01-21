@@ -10,6 +10,7 @@ import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from './logger/logger.module';
 import { AllExceptionFilter } from './filters/exception.filter';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AllExceptionFilter } from './filters/exception.filter';
     PrismaModule,
     ProductsModule,
     CategoriesModule,
+    UploadModule,
     LoggerModule,
   ],
   controllers: [AppController],
