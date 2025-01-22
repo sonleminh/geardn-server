@@ -7,35 +7,27 @@ const prisma = new PrismaClient();
 
 async function main() {
   // create two dummy articles
-  const product1 = await prisma.product.upsert({
-    where: { name: 'Samsung 24 inch' },
+  const category1 = await prisma.category.upsert({
+    where: { name: 'Bàn phím' },
     update: {},
     create: {
-      name: 'Samsung 24 inch',
-      description: 'Samsung 24 inch 100hz IPS',
-      sku_name: 'samsung-24-inch',
-      slug: 'samsung-24-inch',
-      category: {
-        connect: { id: 1 },
-      },
+      name: 'Bàn phím',
+      icon: 'c',
+      slug: 'ban-phim',
     },
   });
 
-  const product2 = await prisma.product.upsert({
-    where: { name: 'Aula F75' },
+  const category2 = await prisma.category.upsert({
+    where: { name: 'Màn hình' },
     update: {},
     create: {
-      name: 'Aula F75',
-      description: 'Aula F75',
-      sku_name: 'samsung-24-inch',
-      slug: 'samsung-24-inch',
-      category: {
-        connect: { id: 2 },
-      },
+      name: 'Màn hình',
+      icon: 'c',
+      slug: 'man-hinh',
     },
   });
 
-  console.log({ product1, product2 });
+  console.log({ category1, category2 });
 }
 
 // execute the main function
