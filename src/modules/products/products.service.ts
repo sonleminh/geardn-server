@@ -6,8 +6,8 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
-  create(createProductDto: CreateProductDto) {
-    return this.prisma.product.create({ data: createProductDto });
+  async create(createProductDto: CreateProductDto) {
+    return await this.prisma.product.create({ data: createProductDto });
   }
 
   findAll() {

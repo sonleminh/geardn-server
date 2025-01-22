@@ -13,6 +13,8 @@ async function main() {
     create: {
       name: 'Samsung 24 inch',
       description: 'Samsung 24 inch 100hz IPS',
+      sku_name: 'samsung-24-inch',
+      slug: 'samsung-24-inch',
       category: {
         connect: { id: 1 },
       },
@@ -25,6 +27,8 @@ async function main() {
     create: {
       name: 'Aula F75',
       description: 'Aula F75',
+      sku_name: 'samsung-24-inch',
+      slug: 'samsung-24-inch',
       category: {
         connect: { id: 2 },
       },

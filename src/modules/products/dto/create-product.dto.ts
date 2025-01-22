@@ -4,11 +4,18 @@ export class CreateProductDto {
   @ApiProperty()
   name: string;
 
+  @ApiProperty()
+  sku_name: string;
+
+  @ApiProperty()
+  slug: string;
+
   @ApiProperty({ required: false })
   description?: string;
 
   @ApiProperty({
-    description: 'Category of the product. Either provide an existing category ID to connect or the details to create a new category.',
+    description:
+      'Category of the product. Either provide an existing category ID to connect or the details to create a new category.',
     required: true,
   })
   category: {

@@ -7,14 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tags {
+  value     String   @unique
+  label     String
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
+}
+
+model TierVariant {
+  id        Int      @id @default(autoincrement())
+  value     String
+  options   String[]
+  images    String[]
+  // Product   Product? @relation(fields: [productId], references: [id])
+  // productId Int?
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
+}
+
+model Details {
+  guarantee Int
+  material  String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int     @unique
+}
+
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  categoryId  Int
-  category    Category @relation(fields: [categoryId], references: [id])
+  id              Int           @id @default(autoincrement())
+  name            String        @unique
+  categoryId      Int
+  category        Category      @relation(fields: [categoryId], references: [id])
+  tags            Tags[]
+  images          String[]
+  tier_variations TierVariant[]
+  sku_name        String        @unique
+  brand           String        @default("Không")
+  details         Details?
+  description     String?
+  slug            String        @unique
+  is_deleted      Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  // detailsId       Int?
 }
 
 model Category {
