@@ -2,12 +2,16 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { convertToSlug } from 'src/utils/convertToSlug';
 
 @Injectable()
 export class CategoriesService {
   constructor(private prisma: PrismaService) {}
   create(createCategoryDto: CreateCategoryDto) {
-    return this.prisma.category.create({ data: createCategoryDto });
+    const payload = { ...createCategoryDto };
+    const slug = convertToSlug(createCategoryDto.name);
+    payload.slug = slug;
+    return this.prisma.category.create({ data: payload });
   }
 
   async findAll() {

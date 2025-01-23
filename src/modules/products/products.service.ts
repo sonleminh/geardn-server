@@ -4,6 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CategoriesService } from '../categories/categories.service';
 import { TAGS } from './dto/tag.dto';
+import { generateSlugId } from 'src/utils/slug.until';
 
 @Injectable()
 export class ProductsService {
@@ -13,7 +14,16 @@ export class ProductsService {
   ) {}
   async create(createProductDto: CreateProductDto) {
     const res = await this.prisma.product.create({ data: createProductDto });
-    return { status: HttpStatus.CREATED, message: 'success', data: res };
+    const id_slug = generateSlugId(res.name, res.id);
+    const updatedProduct = await this.prisma.product.update({
+      where: { id: res.id },
+      data: { id_slug },
+    });
+    return {
+      status: HttpStatus.CREATED,
+      message: 'success',
+      data: updatedProduct,
+    };
   }
 
   async getInitialProductForCreate() {

@@ -10,9 +10,6 @@ export class CreateProductDto {
   @ApiProperty()
   sku_name: string;
 
-  @ApiProperty()
-  slug: string;
-
   @ApiProperty({ required: false })
   description?: string;
 

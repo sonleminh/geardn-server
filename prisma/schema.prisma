@@ -44,7 +44,7 @@ model Product {
   brand           String        @default("Không")
   details         Details?
   description     String?
-  slug            String        @unique
+  id_slug         String?       @unique
   is_deleted      Boolean       @default(false)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
