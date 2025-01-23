@@ -28,6 +28,12 @@ export class CategoriesService {
     return { status: HttpStatus.OK, message: 'success', data: res };
   }
 
+  async getCategoryInitial() {
+    return await this.prisma.category.findMany({
+      select: { id: true, name: true },
+    });
+  }
+
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     const res = await this.prisma.category.update({
       where: { id },

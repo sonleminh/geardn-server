@@ -28,6 +28,6 @@ import { UploadModule } from './modules/upload/upload.module';
     LoggerModule,
   ],
   controllers: [AppController],
-  providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],
+  // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],
 })
 export class AppModule {}

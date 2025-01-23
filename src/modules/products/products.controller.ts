@@ -30,9 +30,14 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  @Get('initial-to-create')
+  findInitial() {
+    return this.productsService.getInitialProductForCreate();
+  }
+
   @Get(':id')
   @ApiCreatedResponse({ type: ProductEntity })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.productsService.findOne(+id);
   }
 

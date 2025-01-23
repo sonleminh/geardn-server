@@ -37,10 +37,27 @@ export class AllExceptionFilter implements ExceptionFilter {
         message: exception.message,
         statusCode: HttpStatus.BAD_REQUEST,
       };
+    } else if (exception instanceof Prisma.PrismaClientUnknownRequestError) {
+      responseBody = {
+        message: 'An unknown database error occurred',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      };
+    } else if (exception instanceof Prisma.PrismaClientInitializationError) {
+      responseBody = {
+        message: 'Database initialization error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      };
+    } else if (exception instanceof Prisma.PrismaClientRustPanicError) {
+      responseBody = {
+        message: 'A critical database error occurred',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      };
     } else if (exception instanceof HttpException) {
       const errRes = exception.getResponse();
       responseBody = {
-        ...(typeof errRes === 'object' ? { ...errRes } : { message: errRes }),
+        ...(typeof errRes === 'object' && errRes !== null
+          ? { ...errRes }
+          : { message: errRes }),
         statusCode: exception.getStatus(),
       };
     } else if (exception instanceof Error) {
@@ -61,7 +78,10 @@ export class AllExceptionFilter implements ExceptionFilter {
     AllExceptionFilter.handleResponse(
       response,
       responseBody.statusCode === HttpStatus.INTERNAL_SERVER_ERROR
-        ? 'Internal server error'
+        ? {
+            ...responseBody,
+            message: responseBody.message ?? 'Internal server error',
+          }
         : responseBody,
       responseBody.statusCode,
     );
@@ -81,7 +101,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof HttpException) {
       errorMessage = JSON.stringify(exception.getResponse());
     } else if (exception instanceof Error) {
-      errorMessage = exception?.stack?.toString() ?? '';
+      errorMessage = exception?.message;
     } else {
       errorMessage = 'Unknown error';
     }
