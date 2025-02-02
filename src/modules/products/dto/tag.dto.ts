@@ -7,12 +7,12 @@ export enum TAGS {
   SECONDHAND = 'Hàng 2nd',
 }
 
-export class TagsDto {
-  @IsNotEmpty()
+export class TagDto {
   @IsString()
+  @IsNotEmpty()
   value: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   label: string;
 }

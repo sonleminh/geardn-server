@@ -13,7 +13,19 @@ export class ProductsService {
     private readonly categoriesService: CategoriesService,
   ) {}
   async create(createProductDto: CreateProductDto) {
-    const res = await this.prisma.product.create({ data: createProductDto });
+    console.log(createProductDto)
+    const res = await this.prisma.product.create({
+      data: createProductDto,
+      // data: {
+      //   ...createProductDto,
+      //   tags: {
+      //     create: createProductDto.tags.map((tag) => ({
+      //       value: tag.value,
+      //       label: tag.label,
+      //     })),
+      //   },
+      // },
+    });
     const id_slug = generateSlugId(res.name, res.id);
     const updatedProduct = await this.prisma.product.update({
       where: { id: res.id },
@@ -76,11 +88,19 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    const res = await this.prisma.product.update({
-      where: { id },
-      data: updateProductDto,
-    });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    // const res = await this.prisma.product.update({
+    //   where: { id },
+    //   data: {
+    //     ...updateProductDto,
+    //     tags: {
+    //       create: updateProductDto.tags.map((tag) => ({
+    //         value: tag.value,
+    //         label: tag.label,
+    //       })),
+    //     },
+    //   },
+    // });
+    // return { status: HttpStatus.OK, message: 'success', data: res };
   }
 
   async softDelete(id: number): Promise<{ deleteCount: number }> {

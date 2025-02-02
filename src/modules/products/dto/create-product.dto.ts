@@ -1,4 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { TagDto } from './tag.dto';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -12,6 +15,12 @@ export class CreateProductDto {
 
   @ApiProperty({ required: false })
   description?: string;
+
+  // @IsArray()
+  // @IsOptional()
+  // @ValidateNested({ each: true })
+  // @Type(() => TagDto)
+  // tags: TagDto[];
 
   @ApiProperty({
     description:
