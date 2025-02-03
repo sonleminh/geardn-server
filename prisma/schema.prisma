@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Tags {
-  value     String   @unique
-  label     String
-  Product   Product? @relation(fields: [productId], references: [id])
-  productId Int?
-}
-
 model TierVariant {
   id        Int      @id @default(autoincrement())
   value     String
@@ -37,7 +30,7 @@ model Product {
   name            String        @unique
   categoryId      Int
   category        Category      @relation(fields: [categoryId], references: [id])
-  tags            Tags[]
+  tags            Json
   images          String[]
   tier_variations TierVariant[]
   sku_name        String        @unique

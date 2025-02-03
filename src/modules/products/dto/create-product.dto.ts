@@ -11,6 +11,9 @@ export class CreateProductDto {
   images: string[];
 
   @ApiProperty()
+  tags: string;
+
+  @ApiProperty()
   sku_name: string;
 
   @ApiProperty({ required: false })

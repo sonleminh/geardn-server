@@ -1,8 +1,14 @@
 import { Product } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { TagDto } from '../dto/tag.dto';
+// import { TagDto } from '../dto/tag.dto';
 import { TierVariantDto } from '../dto/tier-variation';
 import { DetailsDto } from '../dto/details';
+import { JsonValue } from '@prisma/client/runtime/library';
+
+export interface TagDto {
+  value: string;
+  label: string;
+}
 
 export class ProductEntity implements Product {
   @ApiProperty()
@@ -15,7 +21,7 @@ export class ProductEntity implements Product {
   categoryId: number;
 
   @ApiProperty()
-  tags: TagDto[];
+  tags: JsonValue;
 
   @ApiProperty()
   images: string[];
