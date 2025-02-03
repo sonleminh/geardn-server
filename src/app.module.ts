@@ -11,6 +11,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from './logger/logger.module';
 import { AllExceptionFilter } from './filters/exception.filter';
 import { UploadModule } from './modules/upload/upload.module';
+import { ProductAttributesModule } from './product-attributes/product-attributes.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UploadModule } from './modules/upload/upload.module';
     CategoriesModule,
     UploadModule,
     LoggerModule,
+    ProductAttributesModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

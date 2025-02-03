@@ -42,6 +42,41 @@ model Product {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   // detailsId       Int?
+  skus            ProductSKU[]  @relation("ProductToSKU")
+}
+
+model ProductAttribute {
+  id        Int                  @id @default(autoincrement())
+  type      ProductAttributeType
+  value     String
+  createdAt DateTime             @default(now())
+  deletedAt DateTime? // Optional for soft delete
+
+  // Relations
+  sizeSKUs  ProductSKU[] @relation("SizeAttribute")
+  colorSKUs ProductSKU[] @relation("ColorAttribute")
+}
+
+enum ProductAttributeType {
+  COLOR
+  SWITCH
+}
+
+model ProductSKU {
+  id               Int       @id @default(autoincrement())
+  productId        Int
+  sizeAttributeId  Int?
+  colorAttributeId Int?
+  sku              String
+  price            Decimal
+  quantity         Int
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
+
+  // Relations
+  product        Product           @relation("ProductToSKU", fields: [productId], references: [id])
+  sizeAttribute  ProductAttribute? @relation("SizeAttribute", fields: [sizeAttributeId], references: [id])
+  colorAttribute ProductAttribute? @relation("ColorAttribute", fields: [colorAttributeId], references: [id])
 }
 
 model Category {
