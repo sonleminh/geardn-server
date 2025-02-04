@@ -13,7 +13,6 @@ export class ProductsService {
     private readonly categoriesService: CategoriesService,
   ) {}
   async create(createProductDto: CreateProductDto) {
-    console.log(createProductDto)
     const res = await this.prisma.product.create({
       data: createProductDto,
       // data: {

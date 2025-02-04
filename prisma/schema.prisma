@@ -46,37 +46,40 @@ model Product {
 }
 
 model ProductAttribute {
-  id        Int                  @id @default(autoincrement())
-  type      ProductAttributeType
-  value     String
-  createdAt DateTime             @default(now())
-  deletedAt DateTime? // Optional for soft delete
+  id            Int                   @id @default(autoincrement())
+  type          ProductAttributeType
+  value         String
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  skuAttributes ProductSKUAttribute[]
+}
+
+model ProductSKU {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  sku       String
+  price     Decimal
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  sizeSKUs  ProductSKU[] @relation("SizeAttribute")
-  colorSKUs ProductSKU[] @relation("ColorAttribute")
+  product    Product               @relation("ProductToSKU", fields: [productId], references: [id])
+  attributes ProductSKUAttribute[]
+}
+
+model ProductSKUAttribute {
+  id          Int @id @default(autoincrement())
+  skuId       Int
+  attributeId Int
+
+  sku       ProductSKU       @relation(fields: [skuId], references: [id])
+  attribute ProductAttribute @relation(fields: [attributeId], references: [id])
 }
 
 enum ProductAttributeType {
   COLOR
   SWITCH
-}
-
-model ProductSKU {
-  id               Int       @id @default(autoincrement())
-  productId        Int
-  sizeAttributeId  Int?
-  colorAttributeId Int?
-  sku              String
-  price            Decimal
-  quantity         Int
-  createdAt        DateTime  @default(now())
-  deletedAt        DateTime?
-
-  // Relations
-  product        Product           @relation("ProductToSKU", fields: [productId], references: [id])
-  sizeAttribute  ProductAttribute? @relation("SizeAttribute", fields: [sizeAttributeId], references: [id])
-  colorAttribute ProductAttribute? @relation("ColorAttribute", fields: [colorAttributeId], references: [id])
 }
 
 model Category {

@@ -9,9 +9,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from './logger/logger.module';
-import { AllExceptionFilter } from './filters/exception.filter';
 import { UploadModule } from './modules/upload/upload.module';
-import { ProductAttributesModule } from './product-attributes/product-attributes.module';
+import { ProductAttributesModule } from './modules/product-attributes/product-attributes.module';
+import { ProductSkusModule } from './modules/product-skus/product-skus.module';
 
 @Module({
   imports: [
@@ -28,6 +28,7 @@ import { ProductAttributesModule } from './product-attributes/product-attributes
     UploadModule,
     LoggerModule,
     ProductAttributesModule,
+    ProductSkusModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],
