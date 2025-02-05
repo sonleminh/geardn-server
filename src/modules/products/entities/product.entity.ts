@@ -35,7 +35,7 @@ export class ProductEntity implements Product {
   @ApiProperty()
   details: DetailsDto;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty()
   description: string | null;
 
   @ApiProperty({ uniqueItems: true })

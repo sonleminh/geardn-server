@@ -1,22 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty()
+  @IsNotEmpty()
   name: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   categoryId: number;
 
   @ApiProperty()
   @IsArray({ message: 'Images must be an array.' })
-  @IsNotEmpty()
+  @ArrayNotEmpty({ message: 'Images array must not be empty.' })
+  @IsNotEmpty({ each: true, message: 'Each image must not be empty.' })
   images: string[];
 
   @ApiProperty()
+  @IsOptional()
   @IsArray()
   tags: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
+  @IsOptional()
   description?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  details?: string;
 }
