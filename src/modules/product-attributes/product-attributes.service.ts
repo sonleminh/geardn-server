@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProductAttributesService {
   constructor(private prisma: PrismaService) {}
 
-  create(createProductAttributeDto: CreateProductAttributeDto) {
+  async create(createProductAttributeDto: CreateProductAttributeDto) {
     return this.prisma.productAttribute.create({
       data: createProductAttributeDto,
     });
@@ -19,7 +19,7 @@ export class ProductAttributesService {
       this.prisma.productAttribute.count(),
     ])
     return {
-      categories: res,
+      product_attributes: res,
       total,
       status: HttpStatus.OK,
       message: 'success',

@@ -33,7 +33,6 @@ model Product {
   tags            Json
   images          String[]
   tier_variations TierVariant[]
-  sku_name        String        @unique
   brand           String        @default("Không")
   details         Details?
   description     String?

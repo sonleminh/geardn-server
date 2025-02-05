@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
+import { ValidationConfig } from './config/validation.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -38,6 +40,7 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
   app.setGlobalPrefix(apiPrefix);
+  app.useGlobalPipes(new ValidationPipe(ValidationConfig));
   await app.listen(port);
 }
 bootstrap();

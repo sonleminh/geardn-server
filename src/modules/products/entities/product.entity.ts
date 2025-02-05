@@ -29,9 +29,6 @@ export class ProductEntity implements Product {
   @ApiProperty()
   tier_variations: TierVariantDto[];
 
-  @ApiProperty({ uniqueItems: true })
-  sku_name: string;
-
   @ApiProperty({ default: 'Không' })
   brand: string;
 

@@ -5,25 +5,18 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CategoriesService } from '../categories/categories.service';
 import { TAGS } from './dto/tag.dto';
 import { generateSlugId } from 'src/utils/slug.until';
+import { ProductSkusService } from '../product-skus/product-skus.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     private prisma: PrismaService,
     private readonly categoriesService: CategoriesService,
+    private readonly productSkusService: ProductSkusService,
   ) {}
   async create(createProductDto: CreateProductDto) {
     const res = await this.prisma.product.create({
       data: createProductDto,
-      // data: {
-      //   ...createProductDto,
-      //   tags: {
-      //     create: createProductDto.tags.map((tag) => ({
-      //       value: tag.value,
-      //       label: tag.label,
-      //     })),
-      //   },
-      // },
     });
     const id_slug = generateSlugId(res.name, res.id);
     const updatedProduct = await this.prisma.product.update({
@@ -56,6 +49,15 @@ export class ProductsService {
               name: true,
             },
           },
+          skus: {
+            select: {
+              price: true,
+            },
+            orderBy: {
+              price: 'asc', // Sắp xếp giá từ thấp đến cao
+            },
+            take: 1, // Chỉ lấy SKU có giá thấp nhất
+          },
         },
       }),
       this.prisma.product.count(),
@@ -78,6 +80,14 @@ export class ProductsService {
             name: true,
           },
         },
+        skus: { // Thêm phần này để lấy thông tin SKU
+          select: {
+            id: true,
+            sku: true,
+            price: true,
+            quantity: true,
+          },
+        },
       },
     });
     if (!res) {
@@ -87,19 +97,11 @@ export class ProductsService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    // const res = await this.prisma.product.update({
-    //   where: { id },
-    //   data: {
-    //     ...updateProductDto,
-    //     tags: {
-    //       create: updateProductDto.tags.map((tag) => ({
-    //         value: tag.value,
-    //         label: tag.label,
-    //       })),
-    //     },
-    //   },
-    // });
-    // return { status: HttpStatus.OK, message: 'success', data: res };
+    const res = await this.prisma.product.update({
+      where: { id },
+      data: updateProductDto,
+    });
+    return { status: HttpStatus.OK, message: 'success', data: res };
   }
 
   async softDelete(id: number): Promise<{ deleteCount: number }> {

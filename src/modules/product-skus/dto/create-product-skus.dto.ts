@@ -15,5 +15,5 @@ export class CreateProductSkusDto {
   quantity: number;
 
   @ApiProperty()
-  attributes?: CreateProductSKUAttributeDto[];
+  attributes: CreateProductSKUAttributeDto[];
 }

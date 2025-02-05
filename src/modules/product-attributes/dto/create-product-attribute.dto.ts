@@ -5,6 +5,6 @@ export class CreateProductAttributeDto {
   @ApiProperty()
   type: ProductAttributeType;
 
-  @ApiProperty({ required: true })
+  @ApiProperty()
   value: string;
 }
