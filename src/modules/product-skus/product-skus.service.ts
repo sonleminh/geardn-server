@@ -6,6 +6,24 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class ProductSkusService {
   constructor(private prisma: PrismaService) {}
+
+  async generateSKU(): Promise<string> {
+    // Tìm SKU mới nhất
+    const lastProduct = await this.prisma.productSKU.findFirst({
+      orderBy: { sku: 'desc' }, // Sắp xếp giảm dần để lấy SKU lớn nhất
+      select: { sku: true },
+    });
+
+    let nextNumber = 1;
+    if (lastProduct?.sku) {
+      const lastNumber = parseInt(lastProduct.sku.replace('GDN', ''), 10);
+      nextNumber = lastNumber + 1;
+    }
+
+    // Định dạng SKU (GDN0001, GDN0002, ...)
+    return `GDN${nextNumber.toString().padStart(4, '0')}`;
+  }
+
   async create(createProductSkusDto: CreateProductSkusDto) {
     const { attributes, ...skuData } = createProductSkusDto;
     try {

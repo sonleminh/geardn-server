@@ -33,7 +33,7 @@ export class ProductEntity implements Product {
   brand: string;
 
   @ApiProperty()
-  details: DetailsDto;
+  details: JsonValue;
 
   @ApiProperty()
   description: string | null;
