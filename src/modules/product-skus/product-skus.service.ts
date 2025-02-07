@@ -25,39 +25,95 @@ export class ProductSkusService {
   }
 
   async create(createProductSkusDto: CreateProductSkusDto) {
-    const { attributes, ...skuData } = createProductSkusDto;
-    try {
-      const newSKU = await this.prisma.productSKU.create({
-        data: {
-          ...skuData,
-          attributes: {
-            create: attributes.map((attr) => ({
-              attributeId: attr.attributeId,
-            })),
+    const sku = await this.generateSKU();
+    const { productId, price, quantity, attributes } = createProductSkusDto;
+
+    // Tạo SKU trước
+    const newSku = await this.prisma.productSKU.create({
+      data: {
+        productId,
+        sku,
+        price,
+        quantity,
+      },
+    });
+
+    // Tạo danh sách thuộc tính cho SKU
+    await this.prisma.productSKUAttribute.createMany({
+      data: attributes.map((attr) => ({
+        skuId: newSku.id,
+        attributeId: attr.attributeId,
+      })),
+    });
+
+    // Trả về SKU đã tạo cùng với danh sách thuộc tính
+    return this.prisma.productSKU.findUnique({
+      where: { id: newSku.id },
+      include: {
+        productSkuAttributes: {
+          include: {
+            attribute: {
+              select: {
+                id: true,
+                type: true,
+                value: true,
+              },
+            },
           },
         },
-        include: {
-          attributes: true,
-        },
-      });
-
-      return newSKU;
-    } catch (error) {
-      throw new Error(`Error creating SKU: ${error.message}`);
-    }
+      },
+    });
   }
 
   findAll() {
     return `This action returns all productSkus`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productSkus`;
+  async findOne(id: number) {
+    const res = await this.prisma.productSKU.findUnique({
+      where: { id },
+      include: {
+        productSkuAttributes: {
+          select: {
+            id: true,
+            attribute: {
+              select: {
+                id: true,
+                type: true,
+                value: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!res) {
+      throw new NotFoundException('Không tìm thấy sản phẩm!');
+    }
+    return { status: HttpStatus.OK, message: 'success', data: res };
   }
 
   async findByProduct(id: number) {
     const res = await this.prisma.productSKU.findMany({
       where: { productId: id },
+      select: {
+        id: true,
+        sku: true,
+        price: true,
+        quantity: true,
+        productSkuAttributes: {
+          select: {
+            id: true,
+            attribute: {
+              select: {
+                id: true,
+                type: true,
+                value: true,
+              },
+            },
+          },
+        },
+      }
     });
     if (!res) {
       throw new NotFoundException('Không tìm thấy sản phẩm!');

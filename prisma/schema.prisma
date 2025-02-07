@@ -38,12 +38,12 @@ model Product {
 }
 
 model ProductAttribute {
-  id            Int                   @id @default(autoincrement())
-  type          ProductAttributeType
-  value         String
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
-  skuAttributes ProductSKUAttribute[]
+  id                   Int                   @id @default(autoincrement())
+  type                 ProductAttributeType
+  value                String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  productSkuAttributes ProductSKUAttribute[]
 }
 
 model ProductSKU {
@@ -56,8 +56,8 @@ model ProductSKU {
   updatedAt DateTime @updatedAt
 
   // Relations
-  product    Product               @relation("ProductToSKU", fields: [productId], references: [id])
-  attributes ProductSKUAttribute[]
+  product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
+  productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
 }
 
 model ProductSKUAttribute {
@@ -65,8 +65,8 @@ model ProductSKUAttribute {
   skuId       Int
   attributeId Int
 
-  sku       ProductSKU       @relation(fields: [skuId], references: [id])
-  attribute ProductAttribute @relation(fields: [attributeId], references: [id])
+  productSku ProductSKU       @relation("SkuToAttribute", fields: [skuId], references: [id])
+  attribute  ProductAttribute @relation(fields: [attributeId], references: [id])
 }
 
 enum ProductAttributeType {

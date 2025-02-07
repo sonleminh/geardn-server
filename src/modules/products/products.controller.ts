@@ -12,11 +12,15 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { ProductEntity } from './entities/product.entity';
+import { ProductSkusService } from '../product-skus/product-skus.service';
 
 @Controller('products')
 @ApiTags('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly productSkusService: ProductSkusService
+  ) {}
 
   @Post()
   @ApiCreatedResponse({ type: ProductEntity })
@@ -37,8 +41,14 @@ export class ProductsController {
 
   @Get(':id')
   @ApiCreatedResponse({ type: ProductEntity })
-  findOne(@Param('id') id: number) {
+  findSkuByProductId(@Param('id') id: number) {
     return this.productsService.findOne(+id);
+  }
+
+  @Get('sku/:id')
+  @ApiCreatedResponse({ type: ProductEntity })
+  findOne(@Param('id') id: number) {
+    return this.productSkusService.findByProduct(+id);
   }
 
   @Patch(':id')
