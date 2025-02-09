@@ -7,34 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model TierVariant {
-  id        Int      @id @default(autoincrement())
-  value     String
-  options   String[]
-  images    String[]
-  // Product   Product? @relation(fields: [productId], references: [id])
-  // productId Int?
-  Product   Product? @relation(fields: [productId], references: [id])
-  productId Int?
-}
-
 model Product {
-  id              Int           @id @default(autoincrement())
-  name            String        @unique
-  categoryId      Int
-  category        Category      @relation(fields: [categoryId], references: [id])
-  tags            Json
-  images          String[]
-  tier_variations TierVariant[]
-  brand           String        @default("Không")
-  details         Json?
-  description     String?
-  id_slug         String?       @unique
-  is_deleted      Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  // detailsId       Int?
-  skus            ProductSKU[]  @relation("ProductToSKU")
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  categoryId  Int
+  category    Category     @relation(fields: [categoryId], references: [id])
+  tags        Json
+  images      String[]
+  brand       String       @default("Không")
+  details     Json?
+  description String?
+  slugId      String?      @unique
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  skus        ProductSKU[] @relation("ProductToSKU")
 }
 
 model ProductAttribute {
@@ -50,6 +37,7 @@ model ProductSKU {
   id        Int      @id @default(autoincrement())
   productId Int
   sku       String
+  imageUrl  String
   price     Decimal
   quantity  Int
   createdAt DateTime @default(now())

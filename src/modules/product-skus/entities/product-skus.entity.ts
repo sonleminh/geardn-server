@@ -19,6 +19,9 @@ export class ProductSkusEntity implements ProductSKU {
   quantity: number;
 
   @ApiProperty()
+  imageUrl: string;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

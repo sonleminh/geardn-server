@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateProductSKUAttributeDto } from './create-product-sku-attribute.dto.ts';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateProductSkusDto {
   @ApiProperty()
@@ -20,5 +20,9 @@ export class CreateProductSkusDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  imageUrl: string;
+
+  @ApiProperty()
+  @IsOptional()
   attributes: CreateProductSKUAttributeDto[];
 }

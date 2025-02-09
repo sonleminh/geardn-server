@@ -41,13 +41,13 @@ export class ProductsController {
 
   @Get(':id')
   @ApiCreatedResponse({ type: ProductEntity })
-  findSkuByProductId(@Param('id') id: number) {
+  findOne(@Param('id') id: number) {
     return this.productsService.findOne(+id);
   }
 
-  @Get('sku/:id')
+  @Get(':id/skus')
   @ApiCreatedResponse({ type: ProductEntity })
-  findOne(@Param('id') id: number) {
+  findSkusByProductId(@Param('id') id: number) {
     return this.productSkusService.findByProduct(+id);
   }
 

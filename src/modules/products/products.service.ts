@@ -18,10 +18,10 @@ export class ProductsService {
     const res = await this.prisma.product.create({
       data: createProductDto,
     });
-    const id_slug = generateSlugId(res.name, res.id);
+    const slugId = generateSlugId(res.name, res.id);
     const updatedProduct = await this.prisma.product.update({
       where: { id: res.id },
-      data: { id_slug },
+      data: { slugId },
     });
     return {
       status: HttpStatus.CREATED,
@@ -86,6 +86,18 @@ export class ProductsService {
             sku: true,
             price: true,
             quantity: true,
+            productSkuAttributes: {
+              select: {
+                id: true,
+                attribute: {
+                  select: {
+                    id: true,
+                    type: true,
+                    value: true,
+                  },
+                },
+              },
+            }
           },
         },
       },
@@ -106,7 +118,7 @@ export class ProductsService {
 
   async softDelete(id: number): Promise<{ deleteCount: number }> {
     const entity = await this.prisma.product.findUnique({
-      where: { id, is_deleted: false },
+      where: { id, isDeleted: false },
     });
 
     if (!entity) {
@@ -114,7 +126,7 @@ export class ProductsService {
     }
     await this.prisma.product.update({
       where: { id },
-      data: { is_deleted: true },
+      data: { isDeleted: true },
     });
     return {
       deleteCount: 1,

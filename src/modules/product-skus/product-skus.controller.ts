@@ -22,11 +22,6 @@ export class ProductSkusController {
     return this.productSkusService.findOne(+id);
   }
 
-  @Get('/product/:id')
-  findByProduct(@Param('id') id: string) {
-    return this.productSkusService.findByProduct(+id);
-  }
-
   @Patch(':id')
   update(
     @Param('id') id: string,

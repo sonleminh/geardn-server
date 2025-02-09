@@ -26,25 +26,29 @@ export class ProductSkusService {
 
   async create(createProductSkusDto: CreateProductSkusDto) {
     const sku = await this.generateSKU();
-    const { productId, price, quantity, attributes } = createProductSkusDto;
+    const { productId, imageUrl, price, quantity, attributes } =
+      createProductSkusDto;
 
     // Tạo SKU trước
     const newSku = await this.prisma.productSKU.create({
       data: {
         productId,
         sku,
+        imageUrl,
         price,
         quantity,
       },
     });
 
-    // Tạo danh sách thuộc tính cho SKU
-    await this.prisma.productSKUAttribute.createMany({
-      data: attributes.map((attr) => ({
-        skuId: newSku.id,
-        attributeId: attr.attributeId,
-      })),
-    });
+    if (attributes?.length) {
+      // Tạo danh sách thuộc tính cho SKU
+      await this.prisma.productSKUAttribute.createMany({
+        data: attributes.map((attr) => ({
+          skuId: newSku.id,
+          attributeId: attr.attributeId,
+        })),
+      });
+    }
 
     // Trả về SKU đã tạo cùng với danh sách thuộc tính
     return this.prisma.productSKU.findUnique({
@@ -101,6 +105,12 @@ export class ProductSkusService {
         sku: true,
         price: true,
         quantity: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         productSkuAttributes: {
           select: {
             id: true,
@@ -113,7 +123,7 @@ export class ProductSkusService {
             },
           },
         },
-      }
+      },
     });
     if (!res) {
       throw new NotFoundException('Không tìm thấy sản phẩm!');

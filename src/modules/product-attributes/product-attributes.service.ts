@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProductAttributeDto } from './dto/create-product-attribute.dto';
 import { UpdateProductAttributeDto } from './dto/update-product-attribute.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ProductAttributeType } from '@prisma/client';
 
 @Injectable()
 export class ProductAttributesService {
@@ -29,6 +30,14 @@ export class ProductAttributesService {
   async findOne(id: number) {
     const res = await this.prisma.productAttribute.findUnique({
       where: { id },
+    });
+    return { status: HttpStatus.OK, message: 'success', data: res };
+  }
+
+  async findByType(type: string) {
+    const enumValue = type.toUpperCase() as ProductAttributeType;
+    const res = await this.prisma.productAttribute.findMany({
+      where: { type: enumValue },
     });
     return { status: HttpStatus.OK, message: 'success', data: res };
   }
