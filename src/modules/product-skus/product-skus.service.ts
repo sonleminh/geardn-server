@@ -69,8 +69,32 @@ export class ProductSkusService {
     });
   }
 
-  findAll() {
-    return `This action returns all productSkus`;
+  async findAll() {
+    const [res, total] = await Promise.all([
+      this.prisma.productSKU.findMany({
+        include: {
+          productSkuAttributes: {
+            select: {
+              id: true,
+              attribute: {
+                select: {
+                  id: true,
+                  type: true,
+                  value: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.productSKU.count(),
+    ])
+    return {
+      productSkus: res,
+      total,
+      status: HttpStatus.OK,
+      message: 'success',
+    };
   }
 
   async findOne(id: number) {
@@ -92,7 +116,7 @@ export class ProductSkusService {
       },
     });
     if (!res) {
-      throw new NotFoundException('Không tìm thấy sản phẩm!');
+      throw new NotFoundException('Không tìm thấy mã hàng!');
     }
     return { status: HttpStatus.OK, message: 'success', data: res };
   }
