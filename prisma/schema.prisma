@@ -55,6 +55,8 @@ model ProductSKUAttribute {
 
   productSku ProductSKU       @relation("SkuToAttribute", fields: [skuId], references: [id])
   attribute  ProductAttribute @relation(fields: [attributeId], references: [id])
+
+  @@unique([skuId, attributeId])
 }
 
 enum ProductAttributeType {

@@ -29,6 +29,25 @@ export class ProductSkusService {
     const { productId, imageUrl, price, quantity, attributes } =
       createProductSkusDto;
 
+    const existingSkus = await this.prisma.productSKU.findMany({
+      where: { productId },
+      include: { productSkuAttributes: true },
+    });
+
+    const isDuplicate = existingSkus.some((existingSku) => {
+      const existingAttributes = existingSku.productSkuAttributes
+        .map((attr) => attr.attributeId)
+        .sort();
+      const newAttributes = attributes.map((attr) => attr.attributeId).sort();
+      return (
+        JSON.stringify(existingAttributes) === JSON.stringify(newAttributes)
+      );
+    });
+
+    if (isDuplicate) {
+      throw new Error('SKU with the same attributes already exists.');
+    }
+
     // Tạo SKU trước
     const newSku = await this.prisma.productSKU.create({
       data: {
@@ -88,7 +107,7 @@ export class ProductSkusService {
         },
       }),
       this.prisma.productSKU.count(),
-    ])
+    ]);
     return {
       productSkus: res,
       total,
@@ -129,6 +148,7 @@ export class ProductSkusService {
         sku: true,
         price: true,
         quantity: true,
+        imageUrl: true,
         product: {
           select: {
             id: true,

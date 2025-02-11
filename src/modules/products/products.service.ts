@@ -47,6 +47,7 @@ export class ProductsService {
             select: {
               id: true,
               name: true,
+              slug: true,
             },
           },
           skus: {
