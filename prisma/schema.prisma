@@ -17,7 +17,7 @@ model Product {
   brand       String       @default("Không")
   details     Json?
   description String?
-  slugId      String?      @unique
+  slug        String       @unique
   isDeleted   Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

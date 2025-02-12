@@ -34,7 +34,7 @@ export class ProductEntity implements Product {
   description: string | null;
 
   @ApiProperty({ uniqueItems: true })
-  slugId: string;
+  slug: string;
 
   @ApiProperty({ required: true })
   isDeleted: boolean;

@@ -45,6 +45,12 @@ export class ProductsController {
     return this.productsService.findOne(+id);
   }
 
+  @Get('slug/:slug')
+  @ApiCreatedResponse({ type: ProductEntity })
+  getProductBySlug(@Param('slug') slug: string) {
+    return this.productsService.getProductBySlug(slug);
+  }
+
   @Get(':id/skus')
   @ApiCreatedResponse({ type: ProductEntity })
   findSkusByProductId(@Param('id') id: number) {

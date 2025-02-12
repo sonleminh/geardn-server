@@ -4,7 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { CategoriesService } from '../categories/categories.service';
 import { TAGS } from './dto/tag.dto';
-import { generateSlugId } from 'src/utils/slug.until';
+import { generateSlug } from 'src/utils/slug.until';
 import { ProductSkusService } from '../product-skus/product-skus.service';
 
 @Injectable()
@@ -16,17 +16,12 @@ export class ProductsService {
   ) {}
   async create(createProductDto: CreateProductDto) {
     const res = await this.prisma.product.create({
-      data: createProductDto,
-    });
-    const slugId = generateSlugId(res.name, res.id);
-    const updatedProduct = await this.prisma.product.update({
-      where: { id: res.id },
-      data: { slugId },
+      data: { ...createProductDto, slug: generateSlug(createProductDto.name) },
     });
     return {
       status: HttpStatus.CREATED,
       message: 'success',
-      data: updatedProduct,
+      data: res,
     };
   }
 
@@ -107,6 +102,46 @@ export class ProductsService {
       throw new NotFoundException('Không tìm thấy sản phẩm!');
     }
     return { status: HttpStatus.OK, message: 'success', data: res };
+  }
+
+  async getProductBySlug(slug: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { slug },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        skus: {
+          select: {
+            id: true,
+            sku: true,
+            price: true,
+            quantity: true,
+            productSkuAttributes: {
+              select: {
+                id: true,
+                attribute: {
+                  select: {
+                    id: true,
+                    type: true,
+                    value: true,
+                  },
+                },
+              },
+            }
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with slug "${slug}" not found`);
+    }
+
+    return product;
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {

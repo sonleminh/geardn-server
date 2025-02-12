@@ -1,13 +1,9 @@
-import slugify from 'slugify';
-
-export const SLUGIFY_CONFIG = {
-  replacement: '-',
-  lower: true,
-  remove: /[*+~.()'"!:@]/g,
-  locale: 'vi',
-  strict: true,
-};
-
-export function generateSlugId(title: string, id: number) {
-  return `${slugify(title, SLUGIFY_CONFIG)}-${id}`;
+export function generateSlug(text: string) {
+  return text
+    .toLowerCase() // Convert to lowercase
+    .normalize('NFD') // Normalize characters (handle accents)
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except space and hyphen
+    .trim() // Trim leading/trailing spaces
+    .replace(/\s+/g, '-'); // Replace spaces with hyphens
 }
