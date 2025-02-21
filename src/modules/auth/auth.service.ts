@@ -12,6 +12,7 @@ import { RegisterDTO } from './dto/register.dto';
 import { UserService } from '../user/user.service';
 import { ILoginResponse } from 'src/interfaces/IUser';
 import { ITokenPayload } from 'src/interfaces/ITokenPayload';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 @Injectable()
 export class AuthService {
   private ATSecret: string;
@@ -38,7 +39,7 @@ export class AuthService {
     return userData;
   }
 
-  async signUp(registerDTO: RegisterDTO) {
+  async signUp(registerDTO: CreateUserDto) {
     try {
       return this.userService.createUser(registerDTO);
     } catch (error) {

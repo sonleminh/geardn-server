@@ -7,13 +7,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(registerDTO: any) {
-    // async createUser(registerDTO: RegisterDTO) {
+  async createUser(registerDTO: CreateUserDto) {
     const checkExistUser = await this.prisma.user.findUnique({
       where: { email: registerDTO.email },
     });

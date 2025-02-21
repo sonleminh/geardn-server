@@ -120,6 +120,7 @@ export class ProductsService {
             sku: true,
             price: true,
             quantity: true,
+            imageUrl: true,
             productSkuAttributes: {
               select: {
                 id: true,

@@ -12,6 +12,7 @@ import { RegisterDTO } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { UserService } from '../user/user.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -19,8 +20,8 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
   @Post('signup')
-  async signUp(@Body() registerDTO: RegisterDTO) {
-    return this.authService.signUp(registerDTO);
+  async signUp(@Body() createProductDto: CreateUserDto) {
+    return this.authService.signUp(createProductDto);
   }
 
   @UseGuards(LocalAuthGuard)
