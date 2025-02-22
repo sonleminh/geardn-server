@@ -1,5 +1,5 @@
 export interface ILoginResponse {
-  _id: number;
+  id: number;
   email: string;
   password: string;
   name: string;

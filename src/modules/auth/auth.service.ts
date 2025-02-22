@@ -50,7 +50,7 @@ export class AuthService {
   async login(user: ILoginResponse, res: Response) {
     try {
       const { accessToken, refreshToken } = await this.generaTokens({
-        _id: user._id,
+        id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -134,9 +134,9 @@ export class AuthService {
       const payload = await this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET_KEY'),
       });
-      const { _id, email, name, role, ...rest } = payload;
+      const { id, email, name, role, ...rest } = payload;
       const newAccessToken = await this.jwtService.signAsync(
-        { _id, email, name, role },
+        { id, email, name, role },
         {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
           expiresIn: '2h',

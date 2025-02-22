@@ -26,7 +26,7 @@ export class RoleGuard implements CanActivate {
     const user = request.user as {
       email: string;
       name: string;
-      id_user: string;
+      userId: string;
       role: (keyof RBAC)[];
     };
 

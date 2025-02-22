@@ -12,6 +12,7 @@ import { LoggerModule } from './logger/logger.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { ProductAttributesModule } from './modules/product-attributes/product-attributes.module';
 import { ProductSkusModule } from './modules/product-skus/product-skus.module';
+import { CartsModule } from './modules/carts/carts.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ProductSkusModule } from './modules/product-skus/product-skus.module';
     LoggerModule,
     ProductAttributesModule,
     ProductSkusModule,
+    CartsModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

@@ -22,6 +22,7 @@ model Product {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   skus        ProductSKU[] @relation("ProductToSKU")
+  CartItem    CartItem[]
 }
 
 model ProductAttribute {
@@ -46,6 +47,7 @@ model ProductSKU {
   // Relations
   product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
   productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
+  CartItem             CartItem[]
 }
 
 model ProductSKUAttribute {
@@ -82,4 +84,31 @@ model User {
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  Cart      Cart[]
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int? // Chỉ có nếu user đã đăng nhập
+  user      User?      @relation(fields: [userId], references: [id])
+  sessionId String?    @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[] // Danh sách sản phẩm trong giỏ
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  skuId     Int? // Nếu sản phẩm có nhiều biến thể (màu sắc, switch,...)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart        @relation(fields: [cartId], references: [id])
+  product Product     @relation(fields: [productId], references: [id])
+  sku     ProductSKU? @relation(fields: [skuId], references: [id])
+
+  @@unique([cartId, productId, skuId])
 }

@@ -49,7 +49,7 @@ export class AdminAuthService {
   async login(user: ILoginResponse, res: Response) {
     try {
       const { accessToken, refreshToken } = await this.generaTokens({
-        _id: user._id,
+        id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
