@@ -4,15 +4,16 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Req,
-  Res,
+  Res
 } from '@nestjs/common';
-import { CartsService } from './carts.service';
-import { UpdateCartDto } from './dto/update-cart.dto';
-import { AddToCartDto } from './dto/add-to-cart.dto';
 import { Request } from 'express';
+
+import { CartsService } from './carts.service';
+
+import { UpdateQuantityDto } from './dto/update-quantity.dto';
+import { AddToCartDto } from './dto/add-to-cart.dto';
 
 @Controller('carts')
 export class CartsController {
@@ -27,23 +28,26 @@ export class CartsController {
     return this.cartsService.addToCart(addToCartDto, req, res);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.cartsService.findAll();
-  // }
+  @Post('update-quantity')
+  async updateQuantity(
+    @Body() updateQuantityDto: UpdateQuantityDto,
+    @Req() req: Request,
+  ) {
+    return this.cartsService.updateQuantity(updateQuantityDto, req);
+  }
 
   @Get('')
   getCart(@Req() req: Request) {
     return this.cartsService.getCart(req);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCartDto: UpdateCartDto) {
-    return this.cartsService.update(+id, updateCartDto);
+  @Delete('/remove-item/:id')
+  async removeCartItem(@Param('id') id: number) {
+    return this.cartsService.removeCartItem(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cartsService.remove(+id);
+  @Delete('clear-cart')
+  async clearCartItems(@Req() req: Request) {
+    return this.cartsService.clearCartItems(req);
   }
 }

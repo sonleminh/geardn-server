@@ -1,14 +1,16 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateCartDto } from './dto/create-cart.dto';
-import { UpdateCartDto } from './dto/update-cart.dto';
-import { v4 as uuidv4 } from 'uuid';
-import { AddToCartDto } from './dto/add-to-cart.dto';
-import { Response, Request } from 'express';
-import { PrismaService } from '../prisma/prisma.service';
-import { getCartTokenFromCookies } from 'src/utils/getCartToken';
+import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
+
 import { ILoginResponse } from 'src/interfaces/IUser';
 import { getAccessTokenFromCookies } from 'src/utils/getAccessToken';
+import { getCartTokenFromCookies } from 'src/utils/getCartToken';
+
+import { PrismaService } from '../prisma/prisma.service';
+
+import { AddToCartDto } from './dto/add-to-cart.dto';
+import { UpdateQuantityDto } from './dto/update-quantity.dto';
 
 @Injectable()
 export class CartsService {
@@ -78,25 +80,66 @@ export class CartsService {
     return 'This action adds a new cart';
   }
 
-  findAll() {
-    return `This action returns all carts`;
+  async updateQuantity(updateQuantityDto: UpdateQuantityDto, req: Request) {
+    const at = getAccessTokenFromCookies(req);
+    const sessionId = getCartTokenFromCookies(req);
+
+    let userData: ILoginResponse | null = null;
+    if (at) {
+      userData = jwt.verify(at, 'geardn') as ILoginResponse;
+    }
+
+    const cart = await this.prisma.cart.findFirst({
+      where: { OR: [{ userId: userData?.id }, { sessionId }] },
+    });
+
+    if (!cart) throw new Error('Cart not found');
+
+    const cartItem = await this.prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        skuId: updateQuantityDto.skuId,
+      },
+    });
+
+    if (!cartItem) throw new Error('Item not found in cart');
+
+    if (updateQuantityDto.quantity <= 0) {
+      await this.prisma.cartItem.delete({
+        where: {
+          id: cartItem.id,
+        },
+      });
+    } else {
+      await this.prisma.cartItem.update({
+        where: {
+          id: cartItem.id,
+        },
+        data: {
+          quantity: updateQuantityDto.quantity,
+        },
+      });
+    }
+
+    return this.prisma.cart.findUnique({
+      where: { id: cart.id },
+      include: { items: true },
+    });
   }
 
   async getCart(req: Request) {
-    const cookies = req.headers?.cookie;
     const at = getAccessTokenFromCookies(req);
     const cartToken = getCartTokenFromCookies(req);
-    console.log('ck:', cartToken);
 
     if (!at && !cartToken) {
-      throw new NotFoundException('Không tìm thấy giỏ hàng!');
+      throw new NotFoundException('Cart not found!');
     }
 
     let userData: ILoginResponse | null = null;
     if (at) {
       userData = jwt.verify(at, 'geardn') as ILoginResponse;
       if (!userData) {
-        throw new NotFoundException('Không tìm thấy giỏ hàng!');
+        throw new NotFoundException('Cart not found!');
       }
     }
 
@@ -105,42 +148,42 @@ export class CartsService {
         OR: [{ userId: userData?.id }, { sessionId: cartToken }],
       },
       include: {
-        items: true
-        // {
-        //   include: {
-        //     sku: true,
-        //   },
-        // },
+        items: true,
       },
     });
 
-    // console.log('cart:', userData);
-
     if (!cart) {
-      throw new NotFoundException('Không tìm thấy giỏ hàng!');
+      throw new NotFoundException('Cart not found!');
     }
 
     return { status: HttpStatus.OK, message: 'success', data: cart };
-
-    // async getCart(sessionId: string | null, userId: number | null) {
-    // return await this.prisma.cart.findFirst({
-    //   where: { OR: [{ userId: userId }, { sessionId }] },
-    //   include: {
-    //     items: {
-    //       include: {
-    //         product: true,
-    //         sku: true,
-    //       },
-    //     },
-    //   }
-    // });
   }
 
-  update(id: number, updateCartDto: UpdateCartDto) {
-    return `This action updates a #${id} cart`;
+  async removeCartItem(cartItemId: number) {
+    return await this.prisma.cartItem.delete({
+      where: { id: cartItemId },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cart`;
+  async clearCartItems(req: Request) {
+    const at = getAccessTokenFromCookies(req);
+    const sessionId = getCartTokenFromCookies(req);
+
+    let userData: ILoginResponse | null = null;
+    if (at) {
+      userData = jwt.verify(at, 'geardn') as ILoginResponse;
+    }
+
+    const cart = await this.prisma.cart.findFirst({
+      where: { OR: [{ userId: userData?.id }, { sessionId }] },
+    });
+    console.log('cart', cart);
+    await this.prisma.cartItem.deleteMany({
+      where: {
+        cartId: cart?.id,
+      },
+    });
+
+    return { status: HttpStatus.OK, message: 'All cart items removed!' };
   }
 }
