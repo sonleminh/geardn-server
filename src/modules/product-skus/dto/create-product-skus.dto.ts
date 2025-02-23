@@ -19,7 +19,7 @@ export class CreateProductSkusDto {
   quantity: number;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   imageUrl: string;
 
   @ApiProperty()

@@ -38,7 +38,7 @@ model ProductSKU {
   id        Int      @id @default(autoincrement())
   productId Int
   sku       String
-  imageUrl  String
+  imageUrl  String?
   price     Decimal
   quantity  Int
   createdAt DateTime @default(now())

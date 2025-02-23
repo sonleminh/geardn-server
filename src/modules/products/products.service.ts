@@ -117,6 +117,7 @@ export class ProductsService {
         skus: {
           select: {
             id: true,
+            productId: true,
             sku: true,
             price: true,
             quantity: true,
