@@ -1,13 +1,15 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ProductSkusService } from '../product-skus/product-skus.service';
+import { CategoriesService } from '../categories/categories.service';
+import { PrismaService } from 'src/modules/prisma/prisma.service';
+
+import { paginateCalculator } from 'src/utils/page-helpers';
+import { generateSlug } from 'src/utils/slug.until';
+
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { CategoriesService } from '../categories/categories.service';
-import { TAGS } from './dto/tag.dto';
-import { generateSlug } from 'src/utils/slug.until';
-import { ProductSkusService } from '../product-skus/product-skus.service';
 import { QueryParamDto } from 'src/dtos/query-params.dto';
-import { paginateCalculator } from 'src/utils/page-helpers';
+import { TAGS } from './dto/tag.dto';
 
 @Injectable()
 export class ProductsService {
@@ -41,40 +43,52 @@ export class ProductsService {
       queryParam.page,
       queryParam.limit,
     );
-    const [res, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where: {
-          isDeleted: false,
-        },
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          skus: {
-            select: {
-              price: true,
-            },
-            orderBy: {
-              price: 'asc', // Sắp xếp giá từ thấp đến cao
-            },
-            take: 1, // Chỉ lấy SKU có giá thấp nhất
+
+    let products = await this.prisma.product.findMany({
+      where: {
+        isDeleted: false,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
           },
         },
-        skip: passedPage,
-        take: resPerPage
-      }),
-      this.prisma.product.count({
-        where: {
-          isDeleted: false
-        }
-      }),
-    ]);
+        skus: {
+          select: {
+            price: true,
+          },
+          orderBy: {
+            price: 'asc',
+          },
+          take: 1,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: passedPage,
+      take: resPerPage,
+    });
+  
+    if (queryParam.sort === 'asc' || queryParam.sort === 'desc') {
+      products = products.sort((a, b) => {
+        const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
+        const priceB = b.skus.length ? +b.skus[0].price : Number.MAX_VALUE;
+        return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
+      });
+    }
+  
+    const total = await this.prisma.product.count({
+      where: {
+        isDeleted: false,
+      },
+    });
+
     return {
-      products: res,
+      products: products,
       total,
       status: HttpStatus.OK,
       message: 'success',
@@ -91,7 +105,8 @@ export class ProductsService {
             name: true,
           },
         },
-        skus: { // Thêm phần này để lấy thông tin SKU
+        skus: {
+          // Thêm phần này để lấy thông tin SKU
           select: {
             id: true,
             sku: true,
@@ -108,7 +123,7 @@ export class ProductsService {
                   },
                 },
               },
-            }
+            },
           },
         },
       },
@@ -148,7 +163,7 @@ export class ProductsService {
                   },
                 },
               },
-            }
+            },
           },
         },
       },

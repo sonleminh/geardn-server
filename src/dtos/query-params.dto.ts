@@ -1,4 +1,4 @@
-import { IsNumberString, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumberString, IsOptional, IsString } from 'class-validator';
 
 export class QueryParamDto {
   @IsOptional()
@@ -14,6 +14,6 @@ export class QueryParamDto {
   limit?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(['asc', 'desc'], { message: 'Sort must be "asc" or "desc"' })
   sort?: 'asc' | 'desc';
 }
