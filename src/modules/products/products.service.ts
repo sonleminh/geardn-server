@@ -6,6 +6,8 @@ import { CategoriesService } from '../categories/categories.service';
 import { TAGS } from './dto/tag.dto';
 import { generateSlug } from 'src/utils/slug.until';
 import { ProductSkusService } from '../product-skus/product-skus.service';
+import { QueryParamDto } from 'src/dtos/query-params.dto';
+import { paginateCalculator } from 'src/utils/page-helpers';
 
 @Injectable()
 export class ProductsService {
@@ -34,9 +36,16 @@ export class ProductsService {
     return { categories, tags: tags };
   }
 
-  async findAll() {
+  async findAll(queryParam: QueryParamDto) {
+    const { resPerPage, passedPage } = paginateCalculator(
+      queryParam.page,
+      queryParam.limit,
+    );
     const [res, total] = await Promise.all([
       this.prisma.product.findMany({
+        where: {
+          isDeleted: false,
+        },
         include: {
           category: {
             select: {
@@ -55,8 +64,14 @@ export class ProductsService {
             take: 1, // Chỉ lấy SKU có giá thấp nhất
           },
         },
+        skip: passedPage,
+        take: resPerPage
       }),
-      this.prisma.product.count(),
+      this.prisma.product.count({
+        where: {
+          isDeleted: false
+        }
+      }),
     ]);
     return {
       products: res,
