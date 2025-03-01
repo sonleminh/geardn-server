@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { ValidationConfig } from './config/validation.config';
+import { ResponseInterceptor } from './interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,6 +42,7 @@ async function bootstrap() {
   });
   app.setGlobalPrefix(apiPrefix);
   app.useGlobalPipes(new ValidationPipe(ValidationConfig));
+  app.useGlobalInterceptors(new ResponseInterceptor());
   await app.listen(port);
 }
 bootstrap();

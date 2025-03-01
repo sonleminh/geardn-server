@@ -21,7 +21,7 @@ import { QueryParamDto } from 'src/dtos/query-params.dto';
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
-    private readonly productSkusService: ProductSkusService
+    private readonly productSkusService: ProductSkusService,
   ) {}
 
   @Post()
@@ -51,6 +51,17 @@ export class ProductsController {
   @ApiCreatedResponse({ type: ProductEntity })
   getProductBySlug(@Param('slug') slug: string) {
     return this.productsService.getProductBySlug(slug);
+  }
+
+  @Get('/category/:slug')
+  async getProductByCateSlug(
+    @Param('slug') slug: string,
+    @Query() queryParam: QueryParamDto,
+  ) {
+    return await this.productsService.getProductsByCategorySlug(
+      slug,
+      queryParam,
+    );
   }
 
   @Get(':id/skus')

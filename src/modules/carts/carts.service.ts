@@ -156,7 +156,7 @@ export class CartsService {
       throw new NotFoundException('Cart not found!');
     }
 
-    return { status: HttpStatus.OK, message: 'success', data: cart };
+    return { message: 'success', data: cart };
   }
 
   async removeCartItem(cartItemId: number) {
@@ -184,6 +184,6 @@ export class CartsService {
       },
     });
 
-    return { status: HttpStatus.OK, message: 'All cart items removed!' };
+    return { message: 'All cart items removed!' };
   }
 }

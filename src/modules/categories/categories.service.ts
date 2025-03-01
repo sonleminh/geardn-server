@@ -20,16 +20,20 @@ export class CategoriesService {
       this.prisma.category.count(),
     ])
     return {
-      categories: res,
+      data: res,
       total,
-      status: HttpStatus.OK,
       message: 'success',
     };
   }
 
   async findOne(id: number) {
     const res = await this.prisma.category.findUnique({ where: { id } });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { message: 'success', data: res };
+  }
+
+  async findOneBySlug(slug: string) {
+    const res = await this.prisma.category.findUnique({ where: { slug } });
+    return { message: 'success', data: res };
   }
 
   async getCategoryInitial() {
@@ -43,7 +47,7 @@ export class CategoriesService {
       where: { id },
       data: updateCategoryDto,
     });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { message: 'success', data: res };
   }
 
   remove(id: number) {

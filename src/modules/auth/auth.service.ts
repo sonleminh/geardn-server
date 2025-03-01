@@ -70,7 +70,7 @@ export class AuthService {
     res.clearCookie('at');
     res.clearCookie('rt');
     res.clearCookie('GC');
-    return { message: 'Logout successful!', statusCode: HttpStatus.OK };
+    return { message: 'Logout successful!' };
   }
 
   async generaTokens(data: ITokenPayload) {
@@ -147,7 +147,6 @@ export class AuthService {
       return {
         accessToken: newAccessToken,
         expires: 2,
-        statusCode: HttpStatus.OK,
       };
     } catch {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);

@@ -18,12 +18,10 @@ export class ProductAttributesService {
     const [res, total] = await Promise.all([
       this.prisma.productAttribute.findMany(),
       this.prisma.productAttribute.count(),
-    ])
+    ]);
     return {
-      product_attributes: res,
+      data: res,
       total,
-      status: HttpStatus.OK,
-      message: 'success',
     };
   }
 
@@ -31,7 +29,7 @@ export class ProductAttributesService {
     const res = await this.prisma.productAttribute.findUnique({
       where: { id },
     });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   async findByType(type: string) {
@@ -39,7 +37,7 @@ export class ProductAttributesService {
     const res = await this.prisma.productAttribute.findMany({
       where: { type: enumValue },
     });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   async update(
@@ -50,7 +48,7 @@ export class ProductAttributesService {
       where: { id },
       data: updateProductAttributeDto,
     });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   remove(id: number) {

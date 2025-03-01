@@ -109,10 +109,8 @@ export class ProductSkusService {
       this.prisma.productSKU.count(),
     ]);
     return {
-      productSkus: res,
+      data: res,
       total,
-      status: HttpStatus.OK,
-      message: 'success',
     };
   }
 
@@ -137,7 +135,7 @@ export class ProductSkusService {
     if (!res) {
       throw new NotFoundException('Không tìm thấy mã hàng!');
     }
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { message: 'success', data: res };
   }
 
   async findByProduct(id: number) {
@@ -172,7 +170,7 @@ export class ProductSkusService {
     if (!res) {
       throw new NotFoundException('Không tìm thấy sản phẩm!');
     }
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   update(id: number, updateProductSkusDto: UpdateProductSkusDto) {

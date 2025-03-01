@@ -23,19 +23,17 @@ export class ProductsService {
       data: { ...createProductDto, slug: generateSlug(createProductDto.name) },
     });
     return {
-      status: HttpStatus.CREATED,
-      message: 'success',
       data: res,
     };
   }
 
   async getInitialProductForCreate() {
-    const categories = await this.categoriesService.getCategoryInitial();
+    const res = await this.categoriesService.getCategoryInitial();
     const tags = Object.keys(TAGS).map((key) => ({
       value: key,
       label: TAGS[key as keyof typeof TAGS],
     }));
-    return { categories, tags: tags };
+    return { data: res, tags: tags };
   }
 
   async findAll(queryParam: QueryParamDto) {
@@ -72,7 +70,7 @@ export class ProductsService {
       skip: passedPage,
       take: resPerPage,
     });
-  
+
     if (queryParam.sort === 'asc' || queryParam.sort === 'desc') {
       products = products.sort((a, b) => {
         const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
@@ -80,7 +78,7 @@ export class ProductsService {
         return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
       });
     }
-  
+
     const total = await this.prisma.product.count({
       where: {
         isDeleted: false,
@@ -88,10 +86,9 @@ export class ProductsService {
     });
 
     return {
-      products: products,
+      data: products,
       total,
-      status: HttpStatus.OK,
-      message: 'success',
+      message: 'Product list retrieved successfully',
     };
   }
 
@@ -131,7 +128,7 @@ export class ProductsService {
     if (!res) {
       throw new NotFoundException('Không tìm thấy sản phẩm!');
     }
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   async getProductBySlug(slug: string) {
@@ -173,7 +170,67 @@ export class ProductsService {
       throw new NotFoundException(`Product with slug "${slug}" not found`);
     }
 
-    return product;
+    return {
+      data: product,
+    };
+  }
+
+  async getProductsByCategorySlug(slug: string, queryParam: QueryParamDto) {
+    const category = await this.categoriesService.findOneBySlug(slug);
+
+    const total = await this.prisma.product.count({
+      where: { categoryId: category.data.id },
+    });
+
+    let res = await this.prisma.product.findMany({
+      where: { categoryId: category.data.id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        skus: {
+          select: {
+            id: true,
+            productId: true,
+            sku: true,
+            price: true,
+            quantity: true,
+            imageUrl: true,
+            productSkuAttributes: {
+              select: {
+                id: true,
+                attribute: {
+                  select: {
+                    id: true,
+                    type: true,
+                    value: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (queryParam.sort === 'asc' || queryParam.sort === 'desc') {
+      res = res.sort((a, b) => {
+        const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
+        const priceB = b.skus.length ? +b.skus[0].price : Number.MAX_VALUE;
+        return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
+      });
+    }
+
+    return {
+      products: res,
+      total,
+    };
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -181,7 +238,7 @@ export class ProductsService {
       where: { id },
       data: updateProductDto,
     });
-    return { status: HttpStatus.OK, message: 'success', data: res };
+    return { data: res };
   }
 
   async softDelete(id: number): Promise<{ deleteCount: number }> {

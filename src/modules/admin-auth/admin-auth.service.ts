@@ -69,7 +69,7 @@ export class AdminAuthService {
     res.clearCookie('at');
     res.clearCookie('rt');
     res.clearCookie('GC');
-    return { message: 'Logout successful!', statusCode: HttpStatus.OK };
+    return { message: 'Logout successful!' };
   }
 
   async generaTokens(data: ITokenPayload) {
@@ -147,7 +147,6 @@ export class AdminAuthService {
       return {
         accessToken: newAccessToken,
         expires: 2,
-        statusCode: HttpStatus.OK,
       };
       // return 2;
     } catch {
