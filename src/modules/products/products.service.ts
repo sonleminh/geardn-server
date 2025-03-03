@@ -126,7 +126,7 @@ export class ProductsService {
       },
     });
     if (!res) {
-      throw new NotFoundException('Không tìm thấy sản phẩm!');
+      throw new NotFoundException('Cannot find product!');
     }
     return { data: res };
   }
@@ -178,6 +178,10 @@ export class ProductsService {
   async getProductsByCategorySlug(slug: string, queryParam: QueryParamDto) {
     const category = await this.categoriesService.findOneBySlug(slug);
 
+    if (!category) {
+      throw new NotFoundException('No products found based on category');
+    }
+
     const total = await this.prisma.product.count({
       where: { categoryId: category.data.id },
     });
@@ -228,8 +232,9 @@ export class ProductsService {
     }
 
     return {
-      products: res,
+      data: res,
       total,
+      message: 'Product list retrieved successfully',
     };
   }
 
