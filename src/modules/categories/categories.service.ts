@@ -33,7 +33,7 @@ export class CategoriesService {
 
   async findOneBySlug(slug: string) {
     const res = await this.prisma.category.findUnique({ where: { slug } });
-    return { message: 'success', data: res };
+    return { data: res };
   }
 
   async getCategoryInitial() {

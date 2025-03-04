@@ -178,7 +178,7 @@ export class ProductsService {
   async getProductsByCategorySlug(slug: string, queryParam: QueryParamDto) {
     const category = await this.categoriesService.findOneBySlug(slug);
 
-    if (!category) {
+    if (!category?.data) {
       throw new NotFoundException('No products found based on category');
     }
 
@@ -230,10 +230,10 @@ export class ProductsService {
         return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
       });
     }
-
+    
     return {
       data: res,
-      total,
+      total: total,
       message: 'Product list retrieved successfully',
     };
   }
