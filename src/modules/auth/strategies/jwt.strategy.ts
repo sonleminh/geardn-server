@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Parse the cookies
     const jwtCookie = cookies
       .split('; ')
-      .find((cookie) => cookie.startsWith('at='));
+      .find((cookie) => cookie.startsWith('access_token='));
 
     // If no JWT cookie is found, return null
     if (!jwtCookie) {

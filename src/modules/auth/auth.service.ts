@@ -56,8 +56,8 @@ export class AuthService {
         role: user.role,
       });
 
-      this.storeToken(res, 'at', accessToken, 2);
-      this.storeToken(res, 'rt', refreshToken, 48);
+      this.storeToken(res, 'access_token', accessToken, 2);
+      this.storeToken(res, 'refresh_token', refreshToken, 48);
 
       const { password, ...tempUser } = user;
       return tempUser;
@@ -67,8 +67,8 @@ export class AuthService {
   }
 
   async logout(req: expressRequest, res: Response) {
-    res.clearCookie('at');
-    res.clearCookie('rt');
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
     res.clearCookie('GC');
     return { message: 'Logout successful!' };
   }
@@ -142,7 +142,7 @@ export class AuthService {
           expiresIn: '2h',
         },
       );
-      this.storeToken(res, 'at', newAccessToken, 2);
+      this.storeToken(res, 'access_token', newAccessToken, 2);
 
       return {
         accessToken: newAccessToken,
