@@ -49,15 +49,15 @@ export class AuthService {
 
   async login(user: ILoginResponse, res: Response) {
     try {
-      const { accessToken, refreshToken } = await this.generaTokens({
+      const { access_token, refresh_token } = await this.generaTokens({
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
       });
 
-      this.storeToken(res, 'access_token', accessToken, 2);
-      this.storeToken(res, 'refresh_token', refreshToken, 48);
+      this.storeToken(res, 'access_token', access_token, 60);
+      this.storeToken(res, 'refresh_token', refresh_token, 90);
 
       const { password, ...tempUser } = user;
       return tempUser;
@@ -78,16 +78,16 @@ export class AuthService {
       const [AT, RT] = await Promise.all([
         this.jwtService.signAsync(data, {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '2h',
+          expiresIn: '60s',
         }),
         this.jwtService.signAsync(data, {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '2d',
+          expiresIn: '90s',
         }),
       ]);
       return {
-        accessToken: AT,
-        refreshToken: RT,
+        access_token: AT,
+        refresh_token: RT,
       };
     } catch {
       throw new InternalServerErrorException();
@@ -101,7 +101,8 @@ export class AuthService {
     expiresInHours: number,
   ) {
     const expires = new Date();
-    expires.setHours(expires.getHours() + expiresInHours);
+    expires.setSeconds(expires.getSeconds() + expiresInHours);
+    // expires.setHours(expires.getHours() + expiresInHours);
 
     res.cookie(tokenName, token, {
       // sameSite: 'none',
@@ -122,7 +123,7 @@ export class AuthService {
     }
     const refreshToken = tokens
       ?.split('; ')
-      ?.find((tokens) => tokens.startsWith('rt='))
+      ?.find((tokens) => tokens.startsWith('refresh_token='))
       ?.split('=')[1];
     // if (!refreshToken) {
     //   throw new HttpException(
@@ -139,14 +140,14 @@ export class AuthService {
         { id, email, name, role },
         {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '2h',
+          expiresIn: '60',
         },
       );
-      this.storeToken(res, 'access_token', newAccessToken, 2);
+      this.storeToken(res, 'access_token', newAccessToken, 60);
 
       return {
-        accessToken: newAccessToken,
-        expires: 2,
+        access_token: newAccessToken,
+        expires: 60,
       };
     } catch {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);

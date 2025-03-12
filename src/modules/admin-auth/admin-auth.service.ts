@@ -48,15 +48,15 @@ export class AdminAuthService {
 
   async login(user: ILoginResponse, res: Response) {
     try {
-      const { accessToken, refreshToken } = await this.generaTokens({
+      const { access_token, refresh_token } = await this.generaTokens({
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
       });
 
-      this.storeToken(res, 'at', accessToken, 2);
-      this.storeToken(res, 'rt', refreshToken, 48);
+      this.storeToken(res, 'at', access_token, 2);
+      this.storeToken(res, 'rt', refresh_token, 48);
 
       const { password, ...tempUser } = user;
       return tempUser;
@@ -85,8 +85,8 @@ export class AdminAuthService {
         }),
       ]);
       return {
-        accessToken: AT,
-        refreshToken: RT,
+        access_token: AT,
+        refresh_token: RT,
       };
     } catch {
       throw new InternalServerErrorException();
@@ -145,7 +145,7 @@ export class AdminAuthService {
       this.storeToken(res, 'at', newAccessToken, 2);
 
       return {
-        accessToken: newAccessToken,
+        access_token: newAccessToken,
         expires: 2,
       };
       // return 2;
