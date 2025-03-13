@@ -37,7 +37,7 @@ model ProductAttribute {
 model ProductSKU {
   id        Int      @id @default(autoincrement())
   productId Int
-  sku       String
+  sku       String   @unique
   imageUrl  String?
   price     Decimal
   quantity  Int

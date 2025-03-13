@@ -138,6 +138,20 @@ export class ProductSkusService {
     return { message: 'success', data: res };
   }
 
+  async getProductSkuBySlug(sku: string) {
+    const product = await this.prisma.productSKU.findUnique({
+      where: { sku },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product SKU with sku "${sku}" not found`);
+    }
+
+    return {
+      data: product,
+    };
+  }
+
   async findByProduct(id: number) {
     const res = await this.prisma.productSKU.findMany({
       where: { productId: id },

@@ -8,9 +8,10 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UploadService } from './upload.service';
 import {  FilesInterceptor } from '@nestjs/platform-express';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 
 @Controller('upload')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAdminAuthGuard)
 export class UploadController {
   constructor(private uploadService: UploadService) {}
 

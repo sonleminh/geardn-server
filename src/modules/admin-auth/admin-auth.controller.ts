@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AdminAuthService } from './admin-auth.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAdminAuthGuard } from './guards/jwt-auth.guard';
 @Controller('admin/auth')
 export class AdminAuthController {
   constructor(
@@ -28,7 +28,7 @@ export class AdminAuthController {
     return this.adminAuthService.logout(req, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAdminAuthGuard)
   @Get('whoami')
   async getProfile(@Request() req) {
     return req.user;
