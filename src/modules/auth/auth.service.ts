@@ -56,8 +56,8 @@ export class AuthService {
         role: user.role,
       });
 
-      this.storeToken(res, 'access_token', access_token, 60);
-      this.storeToken(res, 'refresh_token', refresh_token, 90);
+      this.storeToken(res, 'access_token', access_token, 2);
+      this.storeToken(res, 'refresh_token', refresh_token, 48);
 
       const { password, ...tempUser } = user;
       return tempUser;
@@ -78,11 +78,11 @@ export class AuthService {
       const [AT, RT] = await Promise.all([
         this.jwtService.signAsync(data, {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '60s',
+          expiresIn: '2h',
         }),
         this.jwtService.signAsync(data, {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '90s',
+          expiresIn: '48h',
         }),
       ]);
       return {
@@ -101,8 +101,7 @@ export class AuthService {
     expiresInHours: number,
   ) {
     const expires = new Date();
-    expires.setSeconds(expires.getSeconds() + expiresInHours);
-    // expires.setHours(expires.getHours() + expiresInHours);
+    expires.setHours(expires.getHours() + expiresInHours);
 
     res.cookie(tokenName, token, {
       // sameSite: 'none',
@@ -140,14 +139,13 @@ export class AuthService {
         { id, email, name, role },
         {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
-          expiresIn: '60',
+          expiresIn: '2h',
         },
       );
-      this.storeToken(res, 'access_token', newAccessToken, 60);
+      this.storeToken(res, 'access_token', newAccessToken, 2);
 
       return {
         access_token: newAccessToken,
-        expires: 60,
       };
     } catch {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
