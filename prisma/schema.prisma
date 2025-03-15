@@ -29,6 +29,7 @@ model ProductAttribute {
   id                   Int                   @id @default(autoincrement())
   type                 ProductAttributeType
   value                String
+  isDeleted            Boolean               @default(false)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   productSkuAttributes ProductSKUAttribute[]
@@ -41,6 +42,7 @@ model ProductSKU {
   imageUrl  String?
   price     Decimal
   quantity  Int
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -71,6 +73,7 @@ model Category {
   name      String    @unique
   icon      String
   slug      String    @unique
+  isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]

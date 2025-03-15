@@ -22,13 +22,12 @@ export class CategoriesService {
     return {
       data: res,
       total,
-      message: 'success',
     };
   }
 
   async findOne(id: number) {
     const res = await this.prisma.category.findUnique({ where: { id } });
-    return { message: 'success', data: res };
+    return { data: res };
   }
 
   async findOneBySlug(slug: string) {
@@ -47,7 +46,7 @@ export class CategoriesService {
       where: { id },
       data: updateCategoryDto,
     });
-    return { message: 'success', data: res };
+    return { data: res };
   }
 
   remove(id: number) {

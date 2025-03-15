@@ -21,6 +21,9 @@ export class ProductSkusEntity implements ProductSKU {
   @ApiProperty()
   imageUrl: string;
 
+  @ApiProperty({ default: false })
+  isDeleted: boolean;
+
   @ApiProperty()
   createdAt: Date;
 

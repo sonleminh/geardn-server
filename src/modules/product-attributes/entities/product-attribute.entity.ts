@@ -11,6 +11,9 @@ export class ProductAttributeEntity implements ProductAttribute {
   @ApiProperty()
   value: string;
 
+  @ApiProperty({ default: false })
+  isDeleted: boolean;
+
   @ApiProperty()
   createdAt: Date;
 

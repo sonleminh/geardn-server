@@ -2,10 +2,15 @@ import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductSkusDto } from './dto/create-product-skus.dto';
 import { UpdateProductSkusDto } from './dto/update-product-skus.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class ProductSkusService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly firebaseService: FirebaseService,
+
+  ) {}
 
   async generateSKU(): Promise<string> {
     // Tìm SKU mới nhất
@@ -141,6 +146,20 @@ export class ProductSkusService {
   async getProductSkuBySlug(sku: string) {
     const product = await this.prisma.productSKU.findUnique({
       where: { sku },
+      include: {
+        productSkuAttributes: {
+          select: {
+            id: true,
+            attribute: {
+              select: {
+                id: true,
+                type: true,
+                value: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!product) {
@@ -187,11 +206,69 @@ export class ProductSkusService {
     return { data: res };
   }
 
-  update(id: number, updateProductSkusDto: UpdateProductSkusDto) {
-    return `This action updates a #${id} productSkus`;
+  async update(id: number, updateProductSkusDto: UpdateProductSkusDto) {
+    const { productId, attributes } = updateProductSkusDto;
+
+    const existingSkus = await this.prisma.productSKU.findMany({
+      where: { productId },
+      include: { productSkuAttributes: true },
+    });
+
+    const isDuplicate = existingSkus.some((existingSku) => {
+      const existingAttributes = existingSku.productSkuAttributes
+        .map((attr) => attr.attributeId)
+        .sort();
+      const newAttributes = attributes.map((attr) => attr.attributeId).sort();
+      return (
+        JSON.stringify(existingAttributes) === JSON.stringify(newAttributes)
+      );
+    });
+
+    if (isDuplicate) {
+      throw new Error('SKU with the same attributes already exists.');
+    }
+
+    const res = await this.prisma.productSKU.update({
+      where: { id },
+      data: {
+        productSkuAttributes: {
+          deleteMany: {}, // Remove all existing attributes
+          create: updateProductSkusDto?.attributes.map((attr) => ({
+            attribute: { connect: { id: attr.attributeId } }, // Reconnect new attributes
+          })),
+        },
+      },
+      include: {
+        productSkuAttributes: {
+          select: {
+            id: true,
+            attribute: {
+              select: {
+                id: true,
+                type: true,
+                value: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return { data: res };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productSkus`;
+  async remove(id: number) {
+    await this.prisma.productSKUAttribute.deleteMany({
+      where: { skuId: id },
+    });
+
+    const sku = await this.prisma.productSKU.findUnique({
+      where: { id },
+    });
+
+    if (sku?.imageUrl) {
+      await this.firebaseService.deleteFile(sku?.imageUrl);
+    }
+
+    return this.prisma.productSKU.delete({ where: { id } });
   }
 }

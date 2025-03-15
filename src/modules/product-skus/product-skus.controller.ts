@@ -32,14 +32,14 @@ export class ProductSkusController {
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateProductSkusDto: UpdateProductSkusDto,
   ) {
-    return this.productSkusService.update(+id, updateProductSkusDto);
+    return this.productSkusService.update(id, updateProductSkusDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productSkusService.remove(+id);
-  }
+  } 
 }
