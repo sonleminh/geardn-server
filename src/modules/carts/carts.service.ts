@@ -17,14 +17,18 @@ export class CartsService {
   constructor(private prisma: PrismaService) {}
   async addToCart(addToCartDto: AddToCartDto, req: Request) {
     const at = getAccessTokenFromCookies(req);
-    console.log('addToCartDto', addToCartDto);
     let userData: ILoginResponse | null = null;
+
     if (at) {
       userData = jwt.verify(at, 'geardn') as ILoginResponse;
     }
-
     const { productId, skuId, quantity } = addToCartDto;
-    let cart = await this.prisma.cart.findFirst({
+
+    if (!userData?.id) {
+      throw new Error('User not found');
+    }
+
+    let cart = await this.prisma.cart.findUnique({
       where: { userId: userData?.id },
     });
 
