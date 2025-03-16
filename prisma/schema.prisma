@@ -94,7 +94,6 @@ model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int? // Chỉ có nếu user đã đăng nhập
   user      User?      @relation(fields: [userId], references: [id])
-  sessionId String?    @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   items     CartItem[] // Danh sách sản phẩm trong giỏ

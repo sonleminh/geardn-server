@@ -20,12 +20,8 @@ export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
   @Post('add')
-  async addToCart(
-    @Body() addToCartDto: AddToCartDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res,
-  ) {
-    return this.cartsService.addToCart(addToCartDto, req, res);
+  async addToCart(@Body() addToCartDto: AddToCartDto, @Req() req: Request) {
+    return this.cartsService.addToCart(addToCartDto, req);
   }
 
   @Post('update-quantity')

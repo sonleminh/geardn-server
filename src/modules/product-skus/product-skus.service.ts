@@ -9,7 +9,6 @@ export class ProductSkusService {
   constructor(
     private prisma: PrismaService,
     private readonly firebaseService: FirebaseService,
-
   ) {}
 
   async generateSKU(): Promise<string> {
@@ -207,14 +206,16 @@ export class ProductSkusService {
   }
 
   async update(id: number, updateProductSkusDto: UpdateProductSkusDto) {
-    const { productId, attributes } = updateProductSkusDto;
-
+    const { productId, price, quantity, imageUrl, attributes } =
+      updateProductSkusDto;
     const existingSkus = await this.prisma.productSKU.findMany({
-      where: { productId },
+      where: { productId: productId },
       include: { productSkuAttributes: true },
     });
 
-    const isDuplicate = existingSkus.some((existingSku) => {
+    const filteredSkus = existingSkus.filter((sku) => sku.id !== id);
+
+    const isDuplicate = filteredSkus.some((existingSku) => {
       const existingAttributes = existingSku.productSkuAttributes
         .map((attr) => attr.attributeId)
         .sort();
@@ -231,6 +232,9 @@ export class ProductSkusService {
     const res = await this.prisma.productSKU.update({
       where: { id },
       data: {
+        price,
+        quantity,
+        imageUrl,
         productSkuAttributes: {
           deleteMany: {}, // Remove all existing attributes
           create: updateProductSkusDto?.attributes.map((attr) => ({

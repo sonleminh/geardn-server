@@ -15,9 +15,9 @@ import { UpdateQuantityDto } from './dto/update-quantity.dto';
 @Injectable()
 export class CartsService {
   constructor(private prisma: PrismaService) {}
-  async addToCart(addToCartDto: AddToCartDto, req: Request, res: Response) {
+  async addToCart(addToCartDto: AddToCartDto, req: Request) {
     const at = getAccessTokenFromCookies(req);
-    const sessionId = getCartTokenFromCookies(req);
+    console.log('addToCartDto', addToCartDto);
     let userData: ILoginResponse | null = null;
     if (at) {
       userData = jwt.verify(at, 'geardn') as ILoginResponse;
@@ -25,21 +25,10 @@ export class CartsService {
 
     const { productId, skuId, quantity } = addToCartDto;
     let cart = await this.prisma.cart.findFirst({
-      where: { OR: [{ userId: userData?.id }, { sessionId }] },
+      where: { userId: userData?.id },
     });
 
-    if (!cart && !userData?.id) {
-      const sessionId = uuidv4();
-      res.cookie('sessionId', sessionId, {
-        httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      });
-      cart = await this.prisma.cart.create({
-        data: {
-          sessionId,
-        },
-      });
-    } else if (!cart && userData.id) {
+    if (!cart && userData.id) {
       cart = await this.prisma.cart.create({
         data: {
           userId: userData.id,
@@ -73,16 +62,10 @@ export class CartsService {
         },
       });
     }
-
-    // if (!cart && userId) {
-
-    // }
-    return 'This action adds a new cart';
   }
 
   async updateQuantity(updateQuantityDto: UpdateQuantityDto, req: Request) {
     const at = getAccessTokenFromCookies(req);
-    const sessionId = getCartTokenFromCookies(req);
 
     let userData: ILoginResponse | null = null;
     if (at) {
@@ -90,7 +73,7 @@ export class CartsService {
     }
 
     const cart = await this.prisma.cart.findFirst({
-      where: { OR: [{ userId: userData?.id }, { sessionId }] },
+      where: { userId: userData?.id },
     });
 
     if (!cart) throw new Error('Cart not found');
@@ -145,18 +128,18 @@ export class CartsService {
 
     const cart = await this.prisma.cart.findFirst({
       where: {
-        OR: [{ userId: userData?.id }, { sessionId: cartToken }],
+        userId: userData?.id,
       },
       include: {
         items: true,
+        user: true,
       },
     });
 
     if (!cart) {
       throw new NotFoundException('Cart not found!');
     }
-
-    return { message: 'success', data: cart };
+    return { data: cart };
   }
 
   async removeCartItem(cartItemId: number) {
@@ -167,7 +150,6 @@ export class CartsService {
 
   async clearCartItems(req: Request) {
     const at = getAccessTokenFromCookies(req);
-    const sessionId = getCartTokenFromCookies(req);
 
     let userData: ILoginResponse | null = null;
     if (at) {
@@ -175,7 +157,7 @@ export class CartsService {
     }
 
     const cart = await this.prisma.cart.findFirst({
-      where: { OR: [{ userId: userData?.id }, { sessionId }] },
+      where: { userId: userData?.id },
     });
     console.log('cart', cart);
     await this.prisma.cartItem.deleteMany({

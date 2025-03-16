@@ -66,8 +66,8 @@ export class AdminAuthService {
   }
 
   async logout(req: expressRequest, res: Response) {
-    res.clearCookie('at');
-    res.clearCookie('rt');
+    res.clearCookie('access_token');
+    res.clearCookie('refresh_token');
     res.clearCookie('GC');
     return { message: 'Logout successful!' };
   }
