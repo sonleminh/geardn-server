@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res
 } from '@nestjs/common';
@@ -35,6 +36,12 @@ export class CartsController {
   @Get('')
   getCart(@Req() req: Request) {
     return this.cartsService.getCart(req);
+  }
+
+  @Get('stock')
+  async getCartStock(@Query('skuIds') skuIds: string) {
+    const skuIdArray = skuIds.split(',').map(Number)
+    return this.cartsService.getStockForSkus(skuIdArray)
   }
 
   @Delete('/remove-item/:id')

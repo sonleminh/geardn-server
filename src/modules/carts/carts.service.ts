@@ -135,7 +135,20 @@ export class CartsService {
         userId: userData?.id,
       },
       include: {
-        items: true,
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            quantity: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          }
+        },
         user: true,
       },
     });
@@ -144,6 +157,14 @@ export class CartsService {
       throw new NotFoundException('Cart not found!');
     }
     return { data: cart };
+  }
+
+  async getStockForSkus(skuIds: number[]) {
+    console.log('skuIds', skuIds);
+    return await this.prisma.productSKU.findMany({
+      where: { id: { in: skuIds } },
+      select: { id: true, quantity: true },
+    });
   }
 
   async removeCartItem(cartItemId: number) {
