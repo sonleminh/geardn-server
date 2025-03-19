@@ -7,7 +7,8 @@ import {
   Post,
   Query,
   Req,
-  Res
+  Res,
+  UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
 
@@ -15,27 +16,37 @@ import { CartsService } from './carts.service';
 
 import { UpdateQuantityDto } from './dto/update-quantity.dto';
 import { AddToCartDto } from './dto/add-to-cart.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('carts')
 export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
   @Post('add')
-  async addToCart(@Body() addToCartDto: AddToCartDto, @Req() req: Request) {
-    return this.cartsService.addToCart(addToCartDto, req);
+  async addToCart(@Req() req: Request, @Body() addToCartDto: AddToCartDto) {
+    return this.cartsService.addToCart(req, addToCartDto);
   }
 
   @Post('update-quantity')
   async updateQuantity(
-    @Body() updateQuantityDto: UpdateQuantityDto,
     @Req() req: Request,
+    @Body() updateQuantityDto: UpdateQuantityDto,
   ) {
-    return this.cartsService.updateQuantity(updateQuantityDto, req);
+    return this.cartsService.updateQuantity(req, updateQuantityDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('sync')
+  async syncCart(@Req() req: Request, @Body() cart) {
+    const userId = req.user?.id;
+    return this.cartsService.syncCart(userId, cart);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('')
   getCart(@Req() req: Request) {
-    return this.cartsService.getCart(req);
+    const userId = req.user?.id;
+    return this.cartsService.getCart(userId);
   }
 
   @Get('stock')

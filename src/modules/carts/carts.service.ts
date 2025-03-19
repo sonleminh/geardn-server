@@ -11,11 +11,12 @@ import { PrismaService } from '../prisma/prisma.service';
 
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateQuantityDto } from './dto/update-quantity.dto';
+import { SyncCartItemsDto } from './dto/sync-cart.dto copy';
 
 @Injectable()
 export class CartsService {
   constructor(private prisma: PrismaService) {}
-  async addToCart(addToCartDto: AddToCartDto, req: Request) {
+  async addToCart(req: Request, addToCartDto: AddToCartDto) {
     const at = getAccessTokenFromCookies(req);
     let userData: ILoginResponse | null = null;
 
@@ -68,7 +69,7 @@ export class CartsService {
     }
   }
 
-  async updateQuantity(updateQuantityDto: UpdateQuantityDto, req: Request) {
+  async updateQuantity(req: Request, updateQuantityDto: UpdateQuantityDto) {
     const at = getAccessTokenFromCookies(req);
 
     let userData: ILoginResponse | null = null;
@@ -114,25 +115,58 @@ export class CartsService {
     });
   }
 
-  async getCart(req: Request) {
-    const at = getAccessTokenFromCookies(req);
-    const cartToken = getCartTokenFromCookies(req);
+  async syncCart(userId: number, syncCartItems: SyncCartItemsDto[]) {
+    let cart = await this.prisma.cart.findUnique({
+      where: { userId },
+    });
 
-    if (!at && !cartToken) {
-      throw new NotFoundException('Cart not found!');
+    if (!cart) {
+      cart = await this.prisma.cart.create({ data: { userId } });
     }
 
-    let userData: ILoginResponse | null = null;
-    if (at) {
-      userData = jwt.verify(at, 'geardn') as ILoginResponse;
-      if (!userData) {
-        throw new NotFoundException('Cart not found!');
+    // const newCart = await this.prisma.cart.upsert({
+    //   where: { userId },
+    //   update: { items: cart },
+    //   create: { userId, items: cart },
+    // });
+
+    for (const item of syncCartItems) {
+      const existingItem = await this.prisma.cartItem.findUnique({
+        where: {
+          cartId_productId_skuId: {
+            cartId: cart.id,
+            productId: item.productId,
+            skuId: item.skuId,
+          },
+        },
+      });
+
+      if (existingItem) {
+        // 🟢 Cộng dồn số lượng nếu sản phẩm đã có
+        await this.prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: item.quantity },
+        });
+      } else {
+        // 🟢 Nếu chưa có, thêm mới
+        await this.prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId: item.productId,
+            skuId: item.skuId,
+            quantity: item.quantity,
+          },
+        });
       }
     }
 
+    return { message: 'Cart synced successfully' };
+  }
+
+  async getCart(userId?: number) {
     const cart = await this.prisma.cart.findFirst({
       where: {
-        userId: userData?.id,
+        userId,
       },
       include: {
         items: {
@@ -142,12 +176,19 @@ export class CartsService {
             quantity: true,
             product: {
               select: {
-                id: true,
                 name: true,
-                slug: true,
               },
             },
-          }
+            sku: {
+              select: {
+                id: true,
+                sku: true,
+                price: true,
+                imageUrl: true,
+                quantity: true,
+              },
+            },
+          },
         },
         user: true,
       },
@@ -160,7 +201,6 @@ export class CartsService {
   }
 
   async getStockForSkus(skuIds: number[]) {
-    console.log('skuIds', skuIds);
     return await this.prisma.productSKU.findMany({
       where: { id: { in: skuIds } },
       select: { id: true, quantity: true },
@@ -184,7 +224,6 @@ export class CartsService {
     const cart = await this.prisma.cart.findFirst({
       where: { userId: userData?.id },
     });
-    console.log('cart', cart);
     await this.prisma.cartItem.deleteMany({
       where: {
         cartId: cart?.id,

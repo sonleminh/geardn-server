@@ -103,7 +103,7 @@ model CartItem {
   id        Int      @id @default(autoincrement())
   cartId    Int
   productId Int
-  skuId     Int? // Nếu sản phẩm có nhiều biến thể (màu sắc, switch,...)
+  skuId     Int
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
