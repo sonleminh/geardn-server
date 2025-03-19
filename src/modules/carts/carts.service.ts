@@ -160,11 +160,51 @@ export class CartsService {
       }
     }
 
-    return { message: 'Cart synced successfully' };
+    const updatedCart = await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+            sku: {
+              select: {
+                id: true,
+                sku: true,
+                price: true,
+                imageUrl: true,
+                quantity: true,
+                productSkuAttributes: {
+                  select: {
+                    id: true,
+                    attribute: {
+                      select: {
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: true,
+      },
+    })
+
+    return { message: 'Cart synced successfully', data: updatedCart };
   }
 
   async getCart(userId?: number) {
-    const cart = await this.prisma.cart.findFirst({
+    const cart = await this.prisma.cart.findUnique({
       where: {
         userId,
       },
@@ -177,6 +217,7 @@ export class CartsService {
             product: {
               select: {
                 name: true,
+                images: true,
               },
             },
             sku: {
@@ -186,11 +227,29 @@ export class CartsService {
                 price: true,
                 imageUrl: true,
                 quantity: true,
+                productSkuAttributes: {
+                  select: {
+                    id: true,
+                    attribute: {
+                      select: {
+                        id: true,
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
         },
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     });
 
