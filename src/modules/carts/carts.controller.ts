@@ -18,13 +18,15 @@ import { UpdateQuantityDto } from './dto/update-quantity.dto';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('carts')
 export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
   @Post('add')
   async addToCart(@Req() req: Request, @Body() addToCartDto: AddToCartDto) {
-    return this.cartsService.addToCart(req, addToCartDto);
+    const userId = req.user?.id;
+    return this.cartsService.addToCart(userId, addToCartDto);
   }
 
   @Post('update-quantity')
@@ -32,17 +34,16 @@ export class CartsController {
     @Req() req: Request,
     @Body() updateQuantityDto: UpdateQuantityDto,
   ) {
-    return this.cartsService.updateQuantity(req, updateQuantityDto);
+    const userId = req.user?.id;
+    return this.cartsService.updateQuantity(userId, updateQuantityDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('sync')
   async syncCart(@Req() req: Request, @Body() cart) {
     const userId = req.user?.id;
     return this.cartsService.syncCart(userId, cart);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('')
   getCart(@Req() req: Request) {
     const userId = req.user?.id;

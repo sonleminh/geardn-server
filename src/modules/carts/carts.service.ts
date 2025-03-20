@@ -16,27 +16,17 @@ import { SyncCartItemsDto } from './dto/sync-cart.dto copy';
 @Injectable()
 export class CartsService {
   constructor(private prisma: PrismaService) {}
-  async addToCart(req: Request, addToCartDto: AddToCartDto) {
-    const at = getAccessTokenFromCookies(req);
-    let userData: ILoginResponse | null = null;
-
-    if (at) {
-      userData = jwt.verify(at, 'geardn') as ILoginResponse;
-    }
+  async addToCart(userId: number, addToCartDto: AddToCartDto) {
     const { productId, skuId, quantity } = addToCartDto;
 
-    if (!userData?.id) {
-      throw new Error('User not found');
-    }
-
     let cart = await this.prisma.cart.findUnique({
-      where: { userId: userData?.id },
+      where: { userId: userId },
     });
 
-    if (!cart && userData.id) {
+    if (!cart) {
       cart = await this.prisma.cart.create({
         data: {
-          userId: userData.id,
+          userId: userId,
         },
       });
     }
@@ -44,9 +34,17 @@ export class CartsService {
     const existingItem = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
-        skuId,
+        skuId: skuId,
       },
     });
+
+    const sku = await this.prisma.productSKU.findUnique({
+      where: { id: skuId },
+    });
+
+    if (existingItem?.quantity + quantity > sku?.quantity) {
+      throw new Error('Exceed the amount that can be added');
+    }
 
     if (existingItem) {
       return this.prisma.cartItem.update({
@@ -69,42 +67,47 @@ export class CartsService {
     }
   }
 
-  async updateQuantity(req: Request, updateQuantityDto: UpdateQuantityDto) {
-    const at = getAccessTokenFromCookies(req);
-
-    let userData: ILoginResponse | null = null;
-    if (at) {
-      userData = jwt.verify(at, 'geardn') as ILoginResponse;
-    }
+  async updateQuantity(userId: number, updateQuantityDto: UpdateQuantityDto) {
+  const { skuId, quantity } = updateQuantityDto;
 
     const cart = await this.prisma.cart.findFirst({
-      where: { userId: userData?.id },
+      where: { userId: userId },
     });
 
     if (!cart) throw new Error('Cart not found');
 
-    const cartItem = await this.prisma.cartItem.findFirst({
+    const existingItem = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
-        skuId: updateQuantityDto.skuId,
+        skuId: skuId,
       },
     });
 
-    if (!cartItem) throw new Error('Item not found in cart');
+    if (!existingItem) throw new Error('Item not found in cart');
 
-    if (updateQuantityDto.quantity <= 0) {
+
+    const sku = await this.prisma.productSKU.findUnique({
+      where: { id: skuId },
+    });
+
+    if (quantity > sku?.quantity) {
+      throw new Error('Exceed the amount that can be added');
+    }
+
+
+    if (quantity <= 0) {
       await this.prisma.cartItem.delete({
         where: {
-          id: cartItem.id,
+          id: existingItem.id,
         },
       });
     } else {
       await this.prisma.cartItem.update({
         where: {
-          id: cartItem.id,
+          id: existingItem.id,
         },
         data: {
-          quantity: updateQuantityDto.quantity,
+          quantity: quantity,
         },
       });
     }
@@ -124,12 +127,6 @@ export class CartsService {
       cart = await this.prisma.cart.create({ data: { userId } });
     }
 
-    // const newCart = await this.prisma.cart.upsert({
-    //   where: { userId },
-    //   update: { items: cart },
-    //   create: { userId, items: cart },
-    // });
-
     for (const item of syncCartItems) {
       const existingItem = await this.prisma.cartItem.findUnique({
         where: {
@@ -142,13 +139,11 @@ export class CartsService {
       });
 
       if (existingItem) {
-        // 🟢 Cộng dồn số lượng nếu sản phẩm đã có
         await this.prisma.cartItem.update({
           where: { id: existingItem.id },
           data: { quantity: item.quantity },
         });
       } else {
-        // 🟢 Nếu chưa có, thêm mới
         await this.prisma.cartItem.create({
           data: {
             cartId: cart.id,
@@ -159,52 +154,11 @@ export class CartsService {
         });
       }
     }
-
-    const updatedCart = await this.prisma.cart.findUnique({
-      where: { userId },
-      include: {
-        items: {
-          select: {
-            id: true,
-            productId: true,
-            quantity: true,
-            product: {
-              select: {
-                name: true,
-                images: true,
-              },
-            },
-            sku: {
-              select: {
-                id: true,
-                sku: true,
-                price: true,
-                imageUrl: true,
-                quantity: true,
-                productSkuAttributes: {
-                  select: {
-                    id: true,
-                    attribute: {
-                      select: {
-                        type: true,
-                        value: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        user: true,
-      },
-    })
-
-    return { message: 'Cart synced successfully', data: updatedCart };
+    return { message: 'Cart synced successfully' };
   }
 
-  async getCart(userId?: number) {
-    const cart = await this.prisma.cart.findUnique({
+  async getCart(userId: number) {
+    const cart = await this.prisma.cart.findFirst({
       where: {
         userId,
       },
@@ -217,7 +171,6 @@ export class CartsService {
             product: {
               select: {
                 name: true,
-                images: true,
               },
             },
             sku: {
@@ -227,29 +180,11 @@ export class CartsService {
                 price: true,
                 imageUrl: true,
                 quantity: true,
-                productSkuAttributes: {
-                  select: {
-                    id: true,
-                    attribute: {
-                      select: {
-                        id: true,
-                        type: true,
-                        value: true,
-                      },
-                    },
-                  },
-                },
               },
             },
           },
         },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        user: true,
       },
     });
 
