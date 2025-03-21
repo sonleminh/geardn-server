@@ -92,8 +92,8 @@ model User {
 
 model Cart {
   id        Int        @id @default(autoincrement())
-  userId    Int?       @unique
-  user      User?      @relation(fields: [userId], references: [id])
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   items     CartItem[] // Danh sách sản phẩm trong giỏ

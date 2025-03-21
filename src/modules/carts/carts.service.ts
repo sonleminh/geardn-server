@@ -96,11 +96,7 @@ export class CartsService {
 
 
     if (quantity <= 0) {
-      await this.prisma.cartItem.delete({
-        where: {
-          id: existingItem.id,
-        },
-      });
+      await this.removeCartItem(existingItem.id);
     } else {
       await this.prisma.cartItem.update({
         where: {
@@ -126,42 +122,88 @@ export class CartsService {
     if (!cart) {
       cart = await this.prisma.cart.create({ data: { userId } });
     }
+    if (syncCartItems.length) {
+      for (const item of syncCartItems) {
 
-    for (const item of syncCartItems) {
-      const existingItem = await this.prisma.cartItem.findUnique({
-        where: {
-          cartId_productId_skuId: {
-            cartId: cart.id,
-            productId: item.productId,
-            skuId: item.skuId,
-          },
-        },
-      });
-
-      if (existingItem) {
-        await this.prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { quantity: item.quantity },
-        });
-      } else {
-        await this.prisma.cartItem.create({
-          data: {
-            cartId: cart.id,
-            productId: item.productId,
-            skuId: item.skuId,
-            quantity: item.quantity,
+        const existingItem = await this.prisma.cartItem.findUnique({
+          where: {
+            cartId_productId_skuId: {
+              cartId: cart.id,
+              productId: item.productId,
+              skuId: item.skuId,
+            },
           },
         });
+
+        if (existingItem) {
+          await this.prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: {
+              quantity:
+                item.quantity <= existingItem.quantity
+                  ? existingItem.quantity
+                  : item.quantity,
+            },
+          });
+        } else {
+          await this.prisma.cartItem.create({
+            data: {
+              cartId: cart.id,
+              productId: item.productId,
+              skuId: item.skuId,
+              quantity: item.quantity,
+            },
+          });
+        }
       }
     }
-    return { message: 'Cart synced successfully' };
+
+    const updatedCart = await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+            sku: {
+              select: {
+                id: true,
+                sku: true,
+                price: true,
+                imageUrl: true,
+                quantity: true,
+                productSkuAttributes: {
+                  select: {
+                    id: true,
+                    attribute: {
+                      select: {
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: true,
+      },
+    })
+
+    return { message: 'Cart synced successfully', data: updatedCart };
   }
 
   async getCart(userId: number) {
-    const cart = await this.prisma.cart.findFirst({
-      where: {
-        userId,
-      },
+    const cart = await this.prisma.cart.findUnique({
+      where: { userId: userId },
       include: {
         items: {
           select: {
