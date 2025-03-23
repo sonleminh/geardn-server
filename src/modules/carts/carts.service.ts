@@ -201,6 +201,91 @@ export class CartsService {
     return { message: 'Cart synced successfully', data: updatedCart };
   }
 
+  async syncCartReload(userId: number, syncCartItems: SyncCartItemsDto[]) {
+    console.log('syncCartReload');
+    const cart = await this.prisma.cart.findUnique({
+      where: { userId },
+    });
+
+    if (!cart) {
+      throw new Error('Cart not found');
+    }
+    if (syncCartItems.length) {
+      for (const item of syncCartItems) {
+
+        const existingItem = await this.prisma.cartItem.findUnique({
+          where: {
+            cartId_productId_skuId: {
+              cartId: cart.id,
+              productId: item.productId,
+              skuId: item.skuId,
+            },
+          },
+        });
+
+        if (existingItem) {
+          await this.prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: {
+              quantity: existingItem.quantity,
+            },
+          });
+        } else {
+          await this.prisma.cartItem.create({
+            data: {
+              cartId: cart.id,
+              productId: item.productId,
+              skuId: item.skuId,
+              quantity: item.quantity,
+            },
+          });
+        }
+      }
+    }
+
+    const updatedCart = await this.prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          select: {
+            id: true,
+            productId: true,
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+            sku: {
+              select: {
+                id: true,
+                sku: true,
+                price: true,
+                imageUrl: true,
+                quantity: true,
+                productSkuAttributes: {
+                  select: {
+                    id: true,
+                    attribute: {
+                      select: {
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: true,
+      },
+    })
+
+    return { message: 'Cart synced successfully', data: updatedCart };
+  }
+
   async getCart(userId: number) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId: userId },

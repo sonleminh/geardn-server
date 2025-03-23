@@ -47,6 +47,13 @@ export class CartsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('sync-reload')
+  async syncCartReload(@Req() req: Request, @Body() cart) {
+    const userId = req.user?.id;
+    return this.cartsService.syncCartReload(userId, cart);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('')
   getCart(@Req() req: Request) {
     const userId = req.user?.id;
