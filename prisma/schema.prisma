@@ -114,3 +114,13 @@ model CartItem {
 
   @@unique([cartId, productId, skuId])
 }
+
+model PaymentMethod {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  name       String   @unique
+  image      String
+  isDisabled Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

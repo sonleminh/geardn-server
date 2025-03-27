@@ -15,8 +15,8 @@ import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 export class UploadController {
   constructor(private uploadService: UploadService) {}
 
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseInterceptors(FilesInterceptor('files'))
   @Post('/')
-  async uploadImage(@UploadedFiles() images: Array<Express.Multer.File>) {
-    return this.uploadService.uploadImage(images);
+  async uploadImage(@UploadedFiles() files: Array<Express.Multer.File>) {
+    return this.uploadService.uploadImage(files);
   }}

@@ -298,6 +298,7 @@ export class CartsService {
             product: {
               select: {
                 name: true,
+                images: true,
               },
             },
             sku: {
