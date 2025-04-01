@@ -13,6 +13,7 @@ import { ProductAttributesModule } from './modules/product-attributes/product-at
 import { ProductSkusModule } from './modules/product-skus/product-skus.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { PaymentMethodModule } from './modules/payment-methods/payment-method.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaymentMethodModule } from './modules/payment-methods/payment-method.mo
     CartsModule,
     CategoriesModule,
     LoggerModule,
+    OrdersModule,
     PaymentMethodModule,
     PrismaModule,
     ProductAttributesModule,

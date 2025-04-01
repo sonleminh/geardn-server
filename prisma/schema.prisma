@@ -23,6 +23,7 @@ model Product {
   updatedAt   DateTime     @updatedAt
   skus        ProductSKU[] @relation("ProductToSKU")
   CartItem    CartItem[]
+  OrderItem   OrderItem[]
 }
 
 model ProductAttribute {
@@ -50,6 +51,7 @@ model ProductSKU {
   product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
   productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
   CartItem             CartItem[]
+  OrderItem            OrderItem[]
 }
 
 model ProductSKUAttribute {
@@ -88,6 +90,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Cart      Cart[]
+  Order     Order[]
 }
 
 model Cart {
@@ -123,4 +126,46 @@ model PaymentMethod {
   isDisabled Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  Order      Order[]
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  totalPrice      Decimal
+  status          OrderStatus @default(PENDING)
+  paymentMethodId Int?
+  fullName        String
+  phoneNumber     String
+  address         String
+  city            String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id])
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  orderItems    OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  skuId     Int
+  quantity  Int
+  price     Decimal
+
+  // Relations
+  order   Order       @relation(fields: [orderId], references: [id])
+  product Product     @relation(fields: [productId], references: [id])
+  sku     ProductSKU? @relation(fields: [skuId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELED
 }
