@@ -134,11 +134,11 @@ model Order {
   userId          Int
   totalPrice      Decimal
   status          OrderStatus @default(PENDING)
-  paymentMethodId Int?
+  paymentMethodId Int
   fullName        String
   phoneNumber     String
   address         String
-  city            String
+  note            String?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

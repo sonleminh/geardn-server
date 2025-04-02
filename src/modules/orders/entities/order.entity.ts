@@ -19,6 +19,18 @@ export class OrderEntity implements Order {
   paymentMethodId: number;
 
   @ApiProperty()
+  fullName: string;
+
+  @ApiProperty()
+  phoneNumber: string;
+
+  @ApiProperty()
+  address: string;
+
+  @ApiProperty()
+  note: string;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

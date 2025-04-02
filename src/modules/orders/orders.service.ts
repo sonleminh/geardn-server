@@ -7,17 +7,23 @@ import { PrismaService } from '../prisma/prisma.service';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: number, createOrderDto: CreateOrderDto) {
-    const { items, paymentMethodId } = createOrderDto;
+  async create(createOrderDto: CreateOrderDto) {
+    const {
+      userId,
+      items,
+      paymentMethodId,
+      fullName,
+      phoneNumber,
+      address,
+      note,
+    } = createOrderDto;
 
-    // Lấy thông tin sản phẩm từ giỏ hàng hoặc từ request
     const skus = await this.prisma.productSKU.findMany({
       where: {
         id: { in: items.map((item) => item.skuId) },
       },
     });
 
-    // Tính tổng giá trị đơn hàng
     let totalPrice = 0;
     const orderItems = items.map((item) => {
       const sku = skus.find((s) => s.id === item.skuId);
@@ -31,12 +37,15 @@ export class OrdersService {
       };
     });
 
-    // Tạo đơn hàng
     return this.prisma.order.create({
       data: {
         userId,
         totalPrice,
         paymentMethodId,
+        fullName,
+        phoneNumber,
+        address,
+        note,
         status: 'PENDING',
         orderItems: { create: orderItems },
       },
@@ -44,12 +53,13 @@ export class OrdersService {
     });
   }
 
-  // async getOrdersByUser(userId: number) {
-  //   return this.prisma.order.findMany({
-  //     where: { userId },
-  //     include: { orderItems: { include: { product: true, sku: true } } },
-  //   });
-  // }
+  async getOrdersByUser(userId: number) {
+    const orders = await this.prisma.order.findMany({
+      where: { userId },
+      include: { orderItems: { include: { product: true, sku: true } } },
+    });
+    return { data: orders };
+  }
 
   // async updateOrderStatus(orderId: number, status: string) {
   //   return this.prisma.order.update({

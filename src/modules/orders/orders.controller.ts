@@ -7,13 +7,11 @@ import { Request } from 'express';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+constructor(private readonly ordersService: OrdersService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Req() req: Request, @Body() createOrderDto: CreateOrderDto) {
-    const userId = req.user?.id;
-    return this.ordersService.create(userId, createOrderDto);
+  async create(@Body() createOrderDto: CreateOrderDto) {
+    return this.ordersService.create(createOrderDto);
   }
 
   // @Get()
@@ -21,10 +19,12 @@ export class OrdersController {
   //   return this.ordersService.findAll();
   // }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.ordersService.findOne(+id);
-  // }
+  @UseGuards(JwtAuthGuard)
+  @Get('/user')
+  findOne(@Req() req: Request) {
+    const userId = req.user?.id;
+    return this.ordersService.getOrdersByUser(userId);
+  }
 
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
