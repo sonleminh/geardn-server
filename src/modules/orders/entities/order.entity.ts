@@ -25,13 +25,13 @@ export class OrderEntity implements Order {
   phoneNumber: string;
 
   @ApiProperty()
-  address: string;
-
-  @ApiProperty()
   note: string;
 
   @ApiProperty()
   flag: JsonObject;
+
+  @ApiProperty()
+  shipment: JsonObject;
 
   @ApiProperty()
   createdAt: Date;

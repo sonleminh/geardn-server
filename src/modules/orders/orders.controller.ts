@@ -30,8 +30,16 @@ constructor(private readonly ordersService: OrdersService) {}
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() status: { status: OrderStatus }) {
-    return this.ordersService.update(+id, status);
+  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+    return this.ordersService.update(+id, updateOrderDto);
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() status: { status: OrderStatus },
+  ) {
+    return this.ordersService.updateStatus(+id, status);
   }
 
   // @Delete(':id')

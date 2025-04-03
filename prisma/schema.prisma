@@ -137,9 +137,9 @@ model Order {
   paymentMethodId Int
   fullName        String
   phoneNumber     String
-  address         String
   note            String?
   flag            Json        @default("{}")
+  shipment        Json        @default("{}")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

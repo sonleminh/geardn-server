@@ -15,8 +15,8 @@ export class OrdersService {
       paymentMethodId,
       fullName,
       phoneNumber,
-      address,
       note,
+      shipment,
     } = createOrderDto;
 
     const skus = await this.prisma.productSKU.findMany({
@@ -45,9 +45,9 @@ export class OrdersService {
         paymentMethodId,
         fullName,
         phoneNumber,
-        address,
         note,
         status: 'PENDING',
+        shipment,
         orderItems: { create: orderItems },
       },
       include: { orderItems: true },
@@ -67,7 +67,14 @@ export class OrdersService {
     return { data: orders };
   }
 
-  async update(orderId: number, status: { status: OrderStatus }) {
+  async update(orderId: number, updateOrderDto: UpdateOrderDto) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: updateOrderDto,
+    });
+  }
+
+  async updateStatus(orderId: number, status: { status: OrderStatus }) {
     return this.prisma.order.update({
       where: { id: orderId },
       data: { status: status.status },

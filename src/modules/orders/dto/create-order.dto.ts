@@ -40,12 +40,12 @@ export class CreateOrderDto {
   phoneNumber: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  address: string;
-
-  @ApiProperty()
   @IsOptional()
   note: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  shipment: JsonObject;
 
   @ApiProperty()
   @IsOptional()
