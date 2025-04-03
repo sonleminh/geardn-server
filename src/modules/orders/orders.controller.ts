@@ -4,6 +4,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { OrderStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrdersController {
@@ -14,10 +16,11 @@ constructor(private readonly ordersService: OrdersService) {}
     return this.ordersService.create(createOrderDto);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.ordersService.findAll();
-  // }
+  @UseGuards(JwtAdminAuthGuard)
+  @Get()
+  findAll() {
+    return this.ordersService.findAll();
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('/user')
@@ -26,10 +29,10 @@ constructor(private readonly ordersService: OrdersService) {}
     return this.ordersService.getOrdersByUser(userId);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-  //   return this.ordersService.update(+id, updateOrderDto);
-  // }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() status: { status: OrderStatus }) {
+    return this.ordersService.update(+id, status);
+  }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {

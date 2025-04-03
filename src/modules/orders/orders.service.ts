@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -53,6 +54,11 @@ export class OrdersService {
     });
   }
 
+  async findAll() {
+    const orders = await this.prisma.order.findMany();
+    return { data: orders };
+  }
+
   async getOrdersByUser(userId: number) {
     const orders = await this.prisma.order.findMany({
       where: { userId },
@@ -61,12 +67,12 @@ export class OrdersService {
     return { data: orders };
   }
 
-  // async updateOrderStatus(orderId: number, status: string) {
-  //   return this.prisma.order.update({
-  //     where: { id: orderId },
-  //     data: { status },
-  //   });
-  // }
+  async update(orderId: number, status: { status: OrderStatus }) {
+    return this.prisma.order.update({
+      where: { id: orderId },
+      data: { status: status.status },
+    });
+  }
 
   // findAll() {
   //   return `This action returns all orders`;

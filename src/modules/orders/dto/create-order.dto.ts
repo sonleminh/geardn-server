@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal, JsonObject } from '@prisma/client/runtime/library';
 import { IsArray, IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateOrderItemDto {
@@ -20,7 +20,7 @@ export class CreateOrderDto {
   userId: number;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   status: OrderStatus;
 
   @ApiProperty()
@@ -46,6 +46,10 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsOptional()
   note: string;
+
+  @ApiProperty()
+  @IsOptional()
+  flag: JsonObject;
 
   @ApiProperty()
   @IsNotEmpty()

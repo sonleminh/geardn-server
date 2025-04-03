@@ -131,7 +131,7 @@ model PaymentMethod {
 
 model Order {
   id              Int         @id @default(autoincrement())
-  userId          Int
+  userId          Int?
   totalPrice      Decimal
   status          OrderStatus @default(PENDING)
   paymentMethodId Int
@@ -139,11 +139,12 @@ model Order {
   phoneNumber     String
   address         String
   note            String?
+  flag            Json        @default("{}")
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  user          User           @relation(fields: [userId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   orderItems    OrderItem[]
 }

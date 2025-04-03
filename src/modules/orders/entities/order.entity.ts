@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Order, OrderStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Decimal, JsonObject } from '@prisma/client/runtime/library';
 
 export class OrderEntity implements Order {
   @ApiProperty()
@@ -29,6 +29,9 @@ export class OrderEntity implements Order {
 
   @ApiProperty()
   note: string;
+
+  @ApiProperty()
+  flag: JsonObject;
 
   @ApiProperty()
   createdAt: Date;
