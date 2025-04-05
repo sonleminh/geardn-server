@@ -33,7 +33,7 @@ export class ProductsService {
       value: key,
       label: TAGS[key as keyof typeof TAGS],
     }));
-    return { data: res, tags: tags };
+    return { data: { categories: res, tags: tags } };
   }
 
   async findAll(queryParam: QueryParamDto) {
@@ -87,7 +87,11 @@ export class ProductsService {
 
     return {
       data: products,
-      total,
+      meta: {
+        total,
+        page: passedPage + 1,
+        pageSize: resPerPage,
+      },
       message: 'Product list retrieved successfully',
     };
   }

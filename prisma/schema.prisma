@@ -10,64 +10,56 @@ datasource db {
 model Product {
   id          Int          @id @default(autoincrement())
   name        String       @unique
-  categoryId  Int
-  category    Category     @relation(fields: [categoryId], references: [id])
-  tags        Json
-  images      String[]
-  brand       String       @default("Không")
-  details     Json?
   description String?
-  slug        String       @unique
-  isDeleted   Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  skus        ProductSKU[] @relation("ProductToSKU")
+  categoryId  Int
+  brand       String       @default("Không")
+  images      String[]
+  tags        Json
+  details     Json?
+  isDeleted   Boolean      @default(false)
+  slug        String       @unique
   CartItem    CartItem[]
   OrderItem   OrderItem[]
+  category    Category     @relation(fields: [categoryId], references: [id])
+  skus        ProductSKU[] @relation("ProductToSKU")
 }
 
 model ProductAttribute {
   id                   Int                   @id @default(autoincrement())
   type                 ProductAttributeType
   value                String
-  isDeleted            Boolean               @default(false)
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
+  isDeleted            Boolean               @default(false)
   productSkuAttributes ProductSKUAttribute[]
 }
 
 model ProductSKU {
-  id        Int      @id @default(autoincrement())
-  productId Int
-  sku       String   @unique
-  imageUrl  String?
-  price     Decimal
-  quantity  Int
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
-  productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
+  id                   Int                   @id @default(autoincrement())
+  productId            Int
+  sku                  String                @unique
+  price                Decimal
+  quantity             Int
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  imageUrl             String?
+  isDeleted            Boolean               @default(false)
   CartItem             CartItem[]
   OrderItem            OrderItem[]
+  product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
+  productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
 }
 
 model ProductSKUAttribute {
-  id          Int @id @default(autoincrement())
+  id          Int              @id @default(autoincrement())
   skuId       Int
   attributeId Int
-
-  productSku ProductSKU       @relation("SkuToAttribute", fields: [skuId], references: [id])
-  attribute  ProductAttribute @relation(fields: [attributeId], references: [id])
+  attribute   ProductAttribute @relation(fields: [attributeId], references: [id])
+  productSku  ProductSKU       @relation("SkuToAttribute", fields: [skuId], references: [id])
 
   @@unique([skuId, attributeId])
-}
-
-enum ProductAttributeType {
-  COLOR
-  SWITCH
 }
 
 model Category {
@@ -75,9 +67,9 @@ model Category {
   name      String    @unique
   icon      String
   slug      String    @unique
-  isDeleted Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  isDeleted Boolean   @default(false)
   products  Product[]
 }
 
@@ -89,31 +81,30 @@ model User {
   role      String   @default("user")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Cart      Cart[]
+  Cart      Cart?
   Order     Order[]
 }
 
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int        @unique
-  user      User       @relation(fields: [userId], references: [id])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  items     CartItem[] // Danh sách sản phẩm trong giỏ
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
 }
 
 model CartItem {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   cartId    Int
   productId Int
   skuId     Int
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  cart    Cart        @relation(fields: [cartId], references: [id])
-  product Product     @relation(fields: [productId], references: [id])
-  sku     ProductSKU? @relation(fields: [skuId], references: [id])
+  quantity  Int        @default(1)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  cart      Cart       @relation(fields: [cartId], references: [id])
+  product   Product    @relation(fields: [productId], references: [id])
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
 
   @@unique([cartId, productId, skuId])
 }
@@ -123,44 +114,47 @@ model PaymentMethod {
   key        String   @unique
   name       String   @unique
   image      String
-  isDisabled Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  isDisabled Boolean  @default(false)
   Order      Order[]
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
+  orderCode       String        @unique
   userId          Int?
   totalPrice      Decimal
-  status          OrderStatus @default(PENDING)
+  status          OrderStatus   @default(PENDING)
   paymentMethodId Int
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   fullName        String
   phoneNumber     String
   note            String?
-  flag            Json        @default("{}")
-  shipment        Json        @default("{}")
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  // Relations
-  user          User?          @relation(fields: [userId], references: [id])
-  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
-  orderItems    OrderItem[]
+  flag            Json          @default("{}")
+  shipment        Json          @default("{}")
+  email           String?
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id])
+  orderItems      OrderItem[]
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   orderId   Int
   productId Int
   skuId     Int
   quantity  Int
   price     Decimal
+  order     Order      @relation(fields: [orderId], references: [id])
+  product   Product    @relation(fields: [productId], references: [id])
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
+}
 
-  // Relations
-  order   Order       @relation(fields: [orderId], references: [id])
-  product Product     @relation(fields: [productId], references: [id])
-  sku     ProductSKU? @relation(fields: [skuId], references: [id])
+enum ProductAttributeType {
+  COLOR
+  SWITCH
 }
 
 enum OrderStatus {

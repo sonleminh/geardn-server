@@ -68,7 +68,7 @@ export class CartsService {
   }
 
   async updateQuantity(userId: number, updateQuantityDto: UpdateQuantityDto) {
-  const { skuId, quantity } = updateQuantityDto;
+    const { skuId, quantity } = updateQuantityDto;
 
     const cart = await this.prisma.cart.findFirst({
       where: { userId: userId },
@@ -85,7 +85,6 @@ export class CartsService {
 
     if (!existingItem) throw new Error('Item not found in cart');
 
-
     const sku = await this.prisma.productSKU.findUnique({
       where: { id: skuId },
     });
@@ -93,7 +92,6 @@ export class CartsService {
     if (quantity > sku?.quantity) {
       throw new Error('Exceed the amount that can be added');
     }
-
 
     if (quantity <= 0) {
       await this.removeCartItem(existingItem.id);
@@ -124,7 +122,6 @@ export class CartsService {
     }
     if (syncCartItems.length) {
       for (const item of syncCartItems) {
-
         const existingItem = await this.prisma.cartItem.findUnique({
           where: {
             cartId_productId_skuId: {
@@ -196,7 +193,7 @@ export class CartsService {
         },
         user: true,
       },
-    })
+    });
 
     return { message: 'Cart synced successfully', data: updatedCart };
   }
@@ -212,7 +209,6 @@ export class CartsService {
     }
     if (syncCartItems.length) {
       for (const item of syncCartItems) {
-
         const existingItem = await this.prisma.cartItem.findUnique({
           where: {
             cartId_productId_skuId: {
@@ -281,7 +277,7 @@ export class CartsService {
         },
         user: true,
       },
-    })
+    });
 
     return { message: 'Cart synced successfully', data: updatedCart };
   }
@@ -308,6 +304,18 @@ export class CartsService {
                 price: true,
                 imageUrl: true,
                 quantity: true,
+                productSkuAttributes: {
+                  select: {
+                    id: true,
+                    attribute: {
+                      select: {
+                        id: true,
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },

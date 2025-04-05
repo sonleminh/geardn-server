@@ -16,7 +16,7 @@ export class CreateOrderDto {
   id: number;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   userId: number;
 
   @ApiProperty()
@@ -38,6 +38,10 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsNotEmpty()
   phoneNumber: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  email: string;
 
   @ApiProperty()
   @IsOptional()

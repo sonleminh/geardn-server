@@ -7,6 +7,9 @@ export class OrderEntity implements Order {
   id: number;
 
   @ApiProperty()
+  orderCode: string;
+
+  @ApiProperty()
   userId: number;
 
   @ApiProperty()
@@ -23,6 +26,9 @@ export class OrderEntity implements Order {
 
   @ApiProperty()
   phoneNumber: string;
+
+  @ApiProperty()
+  email: string;
 
   @ApiProperty()
   note: string;
