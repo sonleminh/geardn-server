@@ -84,7 +84,7 @@ export class OrdersService {
         .split('T')[0]
         .replace(/-/g, '');
       const paddedId = String(tempOrder.id).padStart(6, '0');
-      const orderCode = `ORD-${formattedDate}-${paddedId}`;
+      const orderCode = `GDN-${formattedDate}-${paddedId}`;
       const order = await tx.order.update({
         where: { id: tempOrder.id },
         data: { orderCode },
@@ -96,6 +96,45 @@ export class OrdersService {
 
   async findAll() {
     const orders = await this.prisma.order.findMany();
+    return { data: orders };
+  }
+
+  async findOne(orderCode: string) {
+    const orders = await this.prisma.order.findUnique({
+      where: {
+        orderCode,
+      },
+      include: {
+        orderItems: {
+          select: {
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+            sku: {
+              select: {
+                price: true,
+                imageUrl: true,
+                productSkuAttributes: {
+                  select: {
+                    attribute: {
+                      select: {
+                        type: true,
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            quantity: true,
+          },
+        },
+        paymentMethod: true,
+      },
+    });
     return { data: orders };
   }
 

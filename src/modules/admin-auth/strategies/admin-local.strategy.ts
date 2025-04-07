@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AdminAuthService } from '../admin-auth.service';
@@ -13,7 +13,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'admin-local') {
   async validate(email: string, password: string) {
     const user = await this.adminAuthService.validateUser(email, password);
     if (!user || user.role !== 'admin') {
-      throw new UnauthorizedException('Access denied. Admins only.');
+      throw new ForbiddenException('Access denied. Admins only');
     }
     return user;
   }

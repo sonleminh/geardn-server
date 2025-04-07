@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -22,9 +22,14 @@ constructor(private readonly ordersService: OrdersService) {}
     return this.ordersService.findAll();
   }
 
+  @Get(':orderCode')
+  findOne(@Param('orderCode') orderCode: string) {
+    return this.ordersService.findOne(orderCode);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('/user')
-  findOne(@Req() req: Request) {
+  getOrdersByUser(@Req() req: Request) {
     const userId = req.user?.id;
     return this.ordersService.getOrdersByUser(userId);
   }

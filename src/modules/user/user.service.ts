@@ -1,9 +1,9 @@
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -18,10 +18,7 @@ export class UserService {
       where: { email: registerDTO.email },
     });
     if (checkExistUser) {
-      throw new HttpException(
-        'User already exist',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('User already exist', HttpStatus.CONFLICT);
     }
     const { password, ...rest } = registerDTO;
     const salt = await bcrypt.genSalt();
@@ -56,11 +53,11 @@ export class UserService {
       const { email, password } = authCredentialsDto;
       const user = await this.prisma.user.findUnique({ where: { email } });
       if (!user) {
-        throw new NotFoundException('User does not exist');
+        throw new NotFoundException('User not found');
       }
       const compare = await bcrypt.compare(password, user.password);
       if (!compare) {
-        throw new BadRequestException('Password is not correct');
+        throw new UnauthorizedException('Invalid password');
       }
       return user;
     } catch (error) {

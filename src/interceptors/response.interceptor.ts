@@ -49,31 +49,6 @@ export class ResponseInterceptor implements NestInterceptor {
         }
 
         return response;
-        // // Nếu data có key `data`, giữ nguyên
-        // if (typeof originalData === 'object' && 'data' in originalData) {
-        //   return {
-        //     success: true,
-        //     message,
-        //     data: originalData.data, // Không wrap thêm `data`
-        //     total: originalData.total ?? undefined,
-        //   };
-        // }
-
-        // // Nếu `data` chỉ là message string -> Trả về đúng format
-        // if (typeof originalData === 'string') {
-        //   return {
-        //     success: true,
-        //     message: originalData, // Trả về message chuẩn
-        //     data: null, // Không wrap thêm
-        //   };
-        // }
-
-        // // Trường hợp `data` là một object nhưng không có `data` -> Giữ nguyên
-        // return {
-        //   success: true,
-        //   message,
-        //   data: Object.keys(originalData).length > 1 ? originalData : null, // Nếu object chỉ có `message`, không wrap `data`
-        // };
       }),
     );
   }
