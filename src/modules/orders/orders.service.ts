@@ -4,10 +4,14 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
 import { JsonObject } from '@prisma/client/runtime/library';
+import { CartsService } from '../carts/carts.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly cartService: CartsService,
+  ) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const {
@@ -22,7 +26,9 @@ export class OrdersService {
       flag,
     } = createOrderDto;
 
-    return this.prisma.$transaction(async (tx) => {
+    let orderItems = [];
+
+    const order = await this.prisma.$transaction(async (tx) => {
       const skus = await tx.productSKU.findMany({
         where: {
           id: { in: items.map((item) => item.skuId) },
@@ -30,7 +36,7 @@ export class OrdersService {
       });
 
       let totalPrice = 0;
-      const orderItems = items.map((item) => {
+      orderItems = items.map((item) => {
         const sku = skus.find((s) => s.id === item.skuId);
         if (!sku) throw new BadRequestException(`SKU ${item.skuId} not found`);
         if (sku.quantity < item.quantity) {
@@ -56,7 +62,6 @@ export class OrdersService {
         });
       }
 
-      // 4. Tạo order
       const tempOrder = await tx.order.create({
         data: {
           userId,
@@ -85,13 +90,31 @@ export class OrdersService {
         .replace(/-/g, '');
       const paddedId = String(tempOrder.id).padStart(6, '0');
       const orderCode = `GDN-${formattedDate}-${paddedId}`;
-      const order = await tx.order.update({
+      return tx.order.update({
         where: { id: tempOrder.id },
         data: { orderCode },
       });
-
-      return order;
     });
+
+    const cart = await this.prisma.cart.findUnique({
+      where: { userId: userId },
+    });
+
+    if (cart) {
+      for (const item of orderItems) {
+        console.log('item:', item)
+        const cartItem = await this.prisma.cartItem.findFirst({
+          where: {
+            cartId: cart.id,
+            skuId: item.skuId,
+          },
+        });
+        if (cartItem) {
+          await this.cartService.removeCartItem(cartItem?.id);
+        }
+      }
+    }
+    return order;
   }
 
   async findAll() {
