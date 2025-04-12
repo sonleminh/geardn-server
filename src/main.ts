@@ -5,10 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { ValidationConfig } from './config/validation.config';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { AllExceptionFilter } from './filters/exception.filter';
+import { LoggerFactory } from './logger/custom.logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const logger = await app.resolve(LoggerFactory);
 
   const port = configService.get<number>('PORT');
   const apiPrefix = configService.get<string>('API_PREFIX');
@@ -43,6 +46,8 @@ async function bootstrap() {
   app.setGlobalPrefix(apiPrefix);
   app.useGlobalPipes(new ValidationPipe(ValidationConfig));
   app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new AllExceptionFilter(logger));
+
   await app.listen(port);
 }
 bootstrap();

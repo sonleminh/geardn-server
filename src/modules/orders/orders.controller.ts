@@ -1,15 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
-import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { OrdersService } from './orders.service';
 import { OrderStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrdersController {
-constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
   async create(@Body() createOrderDto: CreateOrderDto) {
@@ -22,16 +32,16 @@ constructor(private readonly ordersService: OrdersService) {}
     return this.ordersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('user-purchases')
+  getUserPurchases(@Req() req: Request, @Query('type') type: string) {
+    const userId = req.user?.id;
+    return this.ordersService.getUserPurchases(userId, +type);
+  }
+
   @Get(':orderCode')
   findOne(@Param('orderCode') orderCode: string) {
     return this.ordersService.findOne(orderCode);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('/user')
-  getOrdersByUser(@Req() req: Request) {
-    const userId = req.user?.id;
-    return this.ordersService.getOrdersByUser(userId);
   }
 
   @Patch(':id')

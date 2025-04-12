@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { JsonObject } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
-import { JsonObject } from '@prisma/client/runtime/library';
+
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { typeToStatusMap } from 'src/enums/order.enum';
 import { CartsService } from '../carts/carts.service';
 
 @Injectable()
@@ -96,21 +98,21 @@ export class OrdersService {
       });
     });
 
-    const cart = await this.prisma.cart.findUnique({
-      where: { userId: userId },
-    });
-
-    if (cart) {
-      for (const item of orderItems) {
-        console.log('item:', item)
-        const cartItem = await this.prisma.cartItem.findFirst({
-          where: {
-            cartId: cart.id,
-            skuId: item.skuId,
-          },
-        });
-        if (cartItem) {
-          await this.cartService.removeCartItem(cartItem?.id);
+    if (userId) {
+      const cart = await this.prisma.cart.findUnique({
+        where: { userId: userId },
+      });
+      if (cart) {
+        for (const item of orderItems) {
+          const cartItem = await this.prisma.cartItem.findFirst({
+            where: {
+              cartId: cart.id,
+              skuId: item.skuId,
+            },
+          });
+          if (cartItem) {
+            await this.cartService.removeCartItem(cartItem?.id);
+          }
         }
       }
     }
@@ -161,9 +163,10 @@ export class OrdersService {
     return { data: orders };
   }
 
-  async getOrdersByUser(userId: number) {
+  async getUserPurchases(userId: number, type: number) {
+    const status = typeToStatusMap[type];
     const orders = await this.prisma.order.findMany({
-      where: { userId },
+      where: { userId, status: status },
       include: { orderItems: { include: { product: true, sku: true } } },
     });
     return { data: orders };

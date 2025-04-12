@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateProductAttributeDto } from './dto/create-product-attribute.dto';
 import { UpdateProductAttributeDto } from './dto/update-product-attribute.dto';
 import { ProductAttributesService } from './product-attributes.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('product-attributes')
 export class ProductAttributesController {
@@ -22,6 +24,7 @@ export class ProductAttributesController {
     return this.productAttributesService.create(createProductAttributeDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.productAttributesService.findAll();
