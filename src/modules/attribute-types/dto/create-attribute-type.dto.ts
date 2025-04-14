@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
-export class CreateProductAttributeDto {
+export class CreateAttributeTypeDto {
   @ApiProperty()
   @IsNotEmpty()
-  typeId: number;
+  name: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  value: string;
+  label: string;
 }

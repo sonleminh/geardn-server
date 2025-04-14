@@ -14,6 +14,7 @@ import { ProductSkusModule } from './modules/product-skus/product-skus.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { PaymentMethodModule } from './modules/payment-methods/payment-method.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { AttributeTypesModule } from './modules/attribute-types/attribute-types.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     PaymentMethodModule,
     PrismaModule,
     ProductAttributesModule,
+    AttributeTypesModule,
     ProductsModule,
     ProductSkusModule,
     UploadModule,

@@ -179,12 +179,14 @@ export class CartsService {
                 productSkuAttributes: {
                   select: {
                     id: true,
-                    attribute: {
-                      select: {
-                        type: true,
-                        value: true,
-                      },
-                    },
+                    attribute: true,
+                    // {
+                    //   select: {
+                    //     id: true,
+                    //     type: true,
+                    //     value: true,
+                    //   },
+                    // },
                   },
                 },
               },
@@ -263,12 +265,14 @@ export class CartsService {
                 productSkuAttributes: {
                   select: {
                     id: true,
-                    attribute: {
-                      select: {
-                        type: true,
-                        value: true,
-                      },
-                    },
+                    attribute: true,
+                    // {
+                    //   select: {
+                    //     id: true,
+                    //     type: true,
+                    //     value: true,
+                    //   },
+                    // },
                   },
                 },
               },
@@ -307,13 +311,14 @@ export class CartsService {
                 productSkuAttributes: {
                   select: {
                     id: true,
-                    attribute: {
-                      select: {
-                        id: true,
-                        type: true,
-                        value: true,
-                      },
-                    },
+                    attribute: true,
+                    // {
+                    //   select: {
+                    //     id: true,
+                    //     type: true,
+                    //     value: true,
+                    //   },
+                    // },
                   },
                 },
               },

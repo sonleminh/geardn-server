@@ -79,13 +79,14 @@ export class ProductSkusService {
       include: {
         productSkuAttributes: {
           include: {
-            attribute: {
-              select: {
-                id: true,
-                type: true,
-                value: true,
-              },
-            },
+            attribute: true,
+            // {
+            //   select: {
+            //     id: true,
+            //     type: true,
+            //     value: true,
+            //   },
+            // },
           },
         },
       },
@@ -99,13 +100,14 @@ export class ProductSkusService {
           productSkuAttributes: {
             select: {
               id: true,
-              attribute: {
-                select: {
-                  id: true,
-                  type: true,
-                  value: true,
-                },
-              },
+              attribute: true,
+              // {
+              //   select: {
+              //     id: true,
+              //     type: true,
+              //     value: true,
+              //   },
+              // },
             },
           },
         },
@@ -125,13 +127,14 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: {
-              select: {
-                id: true,
-                type: true,
-                value: true,
-              },
-            },
+            attribute: true,
+            // {
+            //   select: {
+            //     id: true,
+            //     type: true,
+            //     value: true,
+            //   },
+            // },
           },
         },
       },
@@ -149,13 +152,14 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: {
-              select: {
-                id: true,
-                type: true,
-                value: true,
-              },
-            },
+            attribute: true,
+            // {
+            //   select: {
+            //     id: true,
+            //     type: true,
+            //     value: true,
+            //   },
+            // },
           },
         },
       },
@@ -188,13 +192,14 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: {
-              select: {
-                id: true,
-                type: true,
-                value: true,
-              },
-            },
+            attribute: true,
+            // {
+            //   select: {
+            //     id: true,
+            //     type: true,
+            //     value: true,
+            //   },
+            // },
           },
         },
       },
@@ -246,13 +251,14 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: {
-              select: {
-                id: true,
-                type: true,
-                value: true,
-              },
-            },
+            attribute: true,
+            // {
+            //   select: {
+            //     id: true,
+            //     type: true,
+            //     value: true,
+            //   },
+            // },
           },
         },
       },

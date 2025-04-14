@@ -144,12 +144,14 @@ export class OrdersService {
                 imageUrl: true,
                 productSkuAttributes: {
                   select: {
-                    attribute: {
-                      select: {
-                        type: true,
-                        value: true,
-                      },
-                    },
+                    attribute: true,
+                    // {
+                    //   select: {
+                    //     id: true,
+                    //     type: true,
+                    //     value: true,
+                    //   },
+                    // },
                   },
                 },
               },

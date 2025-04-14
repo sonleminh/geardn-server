@@ -55,8 +55,8 @@ export class AdminAuthService {
         role: user.role,
       });
 
-      this.storeToken(res, 'at', access_token, 2);
-      this.storeToken(res, 'rt', refresh_token, 48);
+      this.storeToken(res, 'access_token', access_token, 2);
+      this.storeToken(res, 'refresh_token', refresh_token, 48);
 
       const { password, ...tempUser } = user;
       return tempUser;
@@ -121,7 +121,7 @@ export class AdminAuthService {
     }
     const refreshToken = tokens
       ?.split('; ')
-      ?.find((tokens) => tokens.startsWith('rt='))
+      ?.find((tokens) => tokens.startsWith('refresh_token='))
       ?.split('=')[1];
     // if (!refreshToken) {
     //   throw new HttpException(
@@ -142,7 +142,7 @@ export class AdminAuthService {
           expiresIn: '2h',
         },  
       );
-      this.storeToken(res, 'at', newAccessToken, 2);
+      this.storeToken(res, 'access_token', newAccessToken, 2);
 
       return {
         access_token: newAccessToken,

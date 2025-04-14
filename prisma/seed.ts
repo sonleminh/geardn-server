@@ -1,6 +1,6 @@
 // prisma/seed.ts
 
-import { PrismaClient, ProductAttributeType } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
@@ -34,22 +34,22 @@ const categorySeedList = [
 
 const productAttributeSeedList = [
   {
-    type: ProductAttributeType.COLOR,
+    type: 'color',
     value: 'Đen',
     isDeleted: false,
   },
   {
-    type: ProductAttributeType.COLOR,
+    type: 'color',
     value: 'Trắng',
     isDeleted: false,
   },
   {
-    type: ProductAttributeType.SWITCH,
+    type: 'switch',
     value: 'Leopog Reaper',
     isDeleted: false,
   },
   {
-    type: ProductAttributeType.SWITCH,
+    type: 'switch',
     value: 'Silent Reaper',
     isDeleted: false,
   },
@@ -57,24 +57,32 @@ const productAttributeSeedList = [
 
 async function main() {
   // create two dummy articles
-  const categorieList = await prisma.category.createMany({
-    data: categorySeedList?.map((item) => item),
+  // const categorieList = await prisma.category.createMany({
+  //   data: categorySeedList?.map((item) => item),
+  // });
+
+  // const productAttributeList = await prisma.productAttribute.createMany({
+  //   data: productAttributeSeedList?.map((item) => item),
+  // });
+
+  // const paymentMethod = await prisma.paymentMethod.create({
+  //   data: {
+  //     key: 'COD',
+  //     name: 'Thanh toán khi nhận hàng',
+  //     image:
+  //       'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1743094400265-COD-icon.jpg?alt=media&token=287ae75c-8d5f-4348-8498-b8c7d39f3522',
+  //   },
+  // });
+
+  await prisma.attributeType.createMany({
+    data: [
+      { name: 'color', label: 'Màu sắc' },
+      { name: 'switch', label: 'Switch' },
+      { name: 'version', label: 'Phiên bản' },
+    ],
   });
 
-  const productAttributeList = await prisma.productAttribute.createMany({
-    data: productAttributeSeedList?.map((item) => item),
-  });
-
-  const paymentMethod = await prisma.paymentMethod.create({
-    data: {
-      key: 'COD',
-      name: 'Thanh toán khi nhận hàng',
-      image:
-        'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1743094400265-COD-icon.jpg?alt=media&token=287ae75c-8d5f-4348-8498-b8c7d39f3522',
-    },
-  });
-
-  console.log({ categorieList, productAttributeList, paymentMethod });
+  // console.log({ categorieList, productAttributeList, paymentMethod });
 }
 
 // execute the main function

@@ -2,7 +2,6 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProductAttributeDto } from './dto/create-product-attribute.dto';
 import { UpdateProductAttributeDto } from './dto/update-product-attribute.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { ProductAttributeType } from '@prisma/client';
 
 @Injectable()
 export class ProductAttributesService {
@@ -16,7 +15,11 @@ export class ProductAttributesService {
 
   async findAll() {
     const [res, total] = await Promise.all([
-      this.prisma.productAttribute.findMany(),
+      this.prisma.productAttribute.findMany({
+        include: {
+          attributeType: true,
+        },
+      }),
       this.prisma.productAttribute.count(),
     ]);
     return {
@@ -32,13 +35,12 @@ export class ProductAttributesService {
     return { data: res };
   }
 
-  async findByType(type: string) {
-    const enumValue = type.toUpperCase() as ProductAttributeType;
-    const res = await this.prisma.productAttribute.findMany({
-      where: { type: enumValue },
-    });
-    return { data: res };
-  }
+  // async findByType(type: string) {
+  //   const res = await this.prisma.productAttribute.findMany({
+  //     where: { type },
+  //   });
+  //   return { data: res };
+  // }
 
   async update(
     id: number,

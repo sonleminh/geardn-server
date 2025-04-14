@@ -11,7 +11,7 @@ import {
 import { CreateProductAttributeDto } from './dto/create-product-attribute.dto';
 import { UpdateProductAttributeDto } from './dto/update-product-attribute.dto';
 import { ProductAttributesService } from './product-attributes.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 
 @Controller('product-attributes')
 export class ProductAttributesController {
@@ -24,7 +24,7 @@ export class ProductAttributesController {
     return this.productAttributesService.create(createProductAttributeDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAdminAuthGuard)
   @Get()
   findAll() {
     return this.productAttributesService.findAll();
@@ -35,10 +35,10 @@ export class ProductAttributesController {
     return this.productAttributesService.findOne(+id);
   }
 
-  @Get('type/:id')
-  findByType(@Param('id') type: string) {
-    return this.productAttributesService.findByType(type);
-  }
+  // @Get('type/:id')
+  // findByType(@Param('id') type: string) {
+  //   return this.productAttributesService.findByType(type);
+  // }
 
   @Patch(':id')
   update(

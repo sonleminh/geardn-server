@@ -1,15 +1,15 @@
-import { ProductAttribute } from '@prisma/client';
+import { AttributeType } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ProductAttributeEntity implements ProductAttribute {
+export class AttributeTypesEntity implements AttributeType {
   @ApiProperty()
   id: number;
 
   @ApiProperty()
-  typeId: number;
+  name: string;
 
   @ApiProperty()
-  value: string;
+  label: string;
 
   @ApiProperty({ default: false })
   isDeleted: boolean;

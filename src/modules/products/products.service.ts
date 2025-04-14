@@ -116,13 +116,14 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: {
-                  select: {
-                    id: true,
-                    type: true,
-                    value: true,
-                  },
-                },
+                attribute: true,
+                // {
+                //   select: {
+                //     id: true,
+                //     : true,
+                //     value: true,
+                //   },
+                // },
               },
             },
           },
@@ -156,13 +157,14 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: {
-                  select: {
-                    id: true,
-                    type: true,
-                    value: true,
-                  },
-                },
+                attribute: true,
+                // {
+                //   select: {
+                //     id: true,
+                //     type: true,
+                //     value: true,
+                //   },
+                // },
               },
             },
           },
@@ -210,13 +212,14 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: {
-                  select: {
-                    id: true,
-                    type: true,
-                    value: true,
-                  },
-                },
+                attribute: true,
+                // {
+                //   select: {
+                //     id: true,
+                //     type: true,
+                //     value: true,
+                //   },
+                // },
               },
             },
           },
@@ -234,7 +237,7 @@ export class ProductsService {
         return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
       });
     }
-    
+
     return {
       data: res,
       total: total,

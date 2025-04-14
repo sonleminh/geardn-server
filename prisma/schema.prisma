@@ -28,12 +28,23 @@ model Product {
 
 model ProductAttribute {
   id                   Int                   @id @default(autoincrement())
-  type                 ProductAttributeType
+  typeId               Int
+  attributeType        AttributeType         @relation(fields: [typeId], references: [id])
   value                String
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   isDeleted            Boolean               @default(false)
   productSkuAttributes ProductSKUAttribute[]
+}
+
+model AttributeType {
+  id         Int                @id @default(autoincrement())
+  name       String             @unique
+  label      String
+  isDeleted  Boolean            @default(false)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  attributes ProductAttribute[]
 }
 
 model ProductSKU {
@@ -150,11 +161,6 @@ model OrderItem {
   order     Order      @relation(fields: [orderId], references: [id])
   product   Product    @relation(fields: [productId], references: [id])
   sku       ProductSKU @relation(fields: [skuId], references: [id])
-}
-
-enum ProductAttributeType {
-  COLOR
-  SWITCH
 }
 
 enum OrderStatus {
