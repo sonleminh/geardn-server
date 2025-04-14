@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 async function migrateTypeToTypeId() {
   const allTypes = await prisma.attributeType.findMany();
 
-  const allAttributes = await prisma.productAttribute.findMany();
+  const allAttributes = await prisma.attributeValue.findMany();
 
   for (const attr of allAttributes) {
     if (!attr.type) continue;
@@ -14,7 +14,7 @@ async function migrateTypeToTypeId() {
       (t) => t.name.toLowerCase() === attr.type.toLowerCase(),
     );
     if (match) {
-      await prisma.productAttribute.update({
+      await prisma.attributeValue.update({
         where: { id: attr.id },
         data: { typeId: match.id },
       });

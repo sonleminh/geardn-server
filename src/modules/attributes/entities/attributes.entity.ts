@@ -1,7 +1,7 @@
-import { AttributeType } from '@prisma/client';
+import { Attribute } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AttributeTypesEntity implements AttributeType {
+export class AttributeEntity implements Attribute {
   @ApiProperty()
   id: number;
 

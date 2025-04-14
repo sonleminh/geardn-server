@@ -26,25 +26,25 @@ model Product {
   skus        ProductSKU[] @relation("ProductToSKU")
 }
 
-model ProductAttribute {
-  id                   Int                   @id @default(autoincrement())
-  typeId               Int
-  attributeType        AttributeType         @relation(fields: [typeId], references: [id])
-  value                String
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  isDeleted            Boolean               @default(false)
-  productSkuAttributes ProductSKUAttribute[]
+model Attribute {
+  id        Int              @id @default(autoincrement())
+  name      String           @unique
+  label     String
+  isDeleted Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  values    AttributeValue[]
 }
 
-model AttributeType {
-  id         Int                @id @default(autoincrement())
-  name       String             @unique
-  label      String
-  isDeleted  Boolean            @default(false)
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  attributes ProductAttribute[]
+model AttributeValue {
+  id                   Int                   @id @default(autoincrement())
+  value                String
+  attributeId          Int
+  attribute            Attribute             @relation(fields: [attributeId], references: [id])
+  isDeleted            Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  productSkuAttributes ProductSKUAttribute[]
 }
 
 model ProductSKU {
@@ -64,13 +64,13 @@ model ProductSKU {
 }
 
 model ProductSKUAttribute {
-  id          Int              @id @default(autoincrement())
-  skuId       Int
-  attributeId Int
-  attribute   ProductAttribute @relation(fields: [attributeId], references: [id])
-  productSku  ProductSKU       @relation("SkuToAttribute", fields: [skuId], references: [id])
+  id               Int            @id @default(autoincrement())
+  skuId            Int
+  attributeValueId Int
+  attribute        AttributeValue @relation(fields: [attributeValueId], references: [id])
+  productSku       ProductSKU     @relation("SkuToAttribute", fields: [skuId], references: [id])
 
-  @@unique([skuId, attributeId])
+  @@unique([skuId, attributeValueId])
 }
 
 model Category {
@@ -108,11 +108,11 @@ model Cart {
 model CartItem {
   id        Int        @id @default(autoincrement())
   cartId    Int
-  productId Int
   skuId     Int
   quantity  Int        @default(1)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  productId Int
   cart      Cart       @relation(fields: [cartId], references: [id])
   product   Product    @relation(fields: [productId], references: [id])
   sku       ProductSKU @relation(fields: [skuId], references: [id])
@@ -133,7 +133,6 @@ model PaymentMethod {
 
 model Order {
   id              Int           @id @default(autoincrement())
-  orderCode       String        @unique
   userId          Int?
   totalPrice      Decimal
   status          OrderStatus   @default(PENDING)
@@ -146,6 +145,7 @@ model Order {
   flag            Json          @default("{}")
   shipment        Json          @default("{}")
   email           String?
+  orderCode       String        @unique
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   user            User?         @relation(fields: [userId], references: [id])
   orderItems      OrderItem[]

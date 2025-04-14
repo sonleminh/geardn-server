@@ -24,5 +24,5 @@ export class CreateProductSkusDto {
 
   @ApiProperty()
   @IsOptional()
-  attributes: CreateProductSKUAttributeDto[];
+  attributeValues: CreateProductSKUAttributeDto[];
 }

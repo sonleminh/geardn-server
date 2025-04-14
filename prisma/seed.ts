@@ -32,7 +32,7 @@ const categorySeedList = [
   },
 ];
 
-const productAttributeSeedList = [
+const attributeValueSeedList = [
   {
     type: 'color',
     value: 'Đen',
@@ -61,8 +61,8 @@ async function main() {
   //   data: categorySeedList?.map((item) => item),
   // });
 
-  // const productAttributeList = await prisma.productAttribute.createMany({
-  //   data: productAttributeSeedList?.map((item) => item),
+  // const attributeValueList = await prisma.attributeValue.createMany({
+  //   data: attributeValueSeedList?.map((item) => item),
   // });
 
   // const paymentMethod = await prisma.paymentMethod.create({
@@ -74,15 +74,12 @@ async function main() {
   //   },
   // });
 
-  await prisma.attributeType.createMany({
-    data: [
-      { name: 'color', label: 'Màu sắc' },
-      { name: 'switch', label: 'Switch' },
-      { name: 'version', label: 'Phiên bản' },
-    ],
-  });
-
-  // console.log({ categorieList, productAttributeList, paymentMethod });
+  // await prisma.attribute.createMany({
+  //   data: [
+  //     { name: 'color', label: 'Màu sắc' },
+  //     { name: 'switch', label: 'Switch' },
+  //   ],
+  // });
 }
 
 // execute the main function

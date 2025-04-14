@@ -9,12 +9,12 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { ProductAttributesModule } from './modules/product-attributes/product-attributes.module';
+import { AttributeValuesModule } from './modules/attribute-values/attribute-values.module';
 import { ProductSkusModule } from './modules/product-skus/product-skus.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { PaymentMethodModule } from './modules/payment-methods/payment-method.module';
 import { OrdersModule } from './modules/orders/orders.module';
-import { AttributeTypesModule } from './modules/attribute-types/attribute-types.module';
+import { AttributesModule } from './modules/attributes/attributes.module';
 
 @Module({
   imports: [
@@ -31,8 +31,8 @@ import { AttributeTypesModule } from './modules/attribute-types/attribute-types.
     OrdersModule,
     PaymentMethodModule,
     PrismaModule,
-    ProductAttributesModule,
-    AttributeTypesModule,
+    AttributeValuesModule,
+    AttributesModule,
     ProductsModule,
     ProductSkusModule,
     UploadModule,

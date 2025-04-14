@@ -30,7 +30,7 @@ export class ProductSkusService {
 
   async create(createProductSkusDto: CreateProductSkusDto) {
     const sku = await this.generateSKU();
-    const { productId, imageUrl, price, quantity, attributes } =
+    const { productId, imageUrl, price, quantity, attributeValues } =
       createProductSkusDto;
 
     const existingSkus = await this.prisma.productSKU.findMany({
@@ -40,9 +40,11 @@ export class ProductSkusService {
 
     const isDuplicate = existingSkus.some((existingSku) => {
       const existingAttributes = existingSku.productSkuAttributes
-        .map((attr) => attr.attributeId)
+        .map((attr) => attr.attributeValueId)
         .sort();
-      const newAttributes = attributes.map((attr) => attr.attributeId).sort();
+      const newAttributes = attributeValues
+        .map((attr) => attr.attributeValueId)
+        .sort();
       return (
         JSON.stringify(existingAttributes) === JSON.stringify(newAttributes)
       );
@@ -63,12 +65,12 @@ export class ProductSkusService {
       },
     });
 
-    if (attributes?.length) {
+    if (attributeValues?.length) {
       // Tạo danh sách thuộc tính cho SKU
       await this.prisma.productSKUAttribute.createMany({
-        data: attributes.map((attr) => ({
+        data: attributeValues.map((attr) => ({
           skuId: newSku.id,
-          attributeId: attr.attributeId,
+          attributeValueId: attr.attributeValueId,
         })),
       });
     }
@@ -211,7 +213,7 @@ export class ProductSkusService {
   }
 
   async update(id: number, updateProductSkusDto: UpdateProductSkusDto) {
-    const { productId, price, quantity, imageUrl, attributes } =
+    const { productId, price, quantity, imageUrl, attributeValues } =
       updateProductSkusDto;
     const existingSkus = await this.prisma.productSKU.findMany({
       where: { productId: productId },
@@ -222,9 +224,11 @@ export class ProductSkusService {
 
     const isDuplicate = filteredSkus.some((existingSku) => {
       const existingAttributes = existingSku.productSkuAttributes
-        .map((attr) => attr.attributeId)
+        .map((attr) => attr.attributeValueId)
         .sort();
-      const newAttributes = attributes.map((attr) => attr.attributeId).sort();
+      const newAttributes = attributeValues
+        .map((attr) => attr.attributeValueId)
+        .sort();
       return (
         JSON.stringify(existingAttributes) === JSON.stringify(newAttributes)
       );
@@ -242,8 +246,8 @@ export class ProductSkusService {
         imageUrl,
         productSkuAttributes: {
           deleteMany: {}, // Remove all existing attributes
-          create: updateProductSkusDto?.attributes.map((attr) => ({
-            attribute: { connect: { id: attr.attributeId } }, // Reconnect new attributes
+          create: updateProductSkusDto?.attributeValues.map((attr) => ({
+            attribute: { connect: { id: attr.attributeValueId } }, // Reconnect new attributes
           })),
         },
       },
