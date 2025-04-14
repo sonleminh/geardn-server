@@ -35,12 +35,13 @@ export class ProductAttributesService {
     return { data: res };
   }
 
-  // async findByType(type: string) {
-  //   const res = await this.prisma.productAttribute.findMany({
-  //     where: { type },
-  //   });
-  //   return { data: res };
-  // }
+
+  async findByType(typeId: number) {
+    const res = await this.prisma.productAttribute.findMany({
+      where: { typeId: typeId },
+    });
+    return { data: res };
+  }
 
   async update(
     id: number,

@@ -35,10 +35,10 @@ export class ProductAttributesController {
     return this.productAttributesService.findOne(+id);
   }
 
-  // @Get('type/:id')
-  // findByType(@Param('id') type: string) {
-  //   return this.productAttributesService.findByType(type);
-  // }
+  @Get('type/:id')
+  findByType(@Param('id') typeId: string) {
+    return this.productAttributesService.findByType(+typeId);
+  }
 
   @Patch(':id')
   update(
