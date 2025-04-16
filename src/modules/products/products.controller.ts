@@ -76,9 +76,9 @@ export class ProductsController {
     return this.productsService.update(+id, updateProductDto);
   }
 
-  @Delete(':id')
+  @Patch(':id')
   @ApiCreatedResponse({ type: ProductEntity })
   remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+    return this.productsService.softDelete(+id);
   }
 }

@@ -24,6 +24,9 @@ model Product {
   OrderItem   OrderItem[]
   category    Category     @relation(fields: [categoryId], references: [id])
   skus        ProductSKU[] @relation("ProductToSKU")
+
+  @@index([categoryId])
+  @@index([slug])
 }
 
 model Attribute {
@@ -45,6 +48,8 @@ model AttributeValue {
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   productSkuAttributes ProductSKUAttribute[]
+
+  @@index([attributeId])
 }
 
 model ProductSKU {
@@ -52,7 +57,6 @@ model ProductSKU {
   productId            Int
   sku                  String                @unique
   price                Decimal
-  quantity             Int
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   imageUrl             String?
@@ -61,6 +65,10 @@ model ProductSKU {
   OrderItem            OrderItem[]
   product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
   productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
+  ImportLogItem        ImportLogItem[]
+  Stock                Stock[]
+
+  @@index([productId])
 }
 
 model ProductSKUAttribute {
@@ -71,6 +79,8 @@ model ProductSKUAttribute {
   productSku       ProductSKU     @relation("SkuToAttribute", fields: [skuId], references: [id])
 
   @@unique([skuId, attributeValueId])
+  @@index([skuId])
+  @@index([attributeValueId])
 }
 
 model Category {
@@ -82,18 +92,6 @@ model Category {
   updatedAt DateTime  @updatedAt
   isDeleted Boolean   @default(false)
   products  Product[]
-}
-
-model User {
-  id        Int      @id @default(autoincrement())
-  password  String
-  email     String   @unique
-  name      String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Cart      Cart?
-  Order     Order[]
 }
 
 model Cart {
@@ -118,6 +116,9 @@ model CartItem {
   sku       ProductSKU @relation(fields: [skuId], references: [id])
 
   @@unique([cartId, productId, skuId])
+  @@index([cartId])
+  @@index([skuId])
+  @@index([productId])
 }
 
 model PaymentMethod {
@@ -161,6 +162,77 @@ model OrderItem {
   order     Order      @relation(fields: [orderId], references: [id])
   product   Product    @relation(fields: [productId], references: [id])
   sku       ProductSKU @relation(fields: [skuId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Warehouse {
+  id         Int         @id @default(autoincrement())
+  name       String
+  address    String
+  isDeleted  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  importLogs ImportLog[]
+  Stock      Stock[]
+}
+
+model Stock {
+  id          Int @id @default(autoincrement())
+  skuId       Int
+  warehouseId Int
+  quantity    Int @default(0)
+
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
+  warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
+
+  @@unique([skuId, warehouseId])
+  @@index([skuId])
+  @@index([warehouseId])
+}
+
+model ImportLog {
+  id          Int      @id @default(autoincrement())
+  warehouseId Int
+  staffId     Int?
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
+  staff     User?           @relation(fields: [staffId], references: [id])
+  items     ImportLogItem[]
+}
+
+model ImportLogItem {
+  id          Int     @id @default(autoincrement())
+  importLogId Int
+  skuId       Int
+  quantity    Int
+  price       Decimal
+  note        String?
+
+  importLog ImportLog  @relation(fields: [importLogId], references: [id])
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
+}
+
+model User {
+  id        Int         @id @default(autoincrement())
+  password  String
+  email     String      @unique
+  name      String
+  role      UserRole    @default(USER)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Cart      Cart?
+  Order     Order[]
+  ImportLog ImportLog[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
 }
 
 enum OrderStatus {

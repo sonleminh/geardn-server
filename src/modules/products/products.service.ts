@@ -269,8 +269,4 @@ export class ProductsService {
       deleteCount: 1,
     };
   }
-
-  async remove(id: number) {
-    return this.prisma.product.delete({ where: { id } });
-  }
 }

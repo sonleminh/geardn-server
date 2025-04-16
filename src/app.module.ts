@@ -15,6 +15,7 @@ import { CartsModule } from './modules/carts/carts.module';
 import { PaymentMethodModule } from './modules/payment-methods/payment-method.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { AttributesModule } from './modules/attributes/attributes.module';
+import { WarehousesModule } from './modules/warehouses/warehouses.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AttributesModule } from './modules/attributes/attributes.module';
     ProductsModule,
     ProductSkusModule,
     UploadModule,
+    WarehousesModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

@@ -3,6 +3,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AdminAuthService } from '../admin-auth.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'admin-local') {
@@ -12,7 +13,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'admin-local') {
 
   async validate(email: string, password: string) {
     const user = await this.adminAuthService.validateUser(email, password);
-    if (!user || user.role !== 'admin') {
+    if (!user || user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Access denied. Admins only');
     }
     return user;
