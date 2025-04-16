@@ -67,7 +67,7 @@ model ProductSKUAttribute {
   id               Int            @id @default(autoincrement())
   skuId            Int
   attributeValueId Int
-  attribute        AttributeValue @relation(fields: [attributeValueId], references: [id])
+  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
   productSku       ProductSKU     @relation("SkuToAttribute", fields: [skuId], references: [id])
 
   @@unique([skuId, attributeValueId])

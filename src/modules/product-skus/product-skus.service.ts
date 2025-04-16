@@ -81,7 +81,7 @@ export class ProductSkusService {
       include: {
         productSkuAttributes: {
           include: {
-            attribute: true,
+            attributeValue: true,
             // {
             //   select: {
             //     id: true,
@@ -102,7 +102,7 @@ export class ProductSkusService {
           productSkuAttributes: {
             select: {
               id: true,
-              attribute: true,
+              attributeValue: true,
               // {
               //   select: {
               //     id: true,
@@ -129,7 +129,7 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: true,
+            attributeValue: true,
             // {
             //   select: {
             //     id: true,
@@ -154,7 +154,7 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: true,
+            attributeValue: true,
             // {
             //   select: {
             //     id: true,
@@ -194,7 +194,7 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: true,
+            attributeValue: true,
             // {
             //   select: {
             //     id: true,
@@ -247,7 +247,7 @@ export class ProductSkusService {
         productSkuAttributes: {
           deleteMany: {}, // Remove all existing attributes
           create: updateProductSkusDto?.attributeValues.map((attr) => ({
-            attribute: { connect: { id: attr.attributeValueId } }, // Reconnect new attributes
+            attributeValue: { connect: { id: attr.attributeValueId } }, // Reconnect new attributes
           })),
         },
       },
@@ -255,7 +255,7 @@ export class ProductSkusService {
         productSkuAttributes: {
           select: {
             id: true,
-            attribute: true,
+            attributeValue: true,
             // {
             //   select: {
             //     id: true,

@@ -116,7 +116,7 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: true,
+                attributeValue: true,
                 // {
                 //   select: {
                 //     id: true,
@@ -157,7 +157,7 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: true,
+                attributeValue: true,
                 // {
                 //   select: {
                 //     id: true,
@@ -212,7 +212,7 @@ export class ProductsService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attribute: true,
+                attributeValue: true,
                 // {
                 //   select: {
                 //     id: true,
