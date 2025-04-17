@@ -50,6 +50,7 @@ model ProductSKU {
   OrderItem           OrderItem[]
   ImportLogItem       ImportLogItem[]
   Stock               Stock[]
+  ExportLogItem       ExportLogItem[]
 
   @@index([productId])
 }
@@ -188,6 +189,7 @@ model Warehouse {
 
   importLogs ImportLog[]
   Stock      Stock[]
+  ExportLog  ExportLog[]
 }
 
 model Stock {
@@ -205,15 +207,16 @@ model Stock {
 }
 
 model ImportLog {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   warehouseId Int
+  type        ImportType
   note        String?
   createdBy   Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
-  staff     User            @relation(fields: [createdBy], references: [id])
+  user      User            @relation(fields: [createdBy], references: [id])
   items     ImportLogItem[]
 }
 
@@ -227,6 +230,45 @@ model ImportLogItem {
 
   importLog ImportLog  @relation(fields: [importLogId], references: [id])
   sku       ProductSKU @relation(fields: [skuId], references: [id])
+}
+
+model ExportLog {
+  id          Int        @id @default(autoincrement())
+  warehouseId Int
+  type        ExportType
+  orderId     Int?
+  note        String?
+  createdBy   Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
+  user      User            @relation(fields: [createdBy], references: [id])
+  order     Order?          @relation(fields: [orderId], references: [id])
+  items     ExportLogItem[]
+}
+
+model ExportLogItem {
+  id          Int     @id @default(autoincrement())
+  exportLogId Int
+  skuId       Int
+  quantity    Int
+  note        String?
+
+  exportLog ExportLog  @relation(fields: [exportLogId], references: [id])
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
+}
+
+model AdjustmentLog {
+  id: string;
+  skuId: string;
+  warehouseId: string;
+  oldQuantity: number;
+  newQuantity: number;
+  difference: number; // new - old
+  reason: string;
+  createdBy: string; // admin id
+  createdAt: Date;
 }
 
 //
@@ -245,6 +287,7 @@ model User {
   Cart      Cart?
   Order     Order[]
   ImportLog ImportLog[]
+  ExportLog ExportLog[]
 }
 
 model PaymentMethod {
@@ -274,4 +317,18 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELED
+}
+
+enum ImportType {
+  NEW
+  RETURN
+  ADJUSTMENT
+}
+
+enum ExportType {
+  CUSTOMER_ORDER // xuất cho đơn hàng khách
+  RETURN_TO_SUPPLIER // trả hàng về nhà cung cấp
+  TRANSFER // chuyển kho nội bộ
+  DAMAGE_LOSS // hỏng, mất mát
+  MANUAL // ghi tay, điều chỉnh thủ công
 }

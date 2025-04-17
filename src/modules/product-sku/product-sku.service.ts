@@ -1,8 +1,8 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { FirebaseService } from '../firebase/firebase.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class ProductSkuService {
@@ -30,7 +30,7 @@ export class ProductSkuService {
 
   async create(createProductSkusDto: CreateProductSkuDto) {
     const sku = await this.generateSKU();
-    const { productId, imageUrl, price, quantity, attributeValues } =
+    const { productId, imageUrl, price, attributeValues } =
       createProductSkusDto;
 
     const existingSkus = await this.prisma.productSKU.findMany({
@@ -45,9 +45,7 @@ export class ProductSkuService {
       const newAttribute = attributeValues
         .map((attr) => attr.attributeValueId)
         .sort();
-      return (
-        JSON.stringify(existingAttribute) === JSON.stringify(newAttribute)
-      );
+      return JSON.stringify(existingAttribute) === JSON.stringify(newAttribute);
     });
 
     if (isDuplicate) {
@@ -142,7 +140,7 @@ export class ProductSkuService {
       },
     });
     if (!res) {
-      throw new NotFoundException('Không tìm thấy mã hàng!');
+      throw new NotFoundException('Product not found');
     }
     return { message: 'success', data: res };
   }
@@ -213,7 +211,7 @@ export class ProductSkuService {
   }
 
   async update(id: number, updateProductSkusDto: UpdateProductSkuDto) {
-    const { productId, price, quantity, imageUrl, attributeValues } =
+    const { productId, price, imageUrl, attributeValues } =
       updateProductSkusDto;
     const existingSkus = await this.prisma.productSKU.findMany({
       where: { productId: productId },
@@ -229,9 +227,7 @@ export class ProductSkuService {
       const newAttribute = attributeValues
         .map((attr) => attr.attributeValueId)
         .sort();
-      return (
-        JSON.stringify(existingAttribute) === JSON.stringify(newAttribute)
-      );
+      return JSON.stringify(existingAttribute) === JSON.stringify(newAttribute);
     });
 
     if (isDuplicate) {

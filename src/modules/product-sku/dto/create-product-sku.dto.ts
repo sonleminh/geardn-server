@@ -15,10 +15,6 @@ export class CreateProductSkuDto {
   price: number;
 
   @ApiProperty()
-  @IsNotEmpty()
-  quantity: number;
-
-  @ApiProperty()
   @IsOptional()
   imageUrl: string;
 

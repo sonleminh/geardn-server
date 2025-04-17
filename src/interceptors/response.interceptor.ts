@@ -12,21 +12,21 @@ export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((originalData) => {
-        const isObject = typeof originalData === 'object' && originalData !== null;
+        const isObject =
+          typeof originalData === 'object' && originalData !== null;
 
         if (isObject && 'success' in originalData) {
           return originalData;
         }
         // Nếu data là object và có `message` bên trong, trích xuất `message` ra ngoài
         const message =
-        (isObject && originalData.message) ||
+          (isObject && originalData.message) ||
           (typeof originalData === 'string'
             ? originalData
             : 'Request successful');
 
         let data = null;
         let meta = undefined;
-
         if (isObject && 'data' in originalData) {
           data = originalData.data;
           if ('meta' in originalData) {
@@ -35,14 +35,21 @@ export class ResponseInterceptor implements NestInterceptor {
             meta = { total: originalData.total };
           }
         } else if (isObject) {
-          data = originalData;
-        }
+          const keys = Object.keys(originalData);
+          const isOnlyMessage = keys.length === 1 && keys.includes('message');
 
+          if (!isOnlyMessage) {
+            data = originalData;
+          }
+        }
         const response: Record<string, any> = {
           success: true,
           message,
-          data,
         };
+
+        if (data !== null) {
+          response.data = data;
+        }
 
         if (meta) {
           response.meta = meta;

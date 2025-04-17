@@ -1,17 +1,39 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateImportLogDto {
-  @IsInt()
-  skuId: number;
-
+  @IsNotEmpty()
   @IsInt()
   warehouseId: number;
 
-  @IsInt()
-  @Min(1)
-  quantity: number;
-
   @IsOptional()
   @IsString()
+  note?: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  items: CreateImportLogItemDto[];
+}
+
+export class CreateImportLogItemDto {
+  @IsNotEmpty()
+  @IsInt()
+  skuId: number;
+
+  @IsNotEmpty()
+  @IsInt()
+  quantity: number;
+
+  @IsNotEmpty()
+  @IsInt()
+  price: number;
+
+  @IsNotEmpty()
+  @IsInt()
   note?: string;
 }

@@ -20,4 +20,9 @@ export class ImportLogController {
   findAll() {
     return this.importLogService.findAll();
   }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.importLogService.findOne(+id);
+  }
 }
