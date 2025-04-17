@@ -1,26 +1,53 @@
-import { Injectable } from '@nestjs/common';
-import { CreateImportLogDto } from './dto/create-import-log.dto';
-import { UpdateImportLogDto } from './dto/update-import-log.dto';
+import { Injectable } from "@nestjs/common";
+import { CreateImportLogDto } from "./dto/create-import-log.dto";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class ImportLogService {
-  create(createImportLogDto: CreateImportLogDto) {
-    return 'This action adds a new importLog';
+  constructor(private prisma: PrismaService) {}
+
+  async create(dto: CreateImportLogDto, userId: number) {
+    const importLog = await this.prisma.importLog.create({
+      data: {
+        ...dto,
+        createdBy: userId,
+      },
+    });
+
+    // Cập nhật stock sau khi nhập kho
+    await this.prisma.stock.upsert({
+      where: {
+        skuId_warehouseId: {
+          skuId: dto.skuId,
+          warehouseId: dto.warehouseId,
+        },
+      },
+      update: {
+        quantity: {
+          increment: dto.quantity,
+        },
+      },
+      create: {
+        skuId: dto.skuId,
+        warehouseId: dto.warehouseId,
+        quantity: dto.quantity,
+      },
+    });
+
+    return importLog;
   }
 
-  findAll() {
-    return `This action returns all importLog`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} importLog`;
-  }
-
-  update(id: number, updateImportLogDto: UpdateImportLogDto) {
-    return `This action updates a #${id} importLog`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} importLog`;
+  async findAll() {
+    return this.prisma.importLog.findMany({
+      include: {
+        warehouse: true,
+        items: {
+          include: {
+            sku: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

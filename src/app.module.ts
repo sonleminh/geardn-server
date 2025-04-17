@@ -17,6 +17,7 @@ import { OrdersModule } from './modules/order/order.module';
 import { AttributeModule } from './modules/attribute/attribute.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { ImportLogModule } from './modules/import-log/import-log.module';
+import { StockModule } from './modules/stock/stock.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ImportLogModule } from './modules/import-log/import-log.module';
     UploadModule,
     WarehouseModule,
     ImportLogModule,
+    StockModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

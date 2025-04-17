@@ -207,13 +207,13 @@ model Stock {
 model ImportLog {
   id          Int      @id @default(autoincrement())
   warehouseId Int
-  staffId     Int?
   note        String?
+  createdBy   Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
-  staff     User?           @relation(fields: [staffId], references: [id])
+  staff     User            @relation(fields: [createdBy], references: [id])
   items     ImportLogItem[]
 }
 
