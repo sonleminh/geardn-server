@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 async function migrateTypeToTypeId() {
   const allTypes = await prisma.attributeType.findMany();
 
-  const allAttributes = await prisma.attributeValue.findMany();
+  const allAttribute = await prisma.attributeValue.findMany();
 
-  for (const attr of allAttributes) {
+  for (const attr of allAttribute) {
     if (!attr.type) continue;
 
     const match = allTypes.find(

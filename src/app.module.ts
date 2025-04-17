@@ -1,21 +1,22 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { PrismaModule } from './modules/prisma/prisma.module';
-import { ProductsModule } from './modules/products/products.module';
-import { CategoriesModule } from './modules/categories/categories.module';
+import { ProductModule } from './modules/product/product.module';
+import { CategoryModule } from './modules/category/category.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { LoggerModule } from './logger/logger.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { AttributeValuesModule } from './modules/attribute-values/attribute-values.module';
-import { ProductSkusModule } from './modules/product-skus/product-skus.module';
-import { CartsModule } from './modules/carts/carts.module';
-import { PaymentMethodModule } from './modules/payment-methods/payment-method.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { AttributesModule } from './modules/attributes/attributes.module';
-import { WarehousesModule } from './modules/warehouses/warehouses.module';
+import { AttributeValueModule } from './modules/attribute-value/attribute-value.module';
+import { ProductSkuModule } from './modules/product-sku/product-sku.module';
+import { CartModule } from './modules/cart/cart.module';
+import { PaymentMethodModule } from './modules/payment-method/payment-method.module';
+import { OrdersModule } from './modules/order/order.module';
+import { AttributeModule } from './modules/attribute/attribute.module';
+import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { ImportLogModule } from './modules/import-log/import-log.module';
 
 @Module({
   imports: [
@@ -26,18 +27,19 @@ import { WarehousesModule } from './modules/warehouses/warehouses.module';
     }),
     AuthModule,
     AdminAuthModule,
-    CartsModule,
-    CategoriesModule,
+    CartModule,
+    CategoryModule,
     LoggerModule,
     OrdersModule,
     PaymentMethodModule,
     PrismaModule,
-    AttributeValuesModule,
-    AttributesModule,
-    ProductsModule,
-    ProductSkusModule,
+    AttributeValueModule,
+    AttributeModule,
+    ProductModule,
+    ProductSkuModule,
     UploadModule,
-    WarehousesModule,
+    WarehouseModule,
+    ImportLogModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

@@ -7,76 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
+// ==== PRODUCT DOMAIN ====
+//
+
 model Product {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
   description String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  categoryId  Int
-  brand       String       @default("Không")
+  brand       String   @default("Không")
   images      String[]
   tags        Json
   details     Json?
-  isDeleted   Boolean      @default(false)
-  slug        String       @unique
-  CartItem    CartItem[]
-  OrderItem   OrderItem[]
-  category    Category     @relation(fields: [categoryId], references: [id])
-  skus        ProductSKU[] @relation("ProductToSKU")
+  isDeleted   Boolean  @default(false)
+  categoryId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category  Category     @relation(fields: [categoryId], references: [id])
+  skus      ProductSKU[] @relation("ProductToSKU")
+  CartItem  CartItem[]
+  OrderItem OrderItem[]
 
   @@index([categoryId])
   @@index([slug])
 }
 
-model Attribute {
-  id        Int              @id @default(autoincrement())
-  name      String           @unique
-  label     String
-  isDeleted Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  values    AttributeValue[]
-}
-
-model AttributeValue {
-  id                   Int                   @id @default(autoincrement())
-  value                String
-  attributeId          Int
-  attribute            Attribute             @relation(fields: [attributeId], references: [id])
-  isDeleted            Boolean               @default(false)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  productSkuAttributes ProductSKUAttribute[]
-
-  @@index([attributeId])
-}
-
 model ProductSKU {
-  id                   Int                   @id @default(autoincrement())
-  productId            Int
-  sku                  String                @unique
-  price                Decimal
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  imageUrl             String?
-  isDeleted            Boolean               @default(false)
-  CartItem             CartItem[]
-  OrderItem            OrderItem[]
-  product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
-  productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
-  ImportLogItem        ImportLogItem[]
-  Stock                Stock[]
+  id        Int      @id @default(autoincrement())
+  productId Int
+  sku       String   @unique
+  price     Decimal
+  imageUrl  String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product             Product               @relation("ProductToSKU", fields: [productId], references: [id])
+  productSkuAttribute ProductSKUAttribute[] @relation("SkuToAttribute")
+  CartItem            CartItem[]
+  OrderItem           OrderItem[]
+  ImportLogItem       ImportLogItem[]
+  Stock               Stock[]
 
   @@index([productId])
 }
 
+model Attribute {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  label     String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  values AttributeValue[]
+}
+
+model AttributeValue {
+  id          Int      @id @default(autoincrement())
+  value       String
+  attributeId Int
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attribute           Attribute             @relation(fields: [attributeId], references: [id])
+  productSkuAttribute ProductSKUAttribute[]
+
+  @@index([attributeId])
+}
+
 model ProductSKUAttribute {
-  id               Int            @id @default(autoincrement())
+  id               Int @id @default(autoincrement())
   skuId            Int
   attributeValueId Int
-  attributeValue   AttributeValue @relation(fields: [attributeValueId], references: [id])
-  productSku       ProductSKU     @relation("SkuToAttribute", fields: [skuId], references: [id])
+
+  productSku     ProductSKU     @relation("SkuToAttribute", fields: [skuId], references: [id])
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id])
 
   @@unique([skuId, attributeValueId])
   @@index([skuId])
@@ -84,36 +93,80 @@ model ProductSKUAttribute {
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
   icon      String
-  slug      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  isDeleted Boolean   @default(false)
-  products  Product[]
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+//
+// ==== ORDER & CART ====
+//
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int?
+  orderCode       String      @unique
+  totalPrice      Decimal
+  status          OrderStatus @default(PENDING)
+  fullName        String
+  phoneNumber     String
+  email           String?
+  note            String?
+  flag            Json        @default("{}")
+  shipment        Json        @default("{}")
+  paymentMethodId Int
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user          User?         @relation(fields: [userId], references: [id])
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  orderItems    OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  skuId     Int
+  quantity  Int
+  price     Decimal
+
+  order   Order      @relation(fields: [orderId], references: [id])
+  product Product    @relation(fields: [productId], references: [id])
+  sku     ProductSKU @relation(fields: [skuId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Cart {
-  id        Int        @id @default(autoincrement())
-  userId    Int        @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id])
+  items CartItem[]
 }
 
 model CartItem {
-  id        Int        @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   cartId    Int
-  skuId     Int
-  quantity  Int        @default(1)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
   productId Int
-  cart      Cart       @relation(fields: [cartId], references: [id])
-  product   Product    @relation(fields: [productId], references: [id])
-  sku       ProductSKU @relation(fields: [skuId], references: [id])
+  skuId     Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart       @relation(fields: [cartId], references: [id])
+  product Product    @relation(fields: [productId], references: [id])
+  sku     ProductSKU @relation(fields: [skuId], references: [id])
 
   @@unique([cartId, productId, skuId])
   @@index([cartId])
@@ -121,59 +174,18 @@ model CartItem {
   @@index([productId])
 }
 
-model PaymentMethod {
-  id         Int      @id @default(autoincrement())
-  key        String   @unique
-  name       String   @unique
-  image      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  isDisabled Boolean  @default(false)
-  Order      Order[]
-}
-
-model Order {
-  id              Int           @id @default(autoincrement())
-  userId          Int?
-  totalPrice      Decimal
-  status          OrderStatus   @default(PENDING)
-  paymentMethodId Int
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  fullName        String
-  phoneNumber     String
-  note            String?
-  flag            Json          @default("{}")
-  shipment        Json          @default("{}")
-  email           String?
-  orderCode       String        @unique
-  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  user            User?         @relation(fields: [userId], references: [id])
-  orderItems      OrderItem[]
-}
-
-model OrderItem {
-  id        Int        @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  skuId     Int
-  quantity  Int
-  price     Decimal
-  order     Order      @relation(fields: [orderId], references: [id])
-  product   Product    @relation(fields: [productId], references: [id])
-  sku       ProductSKU @relation(fields: [skuId], references: [id])
-
-  @@index([orderId])
-  @@index([productId])
-}
+//
+// ==== STOCK & IMPORT ====
+//
 
 model Warehouse {
-  id         Int         @id @default(autoincrement())
-  name       String
-  address    String
-  isDeleted  Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   importLogs ImportLog[]
   Stock      Stock[]
 }
@@ -217,18 +229,39 @@ model ImportLogItem {
   sku       ProductSKU @relation(fields: [skuId], references: [id])
 }
 
+//
+// ==== USER & PAYMENT ====
+//
+
 model User {
-  id        Int         @id @default(autoincrement())
-  password  String
-  email     String      @unique
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
   name      String
-  role      UserRole    @default(USER)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   Cart      Cart?
   Order     Order[]
   ImportLog ImportLog[]
 }
+
+model PaymentMethod {
+  id         Int      @id @default(autoincrement())
+  key        String   @unique
+  name       String   @unique
+  image      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDisabled Boolean  @default(false)
+
+  Order Order[]
+}
+
+//
+// ==== ENUMS ====
+//
 
 enum UserRole {
   USER
