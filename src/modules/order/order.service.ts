@@ -5,7 +5,7 @@ import { OrderStatus } from '@prisma/client';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { typeToStatusMap } from 'src/enums/order.enum';
+import { typeToStatusMap } from 'src/common/enums/order-status.enum';
 import { CartService } from '../cart/cart.service';
 
 @Injectable()

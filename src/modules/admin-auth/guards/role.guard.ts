@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { RBAC } from 'src/enums/rbac.enum';
+import { RBAC } from 'src/common/enums/rbac.enum';
 
 @Injectable()
 export class RoleGuard implements CanActivate {

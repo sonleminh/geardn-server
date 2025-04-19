@@ -18,6 +18,7 @@ import { AttributeModule } from './modules/attribute/attribute.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { ImportLogModule } from './modules/import-log/import-log.module';
 import { StockModule } from './modules/stock/stock.module';
+import { EnumModule } from './common/modules/enum.module';
 
 @Module({
   imports: [
@@ -28,19 +29,20 @@ import { StockModule } from './modules/stock/stock.module';
     }),
     AuthModule,
     AdminAuthModule,
+    AttributeValueModule,
+    AttributeModule,
     CartModule,
     CategoryModule,
+    EnumModule,
     LoggerModule,
+    ImportLogModule,
     OrdersModule,
     PaymentMethodModule,
     PrismaModule,
-    AttributeValueModule,
-    AttributeModule,
     ProductModule,
     ProductSkuModule,
     UploadModule,
     WarehouseModule,
-    ImportLogModule,
     StockModule,
   ],
   controllers: [AppController],

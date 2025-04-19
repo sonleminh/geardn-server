@@ -134,9 +134,9 @@ export class AdminAuthService {
         secret:
           this.configService.get<string>('JWT_SECRET_KEY') || 'JWT_SECRET_KEY',
       });
-      const { _id, email, name, role, ...rest } = payload;
+      const { id, email, name, role, ...rest } = payload;
       const newAccessToken = await this.jwtService.signAsync(
-        { _id, email, name, role },
+        { id, email, name, role },
         {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
           expiresIn: '2h',
