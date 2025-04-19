@@ -39,18 +39,20 @@ model ProductSKU {
   productId Int
   sku       String   @unique
   price     Decimal
+  costPrice Decimal? @default(0)
   imageUrl  String?
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product             Product               @relation("ProductToSKU", fields: [productId], references: [id])
-  productSkuAttribute ProductSKUAttribute[] @relation("SkuToAttribute")
-  CartItem            CartItem[]
-  OrderItem           OrderItem[]
-  ImportLogItem       ImportLogItem[]
-  Stock               Stock[]
-  ExportLogItem       ExportLogItem[]
+  product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
+  productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
+  CartItem             CartItem[]
+  OrderItem            OrderItem[]
+  ImportLogItem        ImportLogItem[]
+  Stock                Stock[]
+  ExportLogItem        ExportLogItem[]
+  AdjustmentLogItem    AdjustmentLogItem[]
 
   @@index([productId])
 }
@@ -128,6 +130,7 @@ model Order {
   user          User?         @relation(fields: [userId], references: [id])
   paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   orderItems    OrderItem[]
+  ExportLog     ExportLog[]
 }
 
 model OrderItem {
@@ -137,6 +140,7 @@ model OrderItem {
   skuId     Int
   quantity  Int
   price     Decimal
+  costPrice Decimal
 
   order   Order      @relation(fields: [orderId], references: [id])
   product Product    @relation(fields: [productId], references: [id])
@@ -187,9 +191,10 @@ model Warehouse {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  importLogs ImportLog[]
-  Stock      Stock[]
-  ExportLog  ExportLog[]
+  importLogs    ImportLog[]
+  Stock         Stock[]
+  ExportLog     ExportLog[]
+  AdjustmentLog AdjustmentLog[]
 }
 
 model Stock {
@@ -260,15 +265,30 @@ model ExportLogItem {
 }
 
 model AdjustmentLog {
-  id: string;
-  skuId: string;
-  warehouseId: string;
-  oldQuantity: number;
-  newQuantity: number;
-  difference: number; // new - old
-  reason: string;
-  createdBy: string; // admin id
-  createdAt: Date;
+  id          Int            @id @default(autoincrement())
+  warehouseId Int
+  reason      String
+  type        AdjustmentType
+  note        String?
+  createdBy   Int
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  warehouse Warehouse           @relation(fields: [warehouseId], references: [id])
+  user      User                @relation(fields: [createdBy], references: [id])
+  items     AdjustmentLogItem[]
+}
+
+model AdjustmentLogItem {
+  id              Int      @id @default(autoincrement())
+  adjustmentLogId Int
+  skuId           Int
+  quantity        Int
+  price           Decimal?
+  note            String?
+
+  adjustmentLog AdjustmentLog @relation(fields: [adjustmentLogId], references: [id])
+  sku           ProductSKU    @relation(fields: [skuId], references: [id])
 }
 
 //
@@ -284,10 +304,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Cart      Cart?
-  Order     Order[]
-  ImportLog ImportLog[]
-  ExportLog ExportLog[]
+  Cart          Cart?
+  Order         Order[]
+  ImportLog     ImportLog[]
+  ExportLog     ExportLog[]
+  AdjustmentLog AdjustmentLog[]
 }
 
 model PaymentMethod {
@@ -331,4 +352,9 @@ enum ExportType {
   TRANSFER // chuyển kho nội bộ
   DAMAGE_LOSS // hỏng, mất mát
   MANUAL // ghi tay, điều chỉnh thủ công
+}
+
+enum AdjustmentType {
+  INCREASE
+  DECREASE
 }

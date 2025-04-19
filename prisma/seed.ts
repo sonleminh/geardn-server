@@ -5,81 +5,105 @@ import { PrismaClient } from '@prisma/client';
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
-const categorySeedList = [
+const attributeValueSeedList = [
   {
-    name: 'Bàn phím',
-    icon: 'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1738830964369-keyboard-icon.png?alt=media&token=5da19bf2-dd80-4b08-9230-9608ec048e70',
-    slug: 'ban-phim',
-    isDeleted: false,
+    value: 'Đen',
+    attributeId: 1,
   },
   {
-    name: 'Chuột',
-    icon: 'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1740806241785-mouse-icon.png?alt=media&token=c0e1f999-75ae-455d-9f3d-f3b790645af3',
-    slug: 'chuot',
-    isDeleted: false,
+    value: 'Trắng',
+    attributeId: 1,
   },
   {
-    name: 'Giá treo màn hình',
-    icon: 'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1738831118040-arm-icon.jpg?alt=media&token=f64ac5e7-110e-4fec-9cfc-ece235ddaba2',
-    slug: 'gia-treo-man-hinh',
-    isDeleted: false,
+    value: 'Trắng xanh',
+    attributeId: 1,
   },
   {
-    name: 'Màn hình',
-    icon: 'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1738831106576-monitor-icon.png?alt=media&token=ed682c0a-365d-42af-9030-f658be22b76f',
-    slug: 'man-hinh',
-    isDeleted: false,
+    value: 'Leopog Reaper',
+    attributeId: 2,
+  },
+  {
+    value: 'Silent',
+    attributeId: 2,
   },
 ];
 
-const attributeValueSeedList = [
+const categorySeedList = [
   {
-    type: 'color',
-    value: 'Đen',
-    isDeleted: false,
+    name: 'Bàn phím',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745052785684-keyboard-icon.png',
+    slug: 'ban-phim',
   },
   {
-    type: 'color',
-    value: 'Trắng',
-    isDeleted: false,
+    name: 'Chuột',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745052813486-mouse-icon.png',
+    slug: 'chuot',
   },
   {
-    type: 'switch',
-    value: 'Leopog Reaper',
-    isDeleted: false,
+    name: 'Giá treo màn hình',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745052839096-arm-icon.jpg',
+    slug: 'gia-treo-man-hinh',
   },
   {
-    type: 'switch',
-    value: 'Silent Reaper',
-    isDeleted: false,
+    name: 'Màn hình',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745052875782-monitor-icon.png',
+    slug: 'man-hinh',
+  },
+  {
+    name: 'Phụ kiện',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745052922012-acces-icon.png',
+    slug: 'man-hinh',
+  },
+];
+
+const warehouseSeedList = [
+  {
+    name: 'Home 1',
+    address: '02 Tô Hiến Thành, Phước Mỹ, Sơn Trà, Đà Nẵng',
+  },
+  {
+    name: 'Home 2',
+    address: '39/48 Cù Chính Lan, Hoà Khê, Thanh Khê, Đà Nẵng',
   },
 ];
 
 async function main() {
-  // create two dummy articles
-  // const categorieList = await prisma.category.createMany({
-  //   data: categorySeedList?.map((item) => item),
-  // });
+  await prisma.paymentMethod.create({
+    data: {
+      key: 'COD',
+      name: 'Thanh toán khi nhận hàng',
+      image:
+        'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745053973932-cod-icon.png',
+    },
+  });
 
-  // const attributeValueList = await prisma.attributeValue.createMany({
-  //   data: attributeValueSeedList?.map((item) => item),
-  // });
+  await prisma.attribute.createMany({
+    data: [
+      { name: 'color', label: 'Màu sắc' },
+      { name: 'switch', label: 'Switch' },
+    ],
+  });
 
-  // const paymentMethod = await prisma.paymentMethod.create({
-  //   data: {
-  //     key: 'COD',
-  //     name: 'Thanh toán khi nhận hàng',
-  //     image:
-  //       'https://firebasestorage.googleapis.com/v0/b/geardn-a6c28.appspot.com/o/1743094400265-COD-icon.jpg?alt=media&token=287ae75c-8d5f-4348-8498-b8c7d39f3522',
-  //   },
-  // });
+  await prisma.attributeValue.createMany({
+    data: attributeValueSeedList,
+  });
 
-  // await prisma.attribute.createMany({
-  //   data: [
-  //     { name: 'color', label: 'Màu sắc' },
-  //     { name: 'switch', label: 'Switch' },
-  //   ],
-  // });
+  await prisma.category.createMany({
+    data: categorySeedList?.map((item) => item),
+  });
+
+  await prisma.paymentMethod.create({
+    data: {
+      key: 'COD',
+      name: 'Thanh toán khi nhận hàng',
+      image:
+        'https://storage.googleapis.com/geardn-a6c28.appspot.com/1745053973932-cod-icon.png',
+    },
+  });
+
+  await prisma.warehouse.createMany({
+    data: warehouseSeedList?.map((item) => item),
+  });
 }
 
 // execute the main function

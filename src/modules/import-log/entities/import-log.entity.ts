@@ -1,1 +1,25 @@
-export class ImportLog {}
+import { ApiProperty } from '@nestjs/swagger';
+import { ImportLog, ImportType } from '@prisma/client';
+
+export class ImportLogEntity implements ImportLog {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  warehouseId: number;
+
+  @ApiProperty()
+  type: ImportType;
+
+  @ApiProperty()
+  note: string;
+
+  @ApiProperty()
+  createdBy: number;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  updatedAt: Date;
+}

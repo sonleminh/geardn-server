@@ -1,3 +1,4 @@
+import { ImportType } from '@prisma/client';
 import {
   IsArray,
   IsInt,
@@ -10,6 +11,9 @@ export class CreateImportLogDto {
   @IsNotEmpty()
   @IsInt()
   warehouseId: number;
+
+  @IsNotEmpty()
+  type: ImportType;
 
   @IsOptional()
   @IsString()

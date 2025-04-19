@@ -26,6 +26,7 @@ export class StockService {
       },
       include: {
         sku: true,
+        warehouse: true,
       },
     });
 

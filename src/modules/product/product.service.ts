@@ -113,7 +113,7 @@ export class ProductService {
             sku: true,
             price: true,
             // quantity: true,
-            productSkuAttribute: {
+            productSkuAttributes: {
               select: {
                 id: true,
                 attributeValue: true,
@@ -154,7 +154,7 @@ export class ProductService {
             price: true,
             // quantity: true,
             imageUrl: true,
-            productSkuAttribute: {
+            productSkuAttributes: {
               select: {
                 id: true,
                 attributeValue: true,
@@ -209,7 +209,7 @@ export class ProductService {
             price: true,
             // quantity: true,
             imageUrl: true,
-            productSkuAttribute: {
+            productSkuAttributes: {
               select: {
                 id: true,
                 attributeValue: true,

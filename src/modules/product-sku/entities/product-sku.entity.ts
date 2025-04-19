@@ -16,6 +16,9 @@ export class ProductSkuEntity implements ProductSKU {
   price: Decimal;
 
   @ApiProperty()
+  costPrice: Decimal;
+
+  @ApiProperty()
   quantity: number;
 
   @ApiProperty()

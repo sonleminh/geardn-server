@@ -142,7 +142,7 @@ export class OrderService {
               select: {
                 price: true,
                 imageUrl: true,
-                productSkuAttribute: {
+                productSkuAttributes: {
                   select: {
                     attributeValue: true,
                     // {

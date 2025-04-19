@@ -26,7 +26,7 @@ export class PaymentMethodService {
   }
 
   async update(id: number, updatePaymentMethodDto: UpdatePaymentMethodDto) {
-    const res = await this.prisma.category.update({
+    const res = await this.prisma.paymentMethod.update({
       where: { id },
       data: updatePaymentMethodDto,
     });

@@ -14,7 +14,7 @@ export class ImportLogService {
   constructor(private prisma: PrismaService) {}
 
   async create(createImportLogDto: CreateImportLogDto, userId: number) {
-    const { warehouseId, note, items } = createImportLogDto;
+    const { warehouseId, type, note, items } = createImportLogDto;
 
     if (!items || items.length === 0) {
       throw new BadRequestException('At least one item is required.');
@@ -58,8 +58,9 @@ export class ImportLogService {
         // 1. Tạo bản ghi import log
         const importLog = await tx.importLog.create({
           data: {
-            warehouseId,
+            warehouseId: warehouseId,
             createdBy: userId,
+            type,
             note,
           },
         });

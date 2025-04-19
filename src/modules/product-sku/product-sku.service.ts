@@ -35,11 +35,11 @@ export class ProductSkuService {
 
     const existingSkus = await this.prisma.productSKU.findMany({
       where: { productId },
-      include: { productSkuAttribute: true },
+      include: { productSkuAttributes: true },
     });
 
     const isDuplicate = existingSkus.some((existingSku) => {
-      const existingAttribute = existingSku.productSkuAttribute
+      const existingAttribute = existingSku.productSkuAttributes
         .map((attr) => attr.attributeValueId)
         .sort();
       const newAttribute = attributeValues
@@ -77,7 +77,7 @@ export class ProductSkuService {
     return this.prisma.productSKU.findUnique({
       where: { id: newSku.id },
       include: {
-        productSkuAttribute: {
+        productSkuAttributes: {
           include: {
             attributeValue: true,
             // {
@@ -97,7 +97,7 @@ export class ProductSkuService {
     const [res, total] = await Promise.all([
       this.prisma.productSKU.findMany({
         include: {
-          productSkuAttribute: {
+          productSkuAttributes: {
             select: {
               id: true,
               attributeValue: true,
@@ -124,7 +124,7 @@ export class ProductSkuService {
     const res = await this.prisma.productSKU.findUnique({
       where: { id },
       include: {
-        productSkuAttribute: {
+        productSkuAttributes: {
           select: {
             id: true,
             attributeValue: true,
@@ -149,7 +149,7 @@ export class ProductSkuService {
     const product = await this.prisma.productSKU.findUnique({
       where: { sku },
       include: {
-        productSkuAttribute: {
+        productSkuAttributes: {
           select: {
             id: true,
             attributeValue: true,
@@ -189,7 +189,7 @@ export class ProductSkuService {
             name: true,
           },
         },
-        productSkuAttribute: {
+        productSkuAttributes: {
           select: {
             id: true,
             attributeValue: true,
@@ -215,13 +215,13 @@ export class ProductSkuService {
       updateProductSkusDto;
     const existingSkus = await this.prisma.productSKU.findMany({
       where: { productId: productId },
-      include: { productSkuAttribute: true },
+      include: { productSkuAttributes: true },
     });
 
     const filteredSkus = existingSkus.filter((sku) => sku.id !== id);
 
     const isDuplicate = filteredSkus.some((existingSku) => {
-      const existingAttribute = existingSku.productSkuAttribute
+      const existingAttribute = existingSku.productSkuAttributes
         .map((attr) => attr.attributeValueId)
         .sort();
       const newAttribute = attributeValues
@@ -240,7 +240,7 @@ export class ProductSkuService {
         price,
         // quantity,
         imageUrl,
-        productSkuAttribute: {
+        productSkuAttributes: {
           deleteMany: {}, // Remove all existing attribute
           create: updateProductSkusDto?.attributeValues.map((attr) => ({
             attributeValue: { connect: { id: attr.attributeValueId } }, // Reconnect new attribute
@@ -248,7 +248,7 @@ export class ProductSkuService {
         },
       },
       include: {
-        productSkuAttribute: {
+        productSkuAttributes: {
           select: {
             id: true,
             attributeValue: true,

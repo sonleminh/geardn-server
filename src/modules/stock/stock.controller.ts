@@ -17,7 +17,7 @@ export class StockController {
     return this.stockService.findAll();
   }
 
-  @Get(':id/warehouse')
+  @Get(':id/warehouses')
   findAllByWarehouseId(@Param('id') id: string) {
     return this.stockService.findByWarehouse(+id);
   }
