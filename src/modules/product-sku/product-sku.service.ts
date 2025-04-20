@@ -192,7 +192,15 @@ export class ProductSkuService {
         productSkuAttributes: {
           select: {
             id: true,
-            attributeValue: true,
+            attributeValue: {
+              include: {
+                attribute: {
+                  select: {
+                    label: true
+                  }
+                },
+              }
+            },
             // {
             //   select: {
             //     id: true,
