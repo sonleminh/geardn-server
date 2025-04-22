@@ -50,7 +50,7 @@ model ProductSKU {
   CartItem             CartItem[]
   OrderItem            OrderItem[]
   ImportLogItem        ImportLogItem[]
-  Stock                Stock[]
+  stocks               Stock[]
   ExportLogItem        ExportLogItem[]
   AdjustmentLogItem    AdjustmentLogItem[]
 

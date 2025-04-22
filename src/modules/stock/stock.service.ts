@@ -20,17 +20,53 @@ export class StockService {
   }
 
   async findByWarehouse(id: number) {
-    const res = await this.prisma.stock.findMany({
-      where: {
-        warehouseId: id,
-      },
+    const warehouseStock = await this.prisma.product.findMany({
       include: {
-        sku: true,
-        warehouse: true,
-      },
+        skus: {
+          include: {
+            stocks: {
+              where: { warehouseId: id },
+            }
+            // stocks: {
+            //   where: { warehouseId: id }
+            // }
+          }
+        }
+      }
     });
+    return { data: warehouseStock };
+    // const res = await this.prisma.stock.findMany({
+    //   where: {
+    //     warehouseId: id,
+    //   },
+    //   include: {
+    //     sku: {
+    //       include: {
+    //         product: {
+    //           select: {
+    //             images: true,
+    //           },
+    //         },
+    //         productSkuAttributes: {
+    //           include: {
+    //             attributeValue: {
+    //               include: {
+    //                 attribute: {
+    //                   select: {
+    //                     label: true
+    //                   }
+    //                 },
+    //               }
+    //             },
+    //           }
+    //         },
+    //       },
+    //     },
+    //     warehouse: true,
+    //   },
+    // });
 
-    return { data: res };
+    // return { data: res };
   }
 
   remove(id: number) {

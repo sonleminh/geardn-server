@@ -5,7 +5,7 @@ import { UpdateImportLogDto } from './dto/update-import-log.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 
-@Controller('import-log')
+@Controller('import-logs')
 export class ImportLogController {
   constructor(private readonly importLogService: ImportLogService) {}
 

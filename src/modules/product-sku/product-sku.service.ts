@@ -187,6 +187,7 @@ export class ProductSkuService {
           select: {
             id: true,
             name: true,
+            images: true,
           },
         },
         productSkuAttributes: {
