@@ -22,6 +22,11 @@ export class StockController {
     return this.stockService.findByWarehouse(+id);
   }
 
+  @Get(':id/products')
+  findAllByProductId(@Param('id') id: string) {
+    return this.stockService.findByProduct(+id);
+  }
+
   // @Patch(':id')
   // update(@Param('id') id: string, @Body() updateStockDto: UpdateStockDto) {
   //   return this.stockService.update(+id, updateStockDto);

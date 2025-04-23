@@ -162,6 +162,7 @@ export class ProductSkuService {
             // },
           },
         },
+        stocks: true
       },
     });
 

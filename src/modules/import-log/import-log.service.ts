@@ -89,6 +89,15 @@ export class ImportLogService {
           });
 
           if (existingStock) {
+            const oldQty = Number(existingStock.quantity);
+            const oldCostPrice = Number(existingStock?.costPrice) ?? 0;
+            const importQty = Number(item.quantity);
+            const importPrice = Number(item.price);
+
+            const newCostPrice =
+              (oldQty * oldCostPrice + importQty * importPrice) /
+              (oldQty + importQty);
+              
             await tx.stock.update({
               where: {
                 skuId_warehouseId: {
@@ -100,6 +109,7 @@ export class ImportLogService {
                 quantity: {
                   increment: item.quantity,
                 },
+                costPrice: newCostPrice,
               },
             });
           } else {
@@ -108,6 +118,7 @@ export class ImportLogService {
                 skuId: item.skuId,
                 warehouseId,
                 quantity: item.quantity,
+                costPrice: item.price,
               },
             });
           }

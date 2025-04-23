@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Stock } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export class StockEntity implements Stock {
   @ApiProperty()
@@ -13,6 +14,9 @@ export class StockEntity implements Stock {
 
   @ApiProperty()
   quantity: number;
+
+  @ApiProperty()
+  costPrice: Decimal;
 
   @ApiProperty()
   createdAt: Date;

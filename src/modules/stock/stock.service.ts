@@ -26,15 +26,77 @@ export class StockService {
           include: {
             stocks: {
               where: { warehouseId: id },
-            }
-            // stocks: {
-            //   where: { warehouseId: id }
-            // }
-          }
-        }
+            },
+            productSkuAttributes: {
+              include: {
+                attributeValue: {
+                  select: {
+                    value: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const formatted = warehouseStock.map((product) => {
+      const skuDetails = product.skus.map((sku) => {
+        const stockQuantity = sku.stocks.reduce(
+          (sum, s) => sum + s.quantity,
+          0,
+        );
+        return {
+          id: sku.id,
+          sku: sku.sku,
+          imageUrl: sku.imageUrl,
+          quantity: stockQuantity,
+          productSkuAttributes: sku.productSkuAttributes,
+        };
+      });
+
+      const totalStock = skuDetails.reduce((sum, s) => sum + s.quantity, 0);
+
+      return {
+        productId: product.id,
+        productName: product.name,
+        productImages: product.images,
+        totalStock,
+        skus: skuDetails,
+      };
+    });
+    return { data: formatted };
+  }
+
+  async findByProduct(id: number) {
+    const res = await this.prisma.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        skus: {
+          include: {
+            stocks: true,
+            productSkuAttributes: {
+              include: {
+                attributeValue: {
+                  select: {
+                    attribute: {
+                      select: {
+                        label: true,
+                      },
+                    },
+                    value: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       }
     });
-    return { data: warehouseStock };
+    return { data: res };
     // const res = await this.prisma.stock.findMany({
     //   where: {
     //     warehouseId: id,

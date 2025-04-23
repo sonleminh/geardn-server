@@ -39,7 +39,6 @@ model ProductSKU {
   productId Int
   sku       String   @unique
   price     Decimal
-  costPrice Decimal? @default(0)
   imageUrl  String?
   isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -198,10 +197,11 @@ model Warehouse {
 }
 
 model Stock {
-  id          Int @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   skuId       Int
   warehouseId Int
-  quantity    Int @default(0)
+  quantity    Int     @default(0)
+  costPrice   Decimal @default(0)
 
   sku       ProductSKU @relation(fields: [skuId], references: [id])
   warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
