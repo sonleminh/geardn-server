@@ -197,11 +197,13 @@ model Warehouse {
 }
 
 model Stock {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   skuId       Int
   warehouseId Int
-  quantity    Int     @default(0)
-  costPrice   Decimal @default(0)
+  quantity    Int      @default(0)
+  costPrice   Decimal  @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   sku       ProductSKU @relation(fields: [skuId], references: [id])
   warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
@@ -212,13 +214,14 @@ model Stock {
 }
 
 model ImportLog {
-  id          Int        @id @default(autoincrement())
-  warehouseId Int
-  type        ImportType
-  note        String?
-  createdBy   Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            Int        @id @default(autoincrement())
+  warehouseId   Int
+  type          ImportType
+  note          String?
+  createdBy     Int
+  referenceCode String     @unique
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
   user      User            @relation(fields: [createdBy], references: [id])
@@ -238,14 +241,15 @@ model ImportLogItem {
 }
 
 model ExportLog {
-  id          Int        @id @default(autoincrement())
-  warehouseId Int
-  type        ExportType
-  orderId     Int?
-  note        String?
-  createdBy   Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            Int        @id @default(autoincrement())
+  warehouseId   Int
+  type          ExportType
+  orderId       Int?
+  note          String?
+  referenceCode String     @unique
+  createdBy     Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   warehouse Warehouse       @relation(fields: [warehouseId], references: [id])
   user      User            @relation(fields: [createdBy], references: [id])
@@ -258,6 +262,7 @@ model ExportLogItem {
   exportLogId Int
   skuId       Int
   quantity    Int
+  costPrice   Decimal
   note        String?
 
   exportLog ExportLog  @relation(fields: [exportLogId], references: [id])
@@ -265,14 +270,15 @@ model ExportLogItem {
 }
 
 model AdjustmentLog {
-  id          Int            @id @default(autoincrement())
-  warehouseId Int
-  reason      String
-  type        AdjustmentType
-  note        String?
-  createdBy   Int
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id            Int              @id @default(autoincrement())
+  warehouseId   Int
+  reason        AdjustmentReason
+  type          AdjustmentType
+  note          String?
+  referenceCode String           @unique
+  createdBy     Int
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   warehouse Warehouse           @relation(fields: [warehouseId], references: [id])
   user      User                @relation(fields: [createdBy], references: [id])
@@ -280,12 +286,16 @@ model AdjustmentLog {
 }
 
 model AdjustmentLogItem {
-  id              Int      @id @default(autoincrement())
+  id              Int @id @default(autoincrement())
   adjustmentLogId Int
   skuId           Int
-  quantity        Int
-  price           Decimal?
-  note            String?
+  warehouseId     Int
+
+  quantityBefore Int
+  quantityChange Int
+
+  costPriceBefore Decimal?
+  costPriceAfter  Decimal?
 
   adjustmentLog AdjustmentLog @relation(fields: [adjustmentLogId], references: [id])
   sku           ProductSKU    @relation(fields: [skuId], references: [id])
@@ -357,4 +367,13 @@ enum ExportType {
 enum AdjustmentType {
   INCREASE
   DECREASE
+}
+
+enum AdjustmentReason {
+  INVENTORY_AUDIT
+  DAMAGED
+  LOST
+  FOUND
+  CUSTOMER_RETURN
+  DATA_CORRECTION
 }
