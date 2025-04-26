@@ -233,7 +233,7 @@ model ImportLogItem {
   importLogId Int
   skuId       Int
   quantity    Int
-  price       Decimal
+  costPrice   Decimal
   note        String?
 
   importLog ImportLog  @relation(fields: [importLogId], references: [id])
@@ -354,6 +354,8 @@ enum ImportType {
   NEW
   RETURN
   ADJUSTMENT
+  TRANSFER
+  OTHER
 }
 
 enum ExportType {

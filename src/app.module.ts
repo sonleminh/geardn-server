@@ -19,6 +19,7 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { ImportLogModule } from './modules/import-log/import-log.module';
 import { StockModule } from './modules/stock/stock.module';
 import { EnumModule } from './common/modules/enum.module';
+import { ExportLogModule } from './modules/export-log/export-log.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EnumModule } from './common/modules/enum.module';
     EnumModule,
     LoggerModule,
     ImportLogModule,
+    ExportLogModule,
     OrdersModule,
     PaymentMethodModule,
     PrismaModule,

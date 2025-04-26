@@ -1,4 +1,4 @@
-import { ImportType } from '@prisma/client';
+import { ExportType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsArray,
@@ -8,13 +8,17 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateImportLogDto {
+export class CreateExportLogDto {
   @IsNotEmpty()
   @IsInt()
   warehouseId: number;
 
   @IsNotEmpty()
-  type: ImportType;
+  type: ExportType;
+
+  @IsOptional()
+  @IsInt()
+  orderId: number;
 
   @IsOptional()
   @IsString()
@@ -22,10 +26,10 @@ export class CreateImportLogDto {
 
   @IsNotEmpty()
   @IsArray()
-  items: CreateImportLogItemDto[];
+  items: CreateExportLogItemDto[];
 }
 
-export class CreateImportLogItemDto {
+export class CreateExportLogItemDto {
   @IsNotEmpty()
   @IsInt()
   skuId: number;

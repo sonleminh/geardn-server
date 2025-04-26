@@ -12,6 +12,9 @@ export class ImportLogEntity implements ImportLog {
   type: ImportType;
 
   @ApiProperty()
+  orderId: number;
+
+  @ApiProperty()
   note: string;
 
   @ApiProperty()

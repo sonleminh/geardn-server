@@ -6,17 +6,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateImportLogDto } from './dto/create-import-log.dto';
+import { CreateExportLogDto } from './dto/create-export-log.dto';
 import * as dayjs from 'dayjs';
 import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
-export class ImportLogService {
-  private readonly logger = new Logger(ImportLogService.name);
+export class ExportLogService {
+  private readonly logger = new Logger(ExportLogService.name);
   constructor(private prisma: PrismaService) {}
 
-  async create(createImportLogDto: CreateImportLogDto, userId: number) {
-    const { warehouseId, type, note, items } = createImportLogDto;
+  async create(createExportLogDto: CreateExportLogDto, userId: number) {
+    const { warehouseId, type, note, items } = createExportLogDto;
 
     if (!items || items.length === 0) {
       throw new BadRequestException('At least one item is required.');
@@ -31,7 +31,7 @@ export class ImportLogService {
     for (const item of items) {
       if (item.quantity <= 0 || Number(item.costPrice) < 0) {
         throw new BadRequestException(
-          `Invalid quantity or price for SKU ${item.skuId}`,
+          `Invalid quantity or cost price for SKU ${item.skuId}`,
         );
       }
 
@@ -58,7 +58,7 @@ export class ImportLogService {
     try {
       await this.prisma.$transaction(async (tx) => {
         const today = dayjs().format('YYYYMMDD');
-        const countToday = await tx.importLog.count({
+        const countToday = await tx.exportLog.count({
           where: {
             createdAt: {
               gte: dayjs().startOf('day').toDate(),
@@ -67,10 +67,10 @@ export class ImportLogService {
           },
         });
 
-        const referenceCode = `IMP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+        const referenceCode = `EXP-${today}-${String(countToday + 1).padStart(4, '0')}`;
 
         // 1. Tạo bản ghi import log
-        const importLog = await tx.importLog.create({
+        const exportLog = await tx.exportLog.create({
           data: {
             warehouseId: warehouseId,
             createdBy: userId,
@@ -81,16 +81,16 @@ export class ImportLogService {
         });
 
         // 2. Tạo các import log item liên kết với import log vừa tạo
-        const importLogItems = mergedItems.map((item) => ({
-          importLogId: importLog.id,
+        const exportLogItems = mergedItems.map((item) => ({
+          exportLogId: exportLog.id,
           skuId: item.skuId,
           quantity: item.quantity,
           costPrice: item.costPrice,
           note: item.note,
         }));
 
-        await tx.importLogItem.createMany({
-          data: importLogItems,
+        await tx.exportLogItem.createMany({
+          data: exportLogItems,
         });
 
         for (const item of items) {
@@ -138,19 +138,19 @@ export class ImportLogService {
             });
           }
         }
-        return importLog;
+        return exportLog;
       });
       return {
-        message: 'Import log created successfully',
+        message: 'Export log created successfully',
       };
     } catch (error) {
-      this.logger.error('Failed to create import log', error);
-      throw new InternalServerErrorException('Failed to create import log');
+      this.logger.error('Failed to create export log', error);
+      throw new InternalServerErrorException('Failed to create export log');
     }
   }
 
   async findAll() {
-    return this.prisma.importLog.findMany({
+    return this.prisma.exportLog.findMany({
       include: {
         warehouse: true,
         items: {
@@ -164,7 +164,7 @@ export class ImportLogService {
   }
 
   async findOne(id: number) {
-    const res = await this.prisma.importLog.findUnique({
+    const res = await this.prisma.exportLog.findUnique({
       where: { id },
       include: {
         warehouse: true,
