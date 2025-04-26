@@ -18,6 +18,14 @@ export class ExportLogService {
   async create(createExportLogDto: CreateExportLogDto, userId: number) {
     const { warehouseId, type, note, items } = createExportLogDto;
 
+    const existedWarehouse = await this.prisma.warehouse.findUnique({
+      where: { id: warehouseId, isDeleted: false },
+    });
+
+    if (!existedWarehouse) {
+      throw new NotFoundException('Warehouse not found');
+    }
+
     if (!items || items.length === 0) {
       throw new BadRequestException('At least one item is required.');
     }
@@ -57,6 +65,19 @@ export class ExportLogService {
 
     try {
       await this.prisma.$transaction(async (tx) => {
+        for (const item of mergedItems) {
+          const stock = await tx.stock.findUnique({
+            where: {
+              skuId_warehouseId: { skuId: item.skuId, warehouseId },
+            },
+          });
+          if (!stock || Number(stock.quantity) < item.quantity) {
+            throw new BadRequestException(
+              `Not enough stock for SKU ${item.skuId}. Available: ${stock?.quantity ?? 0}`,
+            );
+          }
+        }
+
         const today = dayjs().format('YYYYMMDD');
         const countToday = await tx.exportLog.count({
           where: {
@@ -69,7 +90,6 @@ export class ExportLogService {
 
         const referenceCode = `EXP-${today}-${String(countToday + 1).padStart(4, '0')}`;
 
-        // 1. Tạo bản ghi import log
         const exportLog = await tx.exportLog.create({
           data: {
             warehouseId: warehouseId,
@@ -80,7 +100,6 @@ export class ExportLogService {
           },
         });
 
-        // 2. Tạo các import log item liên kết với import log vừa tạo
         const exportLogItems = mergedItems.map((item) => ({
           exportLogId: exportLog.id,
           skuId: item.skuId,
@@ -93,50 +112,20 @@ export class ExportLogService {
           data: exportLogItems,
         });
 
-        for (const item of items) {
-          const existingStock = await tx.stock.findUnique({
+        for (const item of mergedItems) {
+          await tx.stock.update({
             where: {
               skuId_warehouseId: {
                 skuId: item.skuId,
                 warehouseId,
               },
             },
+            data: {
+              quantity: {
+                decrement: item.quantity,
+              },
+            },
           });
-
-          if (existingStock) {
-            const oldQty = Number(existingStock.quantity);
-            const oldCostPrice = Number(existingStock?.costPrice) ?? 0;
-            const importQty = Number(item.quantity);
-            const importPrice = Number(item.costPrice);
-
-            const newCostPrice =
-              (oldQty * oldCostPrice + importQty * importPrice) /
-              (oldQty + importQty);
-
-            await tx.stock.update({
-              where: {
-                skuId_warehouseId: {
-                  skuId: item.skuId,
-                  warehouseId,
-                },
-              },
-              data: {
-                quantity: {
-                  increment: item.quantity,
-                },
-                costPrice: newCostPrice,
-              },
-            });
-          } else {
-            await tx.stock.create({
-              data: {
-                skuId: item.skuId,
-                warehouseId,
-                quantity: item.quantity,
-                costPrice: item.costPrice,
-              },
-            });
-          }
         }
         return exportLog;
       });
