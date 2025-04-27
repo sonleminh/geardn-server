@@ -291,11 +291,9 @@ model AdjustmentLogItem {
   skuId           Int
   warehouseId     Int
 
-  quantityBefore Int
-  quantityChange Int
-
-  costPriceBefore Decimal?
-  costPriceAfter  Decimal?
+  quantityBefore  Int
+  quantityChange  Int
+  costPriceBefore Decimal
 
   adjustmentLog AdjustmentLog @relation(fields: [adjustmentLogId], references: [id])
   sku           ProductSKU    @relation(fields: [skuId], references: [id])

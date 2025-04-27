@@ -166,7 +166,7 @@ export class ExportLogService {
     });
 
     if (!res) {
-      throw new NotFoundException('Import log not found');
+      throw new NotFoundException('Export log not found');
     }
 
     return { data: res };

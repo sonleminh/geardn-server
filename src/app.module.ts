@@ -20,6 +20,7 @@ import { ImportLogModule } from './modules/import-log/import-log.module';
 import { StockModule } from './modules/stock/stock.module';
 import { EnumModule } from './common/modules/enum.module';
 import { ExportLogModule } from './modules/export-log/export-log.module';
+import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ExportLogModule } from './modules/export-log/export-log.module';
     AdminAuthModule,
     AttributeValueModule,
     AttributeModule,
+    AdjustmentLogModule,
     CartModule,
     CategoryModule,
     EnumModule,
