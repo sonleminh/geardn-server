@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateImportLogDto } from './dto/create-import-log.dto';
 import * as dayjs from 'dayjs';
 import { Decimal } from '@prisma/client/runtime/library';
+import { ImportType } from '@prisma/client';
 
 @Injectable()
 export class ImportLogService {
@@ -149,17 +150,51 @@ export class ImportLogService {
     }
   }
 
-  async findAll() {
+  async findAll(params: {
+    warehouseId?: number;
+    type?: ImportType;
+    sort?: 'asc' | 'desc';
+  }) {
+    const { warehouseId, type, sort } = params;
+
     return this.prisma.importLog.findMany({
+      where: {
+        ...(warehouseId && { warehouseId }), // lọc nếu có warehouseId
+        ...(type && { type }), // lọc nếu có type
+      },
       include: {
         warehouse: true,
         items: {
           include: {
-            sku: true,
+            sku: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                  },
+                },
+                productSkuAttributes: {
+                  include: {
+                    attributeValue: {
+                      select: {
+                        attribute: {
+                          select: {
+                            label: true,
+                          },
+                        },
+                        value: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: {
+        createdAt: sort,
+      },
     });
   }
 

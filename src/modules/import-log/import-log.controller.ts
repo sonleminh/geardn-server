@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { ImportLogService } from './import-log.service';
 import { CreateImportLogDto } from './dto/create-import-log.dto';
 import { UpdateImportLogDto } from './dto/update-import-log.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { ImportType } from '@prisma/client';
 
 @Controller('import-logs')
 export class ImportLogController {
@@ -17,9 +18,14 @@ export class ImportLogController {
   }
 
   @Get()
-  findAll() {
-    return this.importLogService.findAll();
+  findAll(
+    @Query('warehouseId') warehouseId?: number,
+    @Query('type') type?: ImportType,
+    @Query('sort') sort: 'asc' | 'desc' = 'desc',
+  ) {
+    return this.importLogService.findAll({ warehouseId, type, sort });
   }
+  
 
   @Get(':id')
   findOne(@Param('id') id: string) {
