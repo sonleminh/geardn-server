@@ -44,7 +44,12 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
   app.setGlobalPrefix(apiPrefix);
-  app.useGlobalPipes(new ValidationPipe(ValidationConfig));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new AllExceptionFilter(logger));
 

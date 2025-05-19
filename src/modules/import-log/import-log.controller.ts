@@ -5,6 +5,7 @@ import { UpdateImportLogDto } from './dto/update-import-log.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ImportType } from '@prisma/client';
+import { FindImportLogsDto } from './dto/find-import-logs.dto';
 
 @Controller('import-logs')
 export class ImportLogController {
@@ -18,14 +19,9 @@ export class ImportLogController {
   }
 
   @Get()
-  findAll(
-    @Query('warehouseId') warehouseId?: number,
-    @Query('type') type?: ImportType,
-    @Query('sort') sort: 'asc' | 'desc' = 'desc',
-  ) {
-    return this.importLogService.findAll({ warehouseId, type, sort });
+  findAll(@Query() query: FindImportLogsDto) {
+    return this.importLogService.findAll(query);
   }
-  
 
   @Get(':id')
   findOne(@Param('id') id: string) {

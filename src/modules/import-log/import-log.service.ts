@@ -151,16 +151,39 @@ export class ImportLogService {
   }
 
   async findAll(params: {
-    warehouseId?: number;
-    type?: ImportType;
+    warehouseIds?: number[];
+    types?: ImportType[];
     sort?: 'asc' | 'desc';
+    productIds?: number[];
+    fromDate?: string;
+    toDate?: string;
   }) {
-    const { warehouseId, type, sort } = params;
+    const { warehouseIds, types, sort, productIds, fromDate, toDate } = params;
 
     return this.prisma.importLog.findMany({
       where: {
-        ...(warehouseId && { warehouseId }), // lọc nếu có warehouseId
-        ...(type && { type }), // lọc nếu có type
+        ...(warehouseIds &&
+          warehouseIds.length > 0 && {
+            warehouseId: { in: warehouseIds },
+          }),
+        ...(types && types.length > 0 && { type: { in: types } }),
+        ...(fromDate &&
+          toDate && {
+            createdAt: {
+              gte: dayjs(fromDate).startOf('day').toDate(),
+              lte: dayjs(toDate).endOf('day').toDate(),
+            },
+          }),
+        ...(productIds &&
+          productIds.length > 0 && {
+            items: {
+              some: {
+                sku: {
+                  productId: { in: productIds },
+                },
+              },
+            },
+          }),
       },
       include: {
         warehouse: true,
@@ -171,6 +194,7 @@ export class ImportLogService {
                 product: {
                   select: {
                     name: true,
+                    images: true,
                   },
                 },
                 productSkuAttributes: {
