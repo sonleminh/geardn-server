@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ImportType } from '@prisma/client';
 
 export class FindImportLogsDto {
@@ -35,4 +35,24 @@ export class FindImportLogsDto {
   @IsOptional()
   @IsString()
   toDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => {
+    if (!value) return 1;
+    const num = Number(value);
+    return isNaN(num) ? 1 : num;
+  })
+  page?: number = 1;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => {
+    if (!value) return 10;
+    const num = Number(value);
+    return isNaN(num) ? 10 : num;
+  })
+  limit?: number = 10;
 } 

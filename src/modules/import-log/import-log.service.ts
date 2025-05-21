@@ -157,56 +157,88 @@ export class ImportLogService {
     productIds?: number[];
     fromDate?: string;
     toDate?: string;
+    page?: number;
+    limit?: number;
   }) {
-    const { warehouseIds, types, sort, productIds, fromDate, toDate } = params;
+    const { warehouseIds, types, sort, productIds, fromDate, toDate, page = 1, limit = 10 } = params;
 
-    return this.prisma.importLog.findMany({
-      where: {
-        ...(warehouseIds &&
-          warehouseIds.length > 0 && {
-            warehouseId: { in: warehouseIds },
-          }),
-        ...(types && types.length > 0 && { type: { in: types } }),
-        ...(fromDate &&
-          toDate && {
-            createdAt: {
-              gte: dayjs(fromDate).startOf('day').toDate(),
-              lte: dayjs(toDate).endOf('day').toDate(),
-            },
-          }),
-        ...(productIds &&
-          productIds.length > 0 && {
-            items: {
-              some: {
-                sku: {
-                  productId: { in: productIds },
-                },
+    const skip = (page - 1) * limit;
+
+    const [total, data] = await Promise.all([
+      this.prisma.importLog.count({
+        where: {
+          ...(warehouseIds &&
+            warehouseIds.length > 0 && {
+              warehouseId: { in: warehouseIds },
+            }),
+          ...(types && types.length > 0 && { type: { in: types } }),
+          ...(fromDate &&
+            toDate && {
+              createdAt: {
+                gte: dayjs(fromDate).startOf('day').toDate(),
+                lte: dayjs(toDate).endOf('day').toDate(),
               },
-            },
-          }),
-      },
-      include: {
-        warehouse: true,
-        items: {
-          include: {
-            sku: {
-              include: {
-                product: {
-                  select: {
-                    name: true,
-                    images: true,
+            }),
+          ...(productIds &&
+            productIds.length > 0 && {
+              items: {
+                some: {
+                  sku: {
+                    productId: { in: productIds },
                   },
                 },
-                productSkuAttributes: {
-                  include: {
-                    attributeValue: {
-                      select: {
-                        attribute: {
-                          select: {
-                            label: true,
+              },
+            }),
+        },
+      }),
+      this.prisma.importLog.findMany({
+        where: {
+          ...(warehouseIds &&
+            warehouseIds.length > 0 && {
+              warehouseId: { in: warehouseIds },
+            }),
+          ...(types && types.length > 0 && { type: { in: types } }),
+          ...(fromDate &&
+            toDate && {
+              createdAt: {
+                gte: dayjs(fromDate).startOf('day').toDate(),
+                lte: dayjs(toDate).endOf('day').toDate(),
+              },
+            }),
+          ...(productIds &&
+            productIds.length > 0 && {
+              items: {
+                some: {
+                  sku: {
+                    productId: { in: productIds },
+                  },
+                },
+              },
+            }),
+        },
+        include: {
+          warehouse: true,
+          items: {
+            include: {
+              sku: {
+                include: {
+                  product: {
+                    select: {
+                      name: true,
+                      images: true,
+                    },
+                  },
+                  productSkuAttributes: {
+                    include: {
+                      attributeValue: {
+                        select: {
+                          attribute: {
+                            select: {
+                              label: true,
+                            },
                           },
+                          value: true,
                         },
-                        value: true,
                       },
                     },
                   },
@@ -215,11 +247,23 @@ export class ImportLogService {
             },
           },
         },
+        orderBy: {
+          createdAt: sort,
+        },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: sort,
-      },
-    });
+    };
   }
 
   async findOne(id: number) {
