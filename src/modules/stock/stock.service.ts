@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { QueryStockDto } from './dto/query-stock.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class StockService {
@@ -19,27 +21,54 @@ export class StockService {
     return `This action returns a #${id} stock`;
   }
 
-  async findByWarehouse(id: number) {
-    const warehouseStock = await this.prisma.product.findMany({
-      include: {
-        skus: {
-          include: {
-            stocks: {
-              where: { warehouseId: id },
+  async findByWarehouse(id: number, query: QueryStockDto) {
+    const { page = 1, limit = 10, search } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProductWhereInput = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            {
+              skus: {
+                some: {
+                  sku: { contains: search, mode: Prisma.QueryMode.insensitive },
+                },
+              },
             },
-            productSkuAttributes: {
-              include: {
-                attributeValue: {
-                  select: {
-                    value: true,
+          ],
+        }
+      : {};
+
+    const [warehouseStock, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          skus: {
+            include: {
+              stocks: {
+                where: { warehouseId: id },
+              },
+              productSkuAttributes: {
+                include: {
+                  attributeValue: {
+                    select: {
+                      value: true,
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-    });
+      }),
+      this.prisma.product.count({ where }),
+    ]);
 
     const formatted = warehouseStock.map((product) => {
       const skuDetails = product.skus.map((sku) => {
@@ -59,14 +88,23 @@ export class StockService {
       const totalStock = skuDetails.reduce((sum, s) => sum + s.quantity, 0);
 
       return {
-        productId: product.id,
-        productName: product.name,
-        productImages: product.images,
+        id: product.id,
+        name: product.name,
+        images: product.images,
         totalStock,
         skus: skuDetails,
       };
     });
-    return { data: formatted };
+
+    return {
+      data: formatted,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findByProduct(id: number) {
@@ -94,41 +132,9 @@ export class StockService {
             },
           },
         },
-      }
+      },
     });
     return { data: res };
-    // const res = await this.prisma.stock.findMany({
-    //   where: {
-    //     warehouseId: id,
-    //   },
-    //   include: {
-    //     sku: {
-    //       include: {
-    //         product: {
-    //           select: {
-    //             images: true,
-    //           },
-    //         },
-    //         productSkuAttributes: {
-    //           include: {
-    //             attributeValue: {
-    //               include: {
-    //                 attribute: {
-    //                   select: {
-    //                     label: true
-    //                   }
-    //                 },
-    //               }
-    //             },
-    //           }
-    //         },
-    //       },
-    //     },
-    //     warehouse: true,
-    //   },
-    // });
-
-    // return { data: res };
   }
 
   remove(id: number) {

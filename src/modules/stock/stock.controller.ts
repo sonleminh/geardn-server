@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
-import { UpdateStockDto } from './dto/update-stock.dto';
+import { QueryStockDto } from './dto/query-stock.dto';
+import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('stocks')
 export class StockController {
@@ -18,19 +27,15 @@ export class StockController {
   }
 
   @Get(':id/warehouses')
-  findAllByWarehouseId(@Param('id') id: string) {
-    return this.stockService.findByWarehouse(+id);
+  @ApiQuery({ type: QueryStockDto })
+  findAllByWarehouseId(@Param('id') id: string, @Query() query: QueryStockDto) {
+    return this.stockService.findByWarehouse(+id, query);
   }
 
   @Get(':id/products')
   findAllByProductId(@Param('id') id: string) {
     return this.stockService.findByProduct(+id);
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateStockDto: UpdateStockDto) {
-  //   return this.stockService.update(+id, updateStockDto);
-  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
