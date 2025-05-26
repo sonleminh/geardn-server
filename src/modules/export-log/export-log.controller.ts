@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
-import { ExportLogService } from './export-log.service';
-import { CreateExportLogDto } from './dto/create-export-log.dto';
-import { UpdateExportLogDto } from './dto/update-export-log.dto';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { CreateExportLogDto } from './dto/create-export-log.dto';
+import { ExportLogService } from './export-log.service';
+import { FindExportLogsDto } from './dto/find-export-logs.dto';
 
 @Controller('export-logs')
 export class ExportLogController {
@@ -17,8 +17,8 @@ export class ExportLogController {
   }
 
   @Get()
-  findAll() {
-    return this.exportLogService.findAll();
+  findAll(@Query() query: FindExportLogsDto) {
+    return this.exportLogService.findAll(query);
   }
 
   @Get(':id')
