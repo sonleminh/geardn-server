@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CreateAdjustmentLogDto } from './dto/create-adjustment-log.dto';
+import { AdjustmentType } from '@prisma/client';
 
 @Injectable()
 export class AdjustmentLogService {
@@ -163,18 +164,129 @@ export class AdjustmentLogService {
     }
   }
 
-  async findAll() {
-    return this.prisma.adjustmentLog.findMany({
-      include: {
-        warehouse: true,
-        items: {
-          include: {
-            sku: true,
+  async findAll(params: {
+    warehouseIds?: number[];
+    types?: AdjustmentType[];
+    sort?: 'asc' | 'desc';
+    productIds?: number[];
+    fromDate?: string;
+    toDate?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const {
+      warehouseIds,
+      types,
+      sort,
+      productIds,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 10,
+    } = params;
+
+    const skip = (page - 1) * limit;
+
+    const [total, data] = await Promise.all([
+      this.prisma.adjustmentLog.count({
+        where: {
+          ...(warehouseIds &&
+            warehouseIds.length > 0 && {
+              warehouseId: { in: warehouseIds },
+            }),
+          ...(types && types.length > 0 && { type: { in: types } }),
+          ...(fromDate &&
+            toDate && {
+              createdAt: {
+                gte: dayjs(fromDate).startOf('day').toDate(),
+                lte: dayjs(toDate).endOf('day').toDate(),
+              },
+            }),
+          ...(productIds &&
+            productIds.length > 0 && {
+              items: {
+                some: {
+                  sku: {
+                    productId: { in: productIds },
+                  },
+                },
+              },
+            }),
+        },
+      }),
+      this.prisma.adjustmentLog.findMany({
+        where: {
+          ...(warehouseIds &&
+            warehouseIds.length > 0 && {
+              warehouseId: { in: warehouseIds },
+            }),
+          ...(types && types.length > 0 && { type: { in: types } }),
+          ...(fromDate &&
+            toDate && {
+              createdAt: {
+                gte: dayjs(fromDate).startOf('day').toDate(),
+                lte: dayjs(toDate).endOf('day').toDate(),
+              },
+            }),
+          ...(productIds &&
+            productIds.length > 0 && {
+              items: {
+                some: {
+                  sku: {
+                    productId: { in: productIds },
+                  },
+                },
+              },
+            }),
+        },
+        include: {
+          warehouse: true,
+          items: {
+            include: {
+              sku: {
+                include: {
+                  product: {
+                    select: {
+                      name: true,
+                      images: true,
+                    },
+                  },
+                  productSkuAttributes: {
+                    include: {
+                      attributeValue: {
+                        select: {
+                          attribute: {
+                            select: {
+                              label: true,
+                            },
+                          },
+                          value: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
+        orderBy: {
+          createdAt: sort || 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
   }
 
   async findOne(id: number) {

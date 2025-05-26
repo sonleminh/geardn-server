@@ -5,11 +5,12 @@ import { CreateImportLogDto } from './dto/create-import-log.dto';
 import { FindImportLogsDto } from './dto/find-import-logs.dto';
 import { ImportLogService } from './import-log.service';
 
+
+@UseGuards(JwtAdminAuthGuard)
 @Controller('import-logs')
 export class ImportLogController {
   constructor(private readonly importLogService: ImportLogService) {}
 
-  @UseGuards(JwtAdminAuthGuard)
   @Post()
   create(@Req() req: Request, @Body() createImportLogDto: CreateImportLogDto) {
     const userId = req.user?.id;

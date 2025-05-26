@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { AdjustmentLogService } from './adjustment-log.service';
 import { CreateAdjustmentLogDto } from './dto/create-adjustment-log.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { FindAdjustmentLogsDto } from './dto/find-adjustment-logs.dto';
 
 @Controller('adjustment-logs')
 export class AdjustmentLogController {
@@ -19,8 +20,8 @@ export class AdjustmentLogController {
   }
 
   @Get()
-  findAll() {
-    return this.adjustmentLogService.findAll();
+  findAll(@Query() query: FindAdjustmentLogsDto) {
+    return this.adjustmentLogService.findAll(query);
   }
 
   @Get(':id')
