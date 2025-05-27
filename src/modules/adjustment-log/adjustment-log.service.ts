@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CreateAdjustmentLogDto } from './dto/create-adjustment-log.dto';
-import { AdjustmentType } from '@prisma/client';
+import { AdjustmentReason, AdjustmentType } from '@prisma/client';
 
 @Injectable()
 export class AdjustmentLogService {
@@ -80,7 +80,7 @@ export class AdjustmentLogService {
         }
 
         const today = dayjs().format('YYYYMMDD');
-        const countToday = await tx.exportLog.count({
+        const countToday = await tx.adjustmentLog.count({
           where: {
             createdAt: {
               gte: dayjs().startOf('day').toDate(),
@@ -90,7 +90,7 @@ export class AdjustmentLogService {
         });
 
         const referenceCode = `ADJ-${today}-${String(countToday + 1).padStart(4, '0')}`;
-
+        console.log('referenceCode', referenceCode);
         // Tạo adjustment log
         const adjustmentLog = await tx.adjustmentLog.create({
           data: {
@@ -134,9 +134,6 @@ export class AdjustmentLogService {
             );
           }
 
-          const realQuantity =
-            type === 'INCREASE' ? item.quantityChange : -item.quantityChange;
-
           await tx.stock.update({
             where: {
               skuId_warehouseId: {
@@ -145,9 +142,7 @@ export class AdjustmentLogService {
               },
             },
             data: {
-              quantity: {
-                increment: realQuantity,
-              },
+              quantity: item.quantityChange
             },
           });
         }
@@ -167,6 +162,7 @@ export class AdjustmentLogService {
   async findAll(params: {
     warehouseIds?: number[];
     types?: AdjustmentType[];
+    reasons?: AdjustmentReason[];
     sort?: 'asc' | 'desc';
     productIds?: number[];
     fromDate?: string;
@@ -177,6 +173,7 @@ export class AdjustmentLogService {
     const {
       warehouseIds,
       types,
+      reasons,
       sort,
       productIds,
       fromDate,
@@ -195,6 +192,7 @@ export class AdjustmentLogService {
               warehouseId: { in: warehouseIds },
             }),
           ...(types && types.length > 0 && { type: { in: types } }),
+          ...(reasons && reasons.length > 0 && { reason: { in: reasons } }),
           ...(fromDate &&
             toDate && {
               createdAt: {
@@ -221,6 +219,7 @@ export class AdjustmentLogService {
               warehouseId: { in: warehouseIds },
             }),
           ...(types && types.length > 0 && { type: { in: types } }),
+          ...(reasons && reasons.length > 0 && { reason: { in: reasons } }),
           ...(fromDate &&
             toDate && {
               createdAt: {

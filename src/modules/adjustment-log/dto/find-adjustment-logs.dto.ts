@@ -1,4 +1,4 @@
-import { AdjustmentType } from '@prisma/client';
+import { AdjustmentReason, AdjustmentType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
@@ -16,6 +16,14 @@ export class FindAdjustmentLogsDto {
     return value.split(',').map((type: string) => type as AdjustmentType);
   })
   types?: AdjustmentType[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    return value.split(',').map((type: string) => type as AdjustmentReason);
+  })
+  reasons?: AdjustmentReason[];
+
 
   @IsOptional()
   @IsString()

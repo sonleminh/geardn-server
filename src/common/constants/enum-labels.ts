@@ -1,6 +1,8 @@
+import { AdjustmentType } from '@prisma/client';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
 import { OrderStatus } from '../enums/order-status.enum';
+import { AdjustmentReason } from '../enums/adjustment-type.enum';
 
 export const ENUM_LABELS = {
   'order-status': [
@@ -23,5 +25,16 @@ export const ENUM_LABELS = {
     { value: ExportType.TRANSFER, label: 'Chuyển kho' },
     { value: ExportType.DAMAGE_LOSS, label: 'Hỏng, mất mát' },
     { value: ExportType.MANUAL, label: 'Ghi tay, điều chỉnh thủ công' },
+  ],
+  'adjustment-type': [
+    { value: AdjustmentType.INCREASE, label: 'Tăng' },
+    { value: AdjustmentType.DECREASE, label: 'Giảm' },
+  ],
+  'adjustment-reason': [
+    { value: AdjustmentReason.INVENTORY_AUDIT, label: 'Kiểm kê tồn kho' },
+    { value: AdjustmentReason.DAMAGED, label: 'Hỏng, mất mát' },
+    { value: AdjustmentReason.LOST, label: 'Mất mát' },
+    { value: AdjustmentReason.FOUND, label: 'Tìm thấy' },
+    { value: AdjustmentReason.CUSTOMER_RETURN, label: 'Trả hàng' },
   ],
 };

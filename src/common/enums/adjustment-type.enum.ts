@@ -1,0 +1,13 @@
+export enum AdjustmentType {
+  INCREASE = 'INCREASE',
+  DECREASE = 'DECREASE',
+}
+
+export enum AdjustmentReason {
+  INVENTORY_AUDIT = 'INVENTORY_AUDIT',
+  DAMAGED = 'DAMAGED',
+  LOST = 'LOST',
+  FOUND = 'FOUND',
+  CUSTOMER_RETURN = 'CUSTOMER_RETURN',
+  DATA_CORRECTION = 'DATA_CORRECTION',
+}
