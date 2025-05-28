@@ -35,23 +35,25 @@ export class ProductService {
     return { data: { categories: res, tags: tags } };
   }
 
-  async findAll(query: FindProductsDto) {
-    const { page = 1, limit = 10, search, sort = 'desc' } = query;
+  async findAll(query: {
+    categoryIds?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+  }) {
+    const { categoryIds, page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
 
+    // Convert categoryIds string to array of numbers if it exists
+    const categoryIdArray = categoryIds ? categoryIds.split(',').map(Number) : undefined;
+
     const where: Prisma.ProductWhereInput = {
-      ...(search && {
-        OR: [
-          { name: createSearchFilter(search) },
-          {
-            skus: {
-              some: {
-                sku: createSearchFilter(search),
-              },
-            },
-          },
-        ],
-      }),
+      AND: [
+        // Search filter
+        ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
+        // Category filter
+        ...(categoryIdArray?.length ? [{ categoryId: { in: categoryIdArray } }] : []),
+      ],
     };
 
     const [products, total] = await Promise.all([
@@ -59,9 +61,6 @@ export class ProductService {
         where,
         skip,
         take: limit,
-        orderBy: {
-          createdAt: sort,
-        },
         include: {
           category: {
             select: {
@@ -83,15 +82,6 @@ export class ProductService {
       }),
       this.prisma.product.count({ where }),
     ]);
-
-    // Sort by price if requested
-    if (sort === 'asc' || sort === 'desc') {
-      products.sort((a, b) => {
-        const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
-        const priceB = b.skus.length ? +b.skus[0].price : Number.MAX_VALUE;
-        return sort === 'asc' ? priceA - priceB : priceB - priceA;
-      });
-    }
 
     return {
       data: products,

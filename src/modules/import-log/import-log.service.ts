@@ -160,37 +160,20 @@ export class ImportLogService {
     page?: number;
     limit?: number;
   }) {
-    const { warehouseIds, types, sort, productIds, fromDate, toDate, page = 1, limit = 10 } = params;
+    const {
+      warehouseIds,
+      types,
+      sort,
+      productIds,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 10,
+    } = params;
 
     const skip = (page - 1) * limit;
 
-    const [total, data] = await Promise.all([
-      this.prisma.importLog.count({
-        where: {
-          ...(warehouseIds &&
-            warehouseIds.length > 0 && {
-              warehouseId: { in: warehouseIds },
-            }),
-          ...(types && types.length > 0 && { type: { in: types } }),
-          ...(fromDate &&
-            toDate && {
-              createdAt: {
-                gte: dayjs(fromDate).startOf('day').toDate(),
-                lte: dayjs(toDate).endOf('day').toDate(),
-              },
-            }),
-          ...(productIds &&
-            productIds.length > 0 && {
-              items: {
-                some: {
-                  sku: {
-                    productId: { in: productIds },
-                  },
-                },
-              },
-            }),
-        },
-      }),
+    const [data, total] = await Promise.all([
       this.prisma.importLog.findMany({
         where: {
           ...(warehouseIds &&
@@ -252,6 +235,32 @@ export class ImportLogService {
         },
         skip,
         take: limit,
+      }),
+      this.prisma.importLog.count({
+        where: {
+          ...(warehouseIds &&
+            warehouseIds.length > 0 && {
+              warehouseId: { in: warehouseIds },
+            }),
+          ...(types && types.length > 0 && { type: { in: types } }),
+          ...(fromDate &&
+            toDate && {
+              createdAt: {
+                gte: dayjs(fromDate).startOf('day').toDate(),
+                lte: dayjs(toDate).endOf('day').toDate(),
+              },
+            }),
+          ...(productIds &&
+            productIds.length > 0 && {
+              items: {
+                some: {
+                  sku: {
+                    productId: { in: productIds },
+                  },
+                },
+              },
+            }),
+        },
       }),
     ]);
 

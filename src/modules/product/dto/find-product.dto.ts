@@ -8,5 +8,5 @@ export class FindProductsDto extends BaseQueryDto {
 
   @IsOptional()
   @IsString()
-  categorySlug?: string;
+  categoryIds?: string;
 }
