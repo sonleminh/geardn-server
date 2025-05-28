@@ -1,8 +1,9 @@
 import { AdjustmentReason, AdjustmentType } from '@prisma/client';
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { BaseQueryDto } from '../../../common/dto/base-query.dto';
 
-export class FindAdjustmentLogsDto {
+export class FindAdjustmentLogsDto extends BaseQueryDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (!value) return undefined;
@@ -24,11 +25,6 @@ export class FindAdjustmentLogsDto {
   })
   reasons?: AdjustmentReason[];
 
-
-  @IsOptional()
-  @IsString()
-  sort?: 'asc' | 'desc' = 'desc';
-
   @IsOptional()
   @Transform(({ value }) => {
     if (!value) return undefined;
@@ -43,24 +39,4 @@ export class FindAdjustmentLogsDto {
   @IsOptional()
   @IsString()
   toDate?: string;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Transform(({ value }) => {
-    if (!value) return 1;
-    const num = Number(value);
-    return isNaN(num) ? 1 : num;
-  })
-  page?: number = 1;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Transform(({ value }) => {
-    if (!value) return 10;
-    const num = Number(value);
-    return isNaN(num) ? 10 : num;
-  })
-  limit?: number = 10;
 } 

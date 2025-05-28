@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class QueryStockDto {
+export class FindStocksDto {
   @ApiPropertyOptional({ default: 1 })
   @Type(() => Number)
   @IsNumber()

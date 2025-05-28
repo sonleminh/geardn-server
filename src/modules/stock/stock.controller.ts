@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
-import { QueryStockDto } from './dto/query-stock.dto';
+import { FindStocksDto } from './dto/query-stock.dto';
 import { ApiQuery } from '@nestjs/swagger';
 
 @Controller('stocks')
@@ -27,8 +27,8 @@ export class StockController {
   }
 
   @Get(':id/warehouses')
-  @ApiQuery({ type: QueryStockDto })
-  findAllByWarehouseId(@Param('id') id: string, @Query() query: QueryStockDto) {
+  @ApiQuery({ type: FindStocksDto })
+  findAllByWarehouseId(@Param('id') id: string, @Query() query: FindStocksDto) {
     return this.stockService.findByWarehouse(+id, query);
   }
 

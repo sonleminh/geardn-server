@@ -1,15 +1,14 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { ProductSkuService } from '../product-sku/product-sku.service';
-import { CategoryService } from '../category/category.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-
-import { paginateCalculator } from 'src/utils/page-helpers';
+import { CategoryService } from '../category/category.service';
+import { ProductSkuService } from '../product-sku/product-sku.service';
 import { generateSlug } from 'src/utils/slug.until';
-
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { QueryParamDto } from 'src/dtos/query-params.dto';
 import { TAGS } from './dto/tag.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { Prisma } from '@prisma/client';
+import { createSearchFilter } from '../../common/helpers/query.helper';
+import { FindProductsDto } from './dto/find-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -36,61 +35,71 @@ export class ProductService {
     return { data: { categories: res, tags: tags } };
   }
 
-  async findAll(queryParam: QueryParamDto) {
-    const { resPerPage, passedPage } = paginateCalculator(
-      queryParam.page,
-      queryParam.limit,
-    );
+  async findAll(query: FindProductsDto) {
+    const { page = 1, limit = 10, search, sort = 'desc' } = query;
+    const skip = (page - 1) * limit;
 
-    let products = await this.prisma.product.findMany({
-      where: {
-        isDeleted: false,
-      },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    const where: Prisma.ProductWhereInput = {
+      ...(search && {
+        OR: [
+          { name: createSearchFilter(search) },
+          {
+            skus: {
+              some: {
+                sku: createSearchFilter(search),
+              },
+            },
+          },
+        ],
+      }),
+    };
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: sort,
+        },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          skus: {
+            select: {
+              price: true,
+            },
+            orderBy: {
+              price: 'asc',
+            },
+            take: 1,
           },
         },
-        skus: {
-          select: {
-            price: true,
-          },
-          orderBy: {
-            price: 'asc',
-          },
-          take: 1,
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip: passedPage,
-      take: resPerPage,
-    });
+      }),
+      this.prisma.product.count({ where }),
+    ]);
 
-    if (queryParam.sort === 'asc' || queryParam.sort === 'desc') {
-      products = products.sort((a, b) => {
+    // Sort by price if requested
+    if (sort === 'asc' || sort === 'desc') {
+      products.sort((a, b) => {
         const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
         const priceB = b.skus.length ? +b.skus[0].price : Number.MAX_VALUE;
-        return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
+        return sort === 'asc' ? priceA - priceB : priceB - priceA;
       });
     }
-
-    const total = await this.prisma.product.count({
-      where: {
-        isDeleted: false,
-      },
-    });
 
     return {
       data: products,
       meta: {
         total,
-        page: passedPage + 1,
-        pageSize: resPerPage,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
       message: 'Product list retrieved successfully',
     };
@@ -181,7 +190,7 @@ export class ProductService {
     };
   }
 
-  async getProductsByCategorySlug(slug: string, queryParam: QueryParamDto) {
+  async getProductsByCategorySlug(slug: string, query: FindProductsDto) {
     const category = await this.categoryService.findOneBySlug(slug);
 
     if (!category?.data) {
@@ -192,7 +201,7 @@ export class ProductService {
       where: { categoryId: category.data.id },
     });
 
-    let res = await this.prisma.product.findMany({
+    const res = await this.prisma.product.findMany({
       where: { categoryId: category.data.id },
       include: {
         category: {
@@ -207,36 +216,20 @@ export class ProductService {
             productId: true,
             sku: true,
             price: true,
-            // quantity: true,
             imageUrl: true,
             productSkuAttributes: {
               select: {
                 id: true,
                 attributeValue: true,
-                // {
-                //   select: {
-                //     id: true,
-                //     type: true,
-                //     value: true,
-                //   },
-                // },
               },
             },
           },
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: query.sort || 'desc',
       },
     });
-
-    // if (queryParam.sort === 'asc' || queryParam.sort === 'desc') {
-    //   res = res.sort((a, b) => {
-    //     const priceA = a.skus.length ? +a.skus[0].price : Number.MAX_VALUE;
-    //     const priceB = b.skus.length ? +b.skus[0].price : Number.MAX_VALUE;
-    //     return queryParam.sort === 'asc' ? priceA - priceB : priceB - priceA;
-    //   });
-    // }
 
     return {
       data: res,

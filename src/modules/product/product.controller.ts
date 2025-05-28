@@ -5,7 +5,6 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   Query,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
@@ -14,7 +13,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { ProductEntity } from './entities/product.entity';
 import { ProductSkuService } from '../product-sku/product-sku.service';
-import { QueryParamDto } from 'src/dtos/query-params.dto';
+import { FindProductsDto } from './dto/find-product.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -32,8 +31,8 @@ export class ProductController {
 
   @Get()
   @ApiCreatedResponse({ type: ProductEntity, isArray: true })
-  findAll(@Query() queryParam: QueryParamDto) {
-    return this.productService.findAll(queryParam);
+  findAll(@Query() query: FindProductsDto) {
+    return this.productService.findAll(query);
   }
 
   @Get('initial-to-create')
@@ -56,12 +55,9 @@ export class ProductController {
   @Get('/category/:slug')
   async getProductByCateSlug(
     @Param('slug') slug: string,
-    @Query() queryParam: QueryParamDto,
+    @Query() query: FindProductsDto,
   ) {
-    return await this.productService.getProductsByCategorySlug(
-      slug,
-      queryParam,
-    );
+    return await this.productService.getProductsByCategorySlug(slug, query);
   }
 
   @Get(':id/skus')

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { QueryStockDto } from './dto/query-stock.dto';
+import { FindStocksDto } from './dto/query-stock.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class StockService {
     return `This action returns a #${id} stock`;
   }
 
-  async findByWarehouse(id: number, query: QueryStockDto) {
+  async findByWarehouse(id: number, query: FindStocksDto) {
     const { page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
 

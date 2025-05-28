@@ -9,7 +9,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import { Decimal } from '@prisma/client/runtime/library';
 import { CreateAdjustmentLogDto } from './dto/create-adjustment-log.dto';
-import { AdjustmentReason, AdjustmentType } from '@prisma/client';
+import { FindAdjustmentLogsDto } from './dto/find-adjustment-logs.dto';
+import {
+  createArrayFilter,
+  createDateRangeFilter,
+} from '../../common/helpers/query.helper';
 
 @Injectable()
 export class AdjustmentLogService {
@@ -159,85 +163,45 @@ export class AdjustmentLogService {
     }
   }
 
-  async findAll(params: {
-    warehouseIds?: number[];
-    types?: AdjustmentType[];
-    reasons?: AdjustmentReason[];
-    sort?: 'asc' | 'desc';
-    productIds?: number[];
-    fromDate?: string;
-    toDate?: string;
-    page?: number;
-    limit?: number;
-  }) {
+  async findAll(query: FindAdjustmentLogsDto) {
     const {
       warehouseIds,
       types,
-      reasons,
       sort,
       productIds,
       fromDate,
       toDate,
       page = 1,
       limit = 10,
-    } = params;
+    } = query;
 
     const skip = (page - 1) * limit;
 
-    const [total, data] = await Promise.all([
-      this.prisma.adjustmentLog.count({
-        where: {
-          ...(warehouseIds &&
-            warehouseIds.length > 0 && {
-              warehouseId: { in: warehouseIds },
-            }),
-          ...(types && types.length > 0 && { type: { in: types } }),
-          ...(reasons && reasons.length > 0 && { reason: { in: reasons } }),
-          ...(fromDate &&
-            toDate && {
-              createdAt: {
-                gte: dayjs(fromDate).startOf('day').toDate(),
-                lte: dayjs(toDate).endOf('day').toDate(),
-              },
-            }),
-          ...(productIds &&
-            productIds.length > 0 && {
-              items: {
-                some: {
-                  sku: {
-                    productId: { in: productIds },
-                  },
-                },
-              },
-            }),
+    const where = {
+      ...(createArrayFilter(warehouseIds) && {
+        warehouseId: createArrayFilter(warehouseIds),
+      }),
+      ...(createArrayFilter(types) && {
+        type: createArrayFilter(types),
+      }),
+      ...(createDateRangeFilter(fromDate, toDate) && {
+        createdAt: createDateRangeFilter(fromDate, toDate),
+      }),
+      ...(productIds?.length > 0 && {
+        items: {
+          some: {
+            sku: {
+              productId: { in: productIds },
+            },
+          },
         },
       }),
+    };
+
+    const [total, data] = await Promise.all([
+      this.prisma.adjustmentLog.count({ where }),
       this.prisma.adjustmentLog.findMany({
-        where: {
-          ...(warehouseIds &&
-            warehouseIds.length > 0 && {
-              warehouseId: { in: warehouseIds },
-            }),
-          ...(types && types.length > 0 && { type: { in: types } }),
-          ...(reasons && reasons.length > 0 && { reason: { in: reasons } }),
-          ...(fromDate &&
-            toDate && {
-              createdAt: {
-                gte: dayjs(fromDate).startOf('day').toDate(),
-                lte: dayjs(toDate).endOf('day').toDate(),
-              },
-            }),
-          ...(productIds &&
-            productIds.length > 0 && {
-              items: {
-                some: {
-                  sku: {
-                    productId: { in: productIds },
-                  },
-                },
-              },
-            }),
-        },
+        where,
         include: {
           warehouse: true,
           items: {
