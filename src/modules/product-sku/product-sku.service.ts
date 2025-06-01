@@ -124,6 +124,11 @@ export class ProductSkuService {
     const res = await this.prisma.productSKU.findUnique({
       where: { id },
       include: {
+        product: {
+          select: {
+            name: true,
+          },
+        },
         productSkuAttributes: {
           select: {
             id: true,

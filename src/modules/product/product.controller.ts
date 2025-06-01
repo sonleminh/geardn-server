@@ -1,22 +1,21 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Query,
-  Delete,
+  Patch,
+  Post,
+  Query
 } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ApiCreatedResponse, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ProductEntity } from './entities/product.entity';
-import { ProductSkuService } from '../product-sku/product-sku.service';
-import { FindProductsDto } from './dto/find-product.dto';
-import { ProductTag } from 'src/common/enums/product-tag.enum';
+import { ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ENUM_LABELS } from 'src/common/constants/enum-labels';
+import { ProductTag } from 'src/common/enums/product-tag.enum';
+import { ProductSkuService } from '../product-sku/product-sku.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { FindProductsDto } from './dto/find-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductEntity } from './entities/product.entity';
+import { ProductService } from './product.service';
 
 @Controller('products')
 @ApiTags('products')
