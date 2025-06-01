@@ -1,10 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsOptional } from 'class-validator';
-import { DetailsDto } from './details';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsObject,
+  IsString,
+  ValidateNested,
+  IsEnum,
+} from 'class-validator';
+import { JsonValue } from '@prisma/client/runtime/library';
+import { Type } from 'class-transformer';
+import { TagDto } from './tag.dto';
+import { ProductTag } from 'src/common/enums/product-tag.enum';
 
 export class CreateProductDto {
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
   name: string;
 
   @ApiProperty()
@@ -17,20 +30,29 @@ export class CreateProductDto {
   @IsNotEmpty({ each: true, message: 'Each image must not be empty.' })
   images: string[];
 
-  @ApiProperty()
+  @ApiProperty({ type: [TagDto], enum: ProductTag })
   @IsOptional()
   @IsArray()
-  tags: string;
+  @ValidateNested({ each: true })
+  @Type(() => TagDto)
+  tags: TagDto[];
 
   @ApiProperty()
   @IsOptional()
+  @IsString()
   description?: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    example: { weight: '1kg', material: 'cotton', guarantee: '12 months' },
+  })
   @IsOptional()
-  details: string;
+  @IsObject()
+  details: JsonValue;
 
   @ApiProperty()
   @IsOptional()
+  @IsString()
   brand: string;
 }

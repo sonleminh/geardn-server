@@ -1,18 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-
-export enum TAGS {
-  // DISCOUNTED = 'Khuyến mãi',
-  NEW_ARRIVAL = 'Hàng mới về',
-  BEST_SELLER = 'Bán chạy',
-  SECONDHAND = 'Hàng 2nd',
-}
+import { ApiProperty } from '@nestjs/swagger';
+import { ProductTag } from 'src/common/enums/product-tag.enum';
 
 export class TagDto {
-  @IsString()
-  @IsNotEmpty()
-  value: string;
+  @ApiProperty({ enum: ProductTag, example: ProductTag.NEW })
+  value: ProductTag;
 
-  @IsString()
-  @IsNotEmpty()
+  @ApiProperty({ example: 'Mới' })
   label: string;
 }

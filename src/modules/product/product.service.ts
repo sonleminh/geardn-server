@@ -4,7 +4,6 @@ import { CategoryService } from '../category/category.service';
 import { ProductSkuService } from '../product-sku/product-sku.service';
 import { generateSlug } from 'src/utils/slug.until';
 import { CreateProductDto } from './dto/create-product.dto';
-import { TAGS } from './dto/tag.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
 import { createSearchFilter } from '../../common/helpers/query.helper';
@@ -18,21 +17,18 @@ export class ProductService {
     private readonly productSkuService: ProductSkuService,
   ) {}
   async create(createProductDto: CreateProductDto) {
+    const data = {
+      ...createProductDto,
+      slug: generateSlug(createProductDto.name),
+      tags: JSON.parse(JSON.stringify(createProductDto.tags))
+    };
+
     const res = await this.prisma.product.create({
-      data: { ...createProductDto, slug: generateSlug(createProductDto.name) },
+      data,
     });
     return {
       data: res,
     };
-  }
-
-  async getInitialProductForCreate() {
-    const res = await this.categoryService.getCategoryInitial();
-    const tags = Object.keys(TAGS).map((key) => ({
-      value: key,
-      label: TAGS[key as keyof typeof TAGS],
-    }));
-    return { data: { categories: res, tags: tags } };
   }
 
   async findAll(query: {
@@ -111,18 +107,28 @@ export class ProductService {
             id: true,
             sku: true,
             price: true,
-            // quantity: true,
+            imageUrl: true,
             productSkuAttributes: {
               select: {
                 id: true,
-                attributeValue: true,
-                // {
-                //   select: {
-                //     id: true,
-                //     : true,
-                //     value: true,
-                //   },
-                // },
+                attributeValue: {
+                  select: {
+                    value: true,
+                    attribute: {
+                      select: {
+                        id: true,
+                        name: true,
+                        label: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            stocks: {
+              select: {
+                id: true,
+                quantity: true,
               },
             },
           },
@@ -156,14 +162,18 @@ export class ProductService {
             productSkuAttributes: {
               select: {
                 id: true,
-                attributeValue: true,
-                // {
-                //   select: {
-                //     id: true,
-                //     type: true,
-                //     value: true,
-                //   },
-                // },
+                attributeValue: {
+                  select: {
+                    value: true,
+                    attribute: {
+                      select: {
+                        id: true,
+                        name: true,
+                        label: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -229,9 +239,21 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
+    const data: Prisma.ProductUpdateInput = {
+      ...updateProductDto,
+      tags: updateProductDto.tags 
+        ? JSON.parse(JSON.stringify(updateProductDto.tags))
+        : undefined,
+    };
+    
+    // Generate new slug if name is being updated
+    if (data.name) {
+      data.slug = generateSlug(data.name as string);
+    }
+
     const res = await this.prisma.product.update({
       where: { id },
-      data: updateProductDto,
+      data,
     });
     return { data: res };
   }

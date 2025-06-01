@@ -3,6 +3,7 @@ import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
 import { OrderStatus } from '../enums/order-status.enum';
 import { AdjustmentReason } from '../enums/adjustment-type.enum';
+import { ProductTag } from '../enums/product-tag.enum';
 
 export const ENUM_LABELS = {
   'order-status': [
@@ -36,5 +37,12 @@ export const ENUM_LABELS = {
     { value: AdjustmentReason.LOST, label: 'Mất mát' },
     { value: AdjustmentReason.FOUND, label: 'Tìm thấy' },
     { value: AdjustmentReason.CUSTOMER_RETURN, label: 'Trả hàng' },
+  ],
+  'product-tag': [
+    { value: ProductTag.NEW, label: 'Mới' },
+    { value: ProductTag.SALE, label: 'Giảm giá' },
+    { value: ProductTag.HOT, label: 'Hot' },
+    { value: ProductTag.BESTSELLER, label: 'Bán chạy' },
+    { value: ProductTag.COMING_SOON, label: 'Sắp có hàng' },
   ],
 };

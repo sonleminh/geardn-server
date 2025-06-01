@@ -115,7 +115,13 @@ export class StockService {
       include: {
         skus: {
           include: {
-            stocks: true,
+            stocks: {
+              select: {
+                id: true,
+                quantity: true,
+                costPrice: true,
+              },
+            },
             productSkuAttributes: {
               include: {
                 attributeValue: {
