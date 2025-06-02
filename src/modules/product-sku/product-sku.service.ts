@@ -132,14 +132,13 @@ export class ProductSkuService {
         productSkuAttributes: {
           select: {
             id: true,
-            attributeValue: true,
-            // {
-            //   select: {
-            //     id: true,
-            //     type: true,
-            //     value: true,
-            //   },
-            // },
+            attributeValue: {
+              select: {
+                id: true,
+                attribute: true,
+                value: true,
+              },
+            },
           },
         },
       },
@@ -167,7 +166,7 @@ export class ProductSkuService {
             // },
           },
         },
-        stocks: true
+        stocks: true,
       },
     });
 
@@ -203,10 +202,10 @@ export class ProductSkuService {
               include: {
                 attribute: {
                   select: {
-                    label: true
-                  }
+                    label: true,
+                  },
                 },
-              }
+              },
             },
             // {
             //   select: {
@@ -217,7 +216,7 @@ export class ProductSkuService {
             // },
           },
         },
-        stocks: true
+        stocks: true,
       },
     });
     if (!res) {
