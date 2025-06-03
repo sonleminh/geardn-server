@@ -190,6 +190,51 @@ export class ProductService {
     };
   }
 
+  async getProductsByCategory(id: number) {
+    const category = await this.categoryService.findOne(+id);
+    if (!category?.data) {
+      throw new NotFoundException('No products found based on category');
+    }
+    const total = await this.prisma.product.count({
+      where: { categoryId: category.data.id },
+    });
+
+    const res = await this.prisma.product.findMany({
+      where: { categoryId: category.data.id },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        images: true,
+        skus: {
+          select: {
+            id: true,
+            price: true,
+            imageUrl: true,
+            productSkuAttributes: {
+              select: {
+                id: true,
+                attributeValue: true,
+              },
+            },
+            stocks: {
+              select: {
+                id: true,
+                quantity: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      data: res,
+      total: total,
+      message: 'Product list retrieved successfully',
+    };
+  }
+
   async getProductsByCategorySlug(slug: string, query: FindProductsDto) {
     const category = await this.categoryService.findOneBySlug(slug);
 
