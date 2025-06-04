@@ -1,14 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from '@prisma/client';
 import { Decimal, JsonObject } from '@prisma/client/runtime/library';
-import { IsArray, IsInt, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsArray, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrderItemDto {
   @IsInt()
   skuId: number;
 
   @IsInt()
+  productId: number;
+
+  @IsInt()
   quantity: number;
+
+  @IsInt()
+  price: number;
+
+  @IsInt()
+  imageUrl: string;
+
+  @IsString()
+  productName: string;
+
+  @IsString()
+  productSlug: string;
+
+  @IsString()
+  skuCode: string;
+
+  @IsJSON()
+  skuAttributes: JsonObject;
 }
 
 export class CreateOrderDto {

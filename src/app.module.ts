@@ -21,6 +21,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { EnumModule } from './common/modules/enum.module';
 import { ExportLogModule } from './modules/export-log/export-log.module';
 import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.module';
+import { ProvinceModule } from './modules/province/province.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.mod
     UploadModule,
     WarehouseModule,
     StockModule,
+    ProvinceModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

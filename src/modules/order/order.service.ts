@@ -46,10 +46,15 @@ export class OrderService {
         // }
         totalPrice += Number(sku.price) * item.quantity;
         return {
-          productId: sku.productId,
-          skuId: sku.id,
+          productId: item.productId,
+          skuId: item.skuId,
           quantity: item.quantity,
-          price: sku.price,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          productName: item.productName,
+          productSlug: item.productSlug,
+          skuCode: item.skuCode,
+          skuAttributes: item.skuAttributes,
         };
       });
 
@@ -120,7 +125,11 @@ export class OrderService {
   }
 
   async findAll() {
-    const orders = await this.prisma.order.findMany();
+    const orders = await this.prisma.order.findMany({
+      include: {
+        orderItems: true,
+      },
+    });
     return { data: orders };
   }
 
