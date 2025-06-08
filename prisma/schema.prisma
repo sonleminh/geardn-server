@@ -35,14 +35,15 @@ model Product {
 }
 
 model ProductSKU {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   productId Int
-  sku       String   @unique
+  sku       String    @unique
   price     Decimal
   imageUrl  String?
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    SKUStatus @default(ACTIVE)
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
   productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
@@ -126,10 +127,11 @@ model Order {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  user          User?         @relation(fields: [userId], references: [id])
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  user          User?                @relation(fields: [userId], references: [id])
+  paymentMethod PaymentMethod        @relation(fields: [paymentMethodId], references: [id])
   orderItems    OrderItem[]
   ExportLog     ExportLog[]
+  statusHistory OrderStatusHistory[]
 }
 
 model OrderItem {
@@ -148,12 +150,30 @@ model OrderItem {
   skuCode       String
   skuAttributes Json
 
-  order   Order      @relation(fields: [orderId], references: [id])
-  product Product    @relation(fields: [productId], references: [id])
-  sku     ProductSKU @relation(fields: [skuId], references: [id])
+  warehouseId Int?
+
+  order     Order      @relation(fields: [orderId], references: [id])
+  product   Product    @relation(fields: [productId], references: [id])
+  sku       ProductSKU @relation(fields: [skuId], references: [id])
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
 
   @@index([orderId])
   @@index([productId])
+}
+
+model OrderStatusHistory {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  oldStatus OrderStatus
+  newStatus OrderStatus
+  changedBy Int
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation(fields: [changedBy], references: [id])
+
+  @@index([orderId])
+  @@index([changedBy])
 }
 
 model Cart {
@@ -201,6 +221,7 @@ model Warehouse {
   Stock         Stock[]
   ExportLog     ExportLog[]
   AdjustmentLog AdjustmentLog[]
+  OrderItem     OrderItem[]
 }
 
 model Stock {
@@ -319,11 +340,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Cart          Cart?
-  Order         Order[]
-  ImportLog     ImportLog[]
-  ExportLog     ExportLog[]
-  AdjustmentLog AdjustmentLog[]
+  Cart               Cart?
+  Order              Order[]
+  ImportLog          ImportLog[]
+  ExportLog          ExportLog[]
+  AdjustmentLog      AdjustmentLog[]
+  OrderStatusHistory OrderStatusHistory[]
 }
 
 model PaymentMethod {
@@ -345,6 +367,12 @@ model PaymentMethod {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum SKUStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
 }
 
 enum OrderStatus {

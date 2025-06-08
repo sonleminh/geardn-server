@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Product, ProductSKU, ProductSKUAttribute } from '@prisma/client';
+import {
+  Product,
+  ProductSKU,
+  ProductSKUAttribute,
+  SKUStatus,
+} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 export class ProductSkuEntity implements ProductSKU {
@@ -23,6 +28,9 @@ export class ProductSkuEntity implements ProductSKU {
 
   @ApiProperty()
   imageUrl: string;
+
+  @ApiProperty()
+  status: SKUStatus;
 
   @ApiProperty({ default: false })
   isDeleted: boolean;

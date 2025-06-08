@@ -217,12 +217,6 @@ export class ProductService {
                 attributeValue: true,
               },
             },
-            stocks: {
-              select: {
-                id: true,
-                quantity: true,
-              },
-            },
           },
         },
       },
