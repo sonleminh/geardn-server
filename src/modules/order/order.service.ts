@@ -18,7 +18,7 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto) {
     const {
       userId,
-      items,
+      orderItems,
       paymentMethodId,
       fullName,
       phoneNumber,
@@ -28,17 +28,17 @@ export class OrderService {
       flag,
     } = createOrderDto;
 
-    let orderItems = [];
+    let orderItemsData = [];
 
     const order = await this.prisma.$transaction(async (tx) => {
       const skus = await tx.productSKU.findMany({
         where: {
-          id: { in: items.map((item) => item.skuId) },
+          id: { in: orderItems.map((item) => item.skuId) },
         },
       });
 
       let totalPrice = 0;
-      orderItems = items.map((item) => {
+      orderItemsData = orderItems.map((item) => {
         const sku = skus.find((s) => s.id === item.skuId);
         if (!sku) throw new BadRequestException(`SKU ${item.skuId} not found`);
         // if (sku.quantity < item.quantity) {
@@ -133,45 +133,27 @@ export class OrderService {
     return { data: orders };
   }
 
-  async findOne(orderCode: string) {
-    const orders = await this.prisma.order.findUnique({
+  async findOne(id: number) {
+    const res = await this.prisma.order.findUnique({
       where: {
-        orderCode,
+        id,
       },
       include: {
         orderItems: {
           select: {
-            product: {
-              select: {
-                name: true,
-                images: true,
-              },
-            },
-            sku: {
-              select: {
-                price: true,
-                imageUrl: true,
-                productSkuAttributes: {
-                  select: {
-                    attributeValue: true,
-                    // {
-                    //   select: {
-                    //     id: true,
-                    //     type: true,
-                    //     value: true,
-                    //   },
-                    // },
-                  },
-                },
-              },
-            },
+            productName: true,
+            productId: true,
+            skuId: true,
+            price: true,
             quantity: true,
+            imageUrl: true,
+            skuAttributes: true,
           },
         },
         paymentMethod: true,
       },
     });
-    return { data: orders };
+    return { data: res };
   }
 
   async getUserPurchases(userId: number, type: number) {
@@ -184,9 +166,39 @@ export class OrderService {
   }
 
   async update(orderId: number, updateOrderDto: UpdateOrderDto) {
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: updateOrderDto,
+    const { orderItems, ...orderData } = updateOrderDto;
+
+    return this.prisma.$transaction(async (tx) => {
+      // First, delete existing order items
+      await tx.orderItem.deleteMany({
+        where: { orderId },
+      });
+
+      // Then update the order with new data and create new order items
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          ...orderData,
+          orderItems: {
+            create: orderItems.map(item => ({
+              productId: item.productId,
+              skuId: item.skuId,
+              quantity: item.quantity,
+              price: item.price,
+              imageUrl: item.imageUrl,
+              productName: item.productName,
+              productSlug: item.productSlug,
+              skuCode: item.skuCode,
+              skuAttributes: item.skuAttributes,
+            })),
+          },
+        },
+        include: {
+          orderItems: true,
+          paymentMethod: true,
+          user: true,
+        },
+      });
     });
   }
 

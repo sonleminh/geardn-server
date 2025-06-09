@@ -79,7 +79,7 @@ export class CreateOrderDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsArray()
-  items: CreateOrderItemDto[];
+  orderItems: CreateOrderItemDto[];
 
   @ApiProperty()
   createdAt: Date;

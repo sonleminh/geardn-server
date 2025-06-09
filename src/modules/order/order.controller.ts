@@ -39,9 +39,9 @@ export class OrderController {
     return this.orderService.getUserPurchases(userId, +type);
   }
 
-  @Get(':orderCode')
-  findOne(@Param('orderCode') orderCode: string) {
-    return this.orderService.findOne(orderCode);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.orderService.findOne(+id);
   }
 
   @Patch(':id')
