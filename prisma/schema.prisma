@@ -124,6 +124,7 @@ model Order {
   flag            Json        @default("{}")
   shipment        Json        @default("{}")
   paymentMethodId Int
+  isDeleted       Boolean     @default(false)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 

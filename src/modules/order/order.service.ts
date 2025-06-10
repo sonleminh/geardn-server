@@ -83,7 +83,7 @@ export class OrderService {
           shipment: shipment as JsonObject,
           flag: flag as JsonObject,
           orderItems: {
-            create: orderItems,
+            create: orderItemsData,
           },
         },
         include: {
@@ -143,7 +143,9 @@ export class OrderService {
           select: {
             productName: true,
             productId: true,
+            productSlug: true,
             skuId: true,
+            skuCode: true,
             price: true,
             quantity: true,
             imageUrl: true,

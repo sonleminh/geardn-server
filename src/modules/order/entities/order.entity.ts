@@ -40,6 +40,9 @@ export class OrderEntity implements Order {
   shipment: JsonObject;
 
   @ApiProperty()
+  isDeleted: boolean;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
