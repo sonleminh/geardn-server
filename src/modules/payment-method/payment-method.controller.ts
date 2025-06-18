@@ -14,7 +14,7 @@ import { PaymentMethodService } from './payment-method.service';
 import { CreatePaymentMethodDto } from './dto/create-payment-method.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdatePaymentMethodDto } from './dto/update-payment-method.dto';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 @Controller('payment-methods')
 export class PaymentMethodController {
   constructor(private paymentMethodService: PaymentMethodService) {}

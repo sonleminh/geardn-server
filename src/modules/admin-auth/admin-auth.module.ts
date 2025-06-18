@@ -4,8 +4,8 @@ import { AdminAuthController } from './admin-auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LocalStrategy } from './strategies/admin-local.strategy';
-import { JwtStrategy } from './strategies/admin-jwt.strategy';
+import { LocalAdminStrategy } from './strategies/admin-local.strategy';
+import { JwtAdminStrategy } from './strategies/admin-jwt.strategy';
 import { UserModule } from '../user/user.module';
 
 @Module({
@@ -21,8 +21,8 @@ import { UserModule } from '../user/user.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AdminAuthService, LocalStrategy, JwtStrategy],
+  providers: [AdminAuthService, LocalAdminStrategy, JwtAdminStrategy],
   controllers: [AdminAuthController],
-  exports: [AdminAuthService, LocalStrategy, JwtStrategy],
+  exports: [AdminAuthService, LocalAdminStrategy, JwtAdminStrategy],
 })
 export class AdminAuthModule {}

@@ -10,7 +10,7 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';

@@ -5,7 +5,9 @@ import {
   Param,
   Patch,
   Post,
-  Query
+  Query,
+  UseGuards,
+  Delete
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ENUM_LABELS } from 'src/common/constants/enum-labels';
@@ -16,6 +18,8 @@ import { FindProductsDto } from './dto/find-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
 import { ProductService } from './product.service';
+import { AdminFindProductsDto } from './dto/admin-find-products.dto';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller('products')
 @ApiTags('products')
@@ -25,6 +29,7 @@ export class ProductController {
     private readonly productSkuService: ProductSkuService,
   ) {}
 
+  @UseGuards(JwtAdminAuthGuard)
   @Post()
   @ApiCreatedResponse({ type: ProductEntity })
   create(@Body() createProductDto: CreateProductDto) {
@@ -35,6 +40,18 @@ export class ProductController {
   @ApiCreatedResponse({ type: ProductEntity, isArray: true })
   findAll(@Query() query: FindProductsDto) {
     return this.productService.findAll(query);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('admin')
+  @ApiOperation({ summary: 'Get products for admin dashboard' })
+  @ApiResponse({
+    status: 200,
+    description: 'Products retrieved successfully',
+    type: [ProductEntity],
+  })
+  async adminFindAll(@Query() query: AdminFindProductsDto) {
+    return this.productService.adminFindAll(query);
   }
 
   @Get(':id')
@@ -68,18 +85,6 @@ export class ProductController {
     return this.productSkuService.findByProduct(+id);
   }
 
-  @Patch(':id')
-  @ApiCreatedResponse({ type: ProductEntity })
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
-  }
-
-  @Patch(':id')
-  @ApiCreatedResponse({ type: ProductEntity })
-  remove(@Param('id') id: string) {
-    return this.productService.softDelete(+id);
-  }
-
   @Get('tags')
   @ApiOperation({ summary: 'Get all product tags' })
   @ApiResponse({
@@ -98,5 +103,19 @@ export class ProductController {
   })
   getProductTags() {
     return ENUM_LABELS['product-tag'];
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id')
+  @ApiCreatedResponse({ type: ProductEntity })
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    return this.productService.update(+id, updateProductDto);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id')
+  @ApiCreatedResponse({ type: ProductEntity })
+  remove(@Param('id') id: string) {
+    return this.productService.softDelete(+id);
   }
 }

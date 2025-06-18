@@ -1,4 +1,4 @@
-import { Product } from '@prisma/client';
+import { Product, ProductStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 // import { TagDto } from '../dto/tag.dto';
 import { JsonValue } from '@prisma/client/runtime/library';
@@ -29,6 +29,9 @@ export class ProductEntity implements Product {
 
   @ApiProperty()
   details: JsonValue;
+
+  @ApiProperty()
+  status: ProductStatus;
 
   @ApiProperty()
   description: string | null;

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CategoryService } from '../category/category.service';
 import { ProductSkuService } from '../product-sku/product-sku.service';
 import { generateSlug } from 'src/utils/slug.until';
@@ -8,6 +8,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
 import { createSearchFilter } from '../../common/helpers/query.helper';
 import { FindProductsDto } from './dto/find-product.dto';
+import { ProductStatus } from '@prisma/client';
 
 @Injectable()
 export class ProductService {
@@ -20,7 +21,7 @@ export class ProductService {
     const data = {
       ...createProductDto,
       slug: generateSlug(createProductDto.name),
-      tags: JSON.parse(JSON.stringify(createProductDto.tags))
+      tags: JSON.parse(JSON.stringify(createProductDto.tags)),
     };
 
     const res = await this.prisma.product.create({
@@ -31,24 +32,26 @@ export class ProductService {
     };
   }
 
-  async findAll(query: {
-    categoryIds?: string;
-    page?: number;
-    limit?: number;
-    search?: string;
-  }) {
-    const { categoryIds, page = 1, limit = 10, search } = query;
+  async findAll(query: FindProductsDto) {
+    const { categoryIds, page = 1, limit = 10, search, status } = query;
     const skip = (page - 1) * limit;
 
     // Convert categoryIds string to array of numbers if it exists
-    const categoryIdArray = categoryIds ? categoryIds.split(',').map(Number) : undefined;
+    const categoryIdArray = categoryIds
+      ? categoryIds.split(',').map(Number)
+      : undefined;
 
     const where: Prisma.ProductWhereInput = {
       AND: [
         // Search filter
         ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
         // Category filter
-        ...(categoryIdArray?.length ? [{ categoryId: { in: categoryIdArray } }] : []),
+        ...(categoryIdArray?.length
+          ? [{ categoryId: { in: categoryIdArray } }]
+          : []),
+        // Status filter
+        ...(status ? [{ status }] : []),
+        { isDeleted: false },
       ],
     };
 
@@ -277,14 +280,94 @@ export class ProductService {
     };
   }
 
+  async adminFindAll(query: {
+    categoryIds?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: ProductStatus;
+    isDeleted?: boolean;
+  }) {
+    const {
+      categoryIds,
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      isDeleted,
+    } = query;
+    const skip = (page - 1) * limit;
+
+    // Convert categoryIds string to array of numbers if it exists
+    const categoryIdArray = categoryIds
+      ? categoryIds.split(',').map(Number)
+      : undefined;
+
+    const where: Prisma.ProductWhereInput = {
+      AND: [
+        // Search filter
+        ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
+        // Category filter
+        ...(categoryIdArray?.length
+          ? [{ categoryId: { in: categoryIdArray } }]
+          : []),
+        // Status filter
+        ...(status ? [{ status }] : []),
+        // Deleted filter
+        ...(isDeleted !== undefined ? [{ isDeleted }] : []),
+      ],
+    };
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          skus: {
+            select: {
+              id: true,
+              sku: true,
+              price: true,
+              status: true,
+              isDeleted: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data: products,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      message: 'Admin product list retrieved successfully',
+    };
+  }
+
   async update(id: number, updateProductDto: UpdateProductDto) {
     const data: Prisma.ProductUpdateInput = {
       ...updateProductDto,
-      tags: updateProductDto.tags 
+      tags: updateProductDto.tags
         ? JSON.parse(JSON.stringify(updateProductDto.tags))
         : undefined,
     };
-    
+
     // Generate new slug if name is being updated
     if (data.name) {
       data.slug = generateSlug(data.name as string);

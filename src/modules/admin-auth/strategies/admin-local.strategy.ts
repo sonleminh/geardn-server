@@ -6,13 +6,14 @@ import { AdminAuthService } from '../admin-auth.service';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy, 'admin-local') {
+export class LocalAdminStrategy extends PassportStrategy(Strategy, 'admin-local') {
   constructor(private adminAuthService: AdminAuthService) {
     super({ usernameField: 'email' }); 
   }
 
   async validate(email: string, password: string) {
     const user = await this.adminAuthService.validateUser(email, password);
+    console.log(user);
     if (!user || user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Access denied. Admins only');
     }

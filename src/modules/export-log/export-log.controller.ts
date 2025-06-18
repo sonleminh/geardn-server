@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { CreateExportLogDto } from './dto/create-export-log.dto';
 import { ExportLogService } from './export-log.service';
 import { FindExportLogsDto } from './dto/find-export-logs.dto';

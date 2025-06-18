@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import { BaseQueryDto } from 'src/common/dto/base-query.dto';
 import { ProductStatus } from '@prisma/client';
 
-export class FindProductsDto extends BaseQueryDto {
+export class AdminFindProductsDto extends BaseQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
@@ -15,4 +15,13 @@ export class FindProductsDto extends BaseQueryDto {
   @IsOptional()
   @IsEnum(ProductStatus)
   status?: ProductStatus;
-}
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  isDeleted?: boolean;
+} 

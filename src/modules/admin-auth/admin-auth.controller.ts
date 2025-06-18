@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AdminAuthService } from './admin-auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { JwtAdminAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from './guards/jwt-admin-auth.guard';
+import { LocalAdminAuthGuard } from './guards/local-admin-auth.guard';
 @Controller('admin/auth')
 export class AdminAuthController {
   constructor(
@@ -17,7 +17,7 @@ export class AdminAuthController {
     private readonly userService: UserService,
   ) {}
 
-  @UseGuards(LocalAuthGuard)
+  @UseGuards(LocalAdminAuthGuard)
   @Post('login')
   async login(@Request() req, @Res({ passthrough: true }) res) {
     return this.adminAuthService.login(req.user, res);

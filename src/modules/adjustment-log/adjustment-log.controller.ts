@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AdjustmentLogService } from './adjustment-log.service';
 import { CreateAdjustmentLogDto } from './dto/create-adjustment-log.dto';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { Request } from 'express';
 import { FindAdjustmentLogsDto } from './dto/find-adjustment-logs.dto';
 import { ApiTags } from '@nestjs/swagger';

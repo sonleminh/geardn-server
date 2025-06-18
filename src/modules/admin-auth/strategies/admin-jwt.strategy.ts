@@ -4,26 +4,34 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserService } from 'src/modules/user/user.service';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
+export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   constructor(
     private readonly configService: ConfigService,
     private readonly userService: UserService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        JwtStrategy.extractJWTFromCookie,
+        JwtAdminStrategy.extractJWTFromCookie,
       ]),
       secretOrKey: configService.get<string>('JWT_SECRET_KEY'),
     });
   }
 
   async validate(payload: any) {
-    const user = await this.userService.findById(payload?.id);
+    const userResponse = await this.userService.findById(payload?.id);
+    const user = userResponse.data;
+    
     if (!user) {
       throw new UnauthorizedException('User no longer exists');
     }
+    
+    if (user.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('Access denied. Admin role required.');
+    }
+    
     return payload;
   }
 

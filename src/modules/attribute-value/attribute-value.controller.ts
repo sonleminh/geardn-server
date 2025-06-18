@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { CreateAttributeValueDto } from './dto/create-attribute-value.dto';
 import { UpdateAttributeValueDto } from './dto/update-attribute-value.dto';
-import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-auth.guard';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { AttributeValueService } from './attribute-value.service';
 
 @Controller('attribute-values')

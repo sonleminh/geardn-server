@@ -12,18 +12,19 @@ datasource db {
 //
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  slug        String        @unique
   description String?
-  brand       String   @default("Không")
+  brand       String        @default("Không")
   images      String[]
   tags        Json
   details     Json?
-  isDeleted   Boolean  @default(false)
+  status      ProductStatus @default(ACTIVE)
+  isDeleted   Boolean       @default(false)
   categoryId  Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   category  Category     @relation(fields: [categoryId], references: [id])
   skus      ProductSKU[] @relation("ProductToSKU")
@@ -412,4 +413,11 @@ enum AdjustmentReason {
   FOUND
   CUSTOMER_RETURN
   DATA_CORRECTION
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  OUT_OF_STOCK
+  DISCONTINUED
 }
