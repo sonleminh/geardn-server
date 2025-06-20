@@ -285,7 +285,7 @@ export class ProductService {
     page?: number;
     limit?: number;
     search?: string;
-    status?: ProductStatus;
+    status?: ProductStatus[];
     isDeleted?: boolean;
   }) {
     const {
@@ -312,9 +312,9 @@ export class ProductService {
           ? [{ categoryId: { in: categoryIdArray } }]
           : []),
         // Status filter
-        ...(status ? [{ status }] : []),
+        ...(status && status.length > 0 ? [{ status: { in: status } }] : []),
         // Deleted filter
-        ...(isDeleted !== undefined ? [{ isDeleted }] : []),
+        ...(typeof isDeleted === 'boolean' ? [{ isDeleted }] : []),
       ],
     };
 

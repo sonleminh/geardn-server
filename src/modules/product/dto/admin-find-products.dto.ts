@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEnum, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BaseQueryDto } from 'src/common/dto/base-query.dto';
 import { ProductStatus } from '@prisma/client';
@@ -13,15 +13,18 @@ export class AdminFindProductsDto extends BaseQueryDto {
   categoryIds?: string;
 
   @IsOptional()
-  @IsEnum(ProductStatus)
-  status?: ProductStatus;
-
-  @IsOptional()
-  @IsBoolean()
   @Transform(({ value }) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
+    if (!value) return undefined;
+    return value.split(',').map((type: string) => type as ProductStatus);
+  })
+  status?: ProductStatus[];
+
+  @Transform(({ value }) => {
+    if (value === undefined || value === '') return undefined;
+    if (value === 'true' || value === true) return true;
+    if (value === 'false' || value === false) return false;
     return undefined;
   })
-  isDeleted?: boolean;
+  @IsOptional()
+  isDeleted?: any;
 } 

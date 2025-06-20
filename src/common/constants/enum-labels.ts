@@ -1,4 +1,4 @@
-import { AdjustmentType } from '@prisma/client';
+import { AdjustmentType, ProductStatus } from '@prisma/client';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
 import { OrderStatus } from '../enums/order-status.enum';
@@ -44,5 +44,11 @@ export const ENUM_LABELS = {
     { value: ProductTag.HOT, label: 'Hot' },
     { value: ProductTag.BESTSELLER, label: 'Bán chạy' },
     { value: ProductTag.COMING_SOON, label: 'Sắp có hàng' },
+  ],
+  'product-status': [
+    { value: ProductStatus.DRAFT, label: 'Nháp' },
+    { value: ProductStatus.ACTIVE, label: 'Hoạt động' },
+    { value: ProductStatus.OUT_OF_STOCK, label: 'Hết hàng' },
+    { value: ProductStatus.DISCONTINUED, label: 'Ngừng bán' },
   ],
 };

@@ -7,9 +7,14 @@ import {
   Post,
   Query,
   UseGuards,
-  Delete
+  Delete,
 } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ENUM_LABELS } from 'src/common/constants/enum-labels';
 import { ProductTag } from 'src/common/enums/product-tag.enum';
 import { ProductSkuService } from '../product-sku/product-sku.service';
@@ -96,10 +101,10 @@ export class ProductController {
         type: 'object',
         properties: {
           value: { type: 'string', enum: Object.values(ProductTag) },
-          label: { type: 'string' }
-        }
-      }
-    }
+          label: { type: 'string' },
+        },
+      },
+    },
   })
   getProductTags() {
     return ENUM_LABELS['product-tag'];
