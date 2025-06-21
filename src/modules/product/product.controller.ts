@@ -123,4 +123,18 @@ export class ProductController {
   remove(@Param('id') id: string) {
     return this.productService.softDelete(+id);
   }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/restore')
+  @ApiCreatedResponse({ type: ProductEntity })
+  restore(@Param('id') id: string) {
+    return this.productService.restoreProduct(+id);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id/permanent')
+  @ApiCreatedResponse({ type: ProductEntity })
+  forceDelete(@Param('id') id: string) {
+    return this.productService.forceDelete(+id);
+  }
 }

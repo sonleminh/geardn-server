@@ -386,7 +386,7 @@ export class ProductService {
     });
 
     if (!entity) {
-      throw new NotFoundException('Đối tượng không tồn tại!!');
+      throw new NotFoundException('Product not found');
     }
     await this.prisma.product.update({
       where: { id },
@@ -394,6 +394,33 @@ export class ProductService {
     });
     return {
       deleteCount: 1,
+    };
+  }
+
+  async restoreProduct(id: number) {
+    const entity = await this.prisma.product.findUnique({
+      where: { id, isDeleted: true },
+    });
+
+    if (!entity) {
+      throw new NotFoundException('Product not found');
+    }
+    await this.prisma.product.update({
+      where: { id },
+      data: { isDeleted: false },
+    });
+    return {
+      message: 'Product restored successfully',
+    };
+  }
+
+  async forceDelete(id: number) {
+    console.log('id', id);
+    await this.prisma.product.delete({
+      where: { id },
+    });
+    return {
+      message: 'Product deleted successfully',
     };
   }
 }
