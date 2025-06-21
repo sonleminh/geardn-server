@@ -3,6 +3,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { convertToSlug } from 'src/utils/convertToSlug';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CategoryService {
@@ -18,10 +19,23 @@ export class CategoryService {
     const [res, total] = await Promise.all([
       this.prisma.category.findMany(),
       this.prisma.category.count(),
-    ])
+    ]);
     return {
       data: res,
       total,
+    };
+  }
+
+  async adminFindAll() {
+    const [res, total] = await Promise.all([
+      this.prisma.category.findMany(),
+      this.prisma.category.count(),
+    ]);
+
+    return {
+      data: res,
+      total,
+      message: 'Admin category list retrieved successfully',
     };
   }
 

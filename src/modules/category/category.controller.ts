@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ApiCreatedResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CategoryEntity } from './entities/category.entity';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller('categories')
 export class CategoryController {
@@ -26,6 +29,18 @@ export class CategoryController {
   @Get()
   findAll() {
     return this.categoryService.findAll();
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('admin')
+  @ApiOperation({ summary: 'Get categories for admin dashboard' })
+  @ApiResponse({
+    status: 200,
+    description: 'Categories retrieved successfully',
+    type: [CategoryEntity],
+  })
+  async adminFindAll() {
+    return this.categoryService.adminFindAll();
   }
 
   @Get(':id')
