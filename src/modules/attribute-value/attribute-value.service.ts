@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAttributeValueDto } from './dto/create-attribute-value.dto';
 import { UpdateAttributeValueDto } from './dto/update-attribute-value.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,6 +14,22 @@ export class AttributeValueService {
   }
 
   async findAll() {
+    const [res, total] = await Promise.all([
+      this.prisma.attributeValue.findMany({
+        where: { isDeleted: false },
+        include: {
+          attribute: true,
+        },
+      }),
+      this.prisma.attributeValue.count(),
+    ]);
+    return {
+      data: res,
+      total,
+    };
+  }
+
+  async adminFindAll() {
     const [res, total] = await Promise.all([
       this.prisma.attributeValue.findMany({
         include: {
@@ -50,7 +66,43 @@ export class AttributeValueService {
     return { data: res };
   }
 
-  remove(id: number) {
-    return this.prisma.attributeValue.delete({ where: { id } });
+  async softDelete(id: number) {
+    const entity = await this.prisma.attributeValue.findUnique({
+      where: { id, isDeleted: false },
+    });
+
+    if (!entity) {
+      throw new NotFoundException('Đối tượng không tồn tại!!');
+    }
+    return await this.prisma.attributeValue.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+  }
+
+  async restore(id: number) {
+    const entity = await this.prisma.attributeValue.findUnique({
+      where: { id, isDeleted: true },
+    });
+
+    if (!entity) {
+      throw new NotFoundException('AttributeValue not found');
+    }
+    await this.prisma.attributeValue.update({
+      where: { id },
+      data: { isDeleted: false },
+    });
+    return {
+      message: 'AttributeValue restored successfully',
+    };
+  }
+
+  async forceDelete(id: number) {
+    await this.prisma.attributeValue.delete({
+      where: { id },
+    });
+    return {
+      message: 'AttributeValue deleted successfully',
+    };
   }
 }

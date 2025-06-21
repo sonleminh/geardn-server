@@ -65,7 +65,7 @@ export class CategoryController {
   @Patch(':id/restore')
   @ApiCreatedResponse({ type: CategoryEntity })
   restore(@Param('id') id: string) {
-    return this.categoryService.restoreProduct(+id);
+    return this.categoryService.restore(+id);
   }
 
   @UseGuards(JwtAdminAuthGuard)

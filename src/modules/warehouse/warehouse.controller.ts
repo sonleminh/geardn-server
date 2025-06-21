@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { WarehouseService } from './warehouse.service';
 import { CreateWarehouseDto } from './dto/create-warehouse.dto';
 import { UpdateWarehouseDto } from './dto/update-warehouse.dto';
 import { ApiCreatedResponse } from '@nestjs/swagger';
+import { WarehouseEntity } from './entities/warehouse.entity';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller('warehouses')
 export class WarehouseController {
@@ -26,6 +29,11 @@ export class WarehouseController {
     return this.warehousesService.findAll();
   }
 
+  @Get('admin')
+  adminFindAll() {
+    return this.warehousesService.adminFindAll();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.warehousesService.findOne(+id);
@@ -39,13 +47,24 @@ export class WarehouseController {
     return this.warehousesService.update(+id, updateWarehouseDto);
   }
 
-  @Patch(':id/soft-delete')
-  softDelete(@Param('id') id: string) {
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id')
+  @ApiCreatedResponse({ type: WarehouseEntity })
+  remove(@Param('id') id: string) {
     return this.warehousesService.softDelete(+id);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
   @Patch(':id/restore')
+  @ApiCreatedResponse({ type: WarehouseEntity })
   restore(@Param('id') id: string) {
     return this.warehousesService.restore(+id);
   }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id/permanent')
+  @ApiCreatedResponse({ type: WarehouseEntity })
+  forceDelete(@Param('id') id: string) {
+    return this.warehousesService.forceDelete(+id);
+  } 
 }

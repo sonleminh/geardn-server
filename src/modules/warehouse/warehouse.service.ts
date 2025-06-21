@@ -13,6 +13,18 @@ export class WarehouseService {
 
   async findAll() {
     const [res, total] = await Promise.all([
+      this.prisma.warehouse.findMany({ where: { isDeleted: false } }),
+      this.prisma.warehouse.count(),
+    ]);
+
+    return {
+      data: res,
+      total,
+    };
+  }
+
+  async adminFindAll() {
+    const [res, total] = await Promise.all([
       this.prisma.warehouse.findMany(),
       this.prisma.warehouse.count(),
     ]);
@@ -56,11 +68,23 @@ export class WarehouseService {
     });
 
     if (!entity) {
-      throw new NotFoundException('Đối tượng không tồn tại!!');
+      throw new NotFoundException('Warehouse not found');
     }
-    return await this.prisma.warehouse.update({
+    await this.prisma.warehouse.update({
       where: { id },
       data: { isDeleted: false },
     });
+    return {
+      message: 'Warehouse restored successfully',
+    };
+  }
+
+  async forceDelete(id: number) {
+    await this.prisma.warehouse.delete({
+      where: { id },
+    });
+    return {
+      message: 'Warehouse deleted successfully',
+    };
   }
 }

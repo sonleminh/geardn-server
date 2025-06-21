@@ -17,7 +17,7 @@ export class CategoryService {
 
   async findAll() {
     const [res, total] = await Promise.all([
-      this.prisma.category.findMany(),
+      this.prisma.category.findMany({ where: { isDeleted: false } }),
       this.prisma.category.count(),
     ]);
     return {
@@ -80,7 +80,7 @@ export class CategoryService {
     };
   }
 
-  async restoreProduct(id: number) {
+  async restore(id: number) {
     const entity = await this.prisma.category.findUnique({
       where: { id, isDeleted: true },
     });

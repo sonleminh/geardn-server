@@ -12,6 +12,8 @@ import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { AttributeService } from './attribute.service';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
+import { ApiCreatedResponse } from '@nestjs/swagger';
+import { AttributeEntity } from './entities/attribute.entity';
 
 @Controller('attributes')
 export class AttributeController {
@@ -22,10 +24,14 @@ export class AttributeController {
     return this.attributeService.create(createAttributeDto);
   }
 
-  // @UseGuards(JwtAdminAuthGuard)
   @Get()
   findAll() {
     return this.attributeService.findAll();
+  }
+
+  @Get('admin')
+  adminFindAll() {
+    return this.attributeService.adminFindAll();
   }
 
   @Get(':id')
@@ -46,8 +52,24 @@ export class AttributeController {
     return this.attributeService.update(+id, updateAttributeDto);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')
+  @ApiCreatedResponse({ type: AttributeEntity })
   remove(@Param('id') id: string) {
-    return this.attributeService.remove(+id);
+    return this.attributeService.softDelete(+id);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/restore')
+  @ApiCreatedResponse({ type: AttributeEntity })
+  restore(@Param('id') id: string) {
+    return this.attributeService.restore(+id);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id/permanent')
+  @ApiCreatedResponse({ type: AttributeEntity })
+  forceDelete(@Param('id') id: string) {
+    return this.attributeService.forceDelete(+id);
   }
 }
