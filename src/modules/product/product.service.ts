@@ -415,7 +415,6 @@ export class ProductService {
   }
 
   async forceDelete(id: number) {
-    console.log('id', id);
     await this.prisma.product.delete({
       where: { id },
     });

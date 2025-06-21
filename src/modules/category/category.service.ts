@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -63,7 +63,46 @@ export class CategoryService {
     return { data: res };
   }
 
-  remove(id: number) {
-    return this.prisma.category.delete({ where: { id } });
+  async softDelete(id: number): Promise<{ deleteCount: number }> {
+    const entity = await this.prisma.category.findUnique({
+      where: { id, isDeleted: false },
+    });
+
+    if (!entity) {
+      throw new NotFoundException('Category not found');
+    }
+    await this.prisma.category.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+    return {
+      deleteCount: 1,
+    };
+  }
+
+  async restoreProduct(id: number) {
+    const entity = await this.prisma.category.findUnique({
+      where: { id, isDeleted: true },
+    });
+
+    if (!entity) {
+      throw new NotFoundException('Category not found');
+    }
+    await this.prisma.category.update({
+      where: { id },
+      data: { isDeleted: false },
+    });
+    return {
+      message: 'Category restored successfully',
+    };
+  }
+
+  async forceDelete(id: number) {
+    await this.prisma.category.delete({
+      where: { id },
+    });
+    return {
+      message: 'Category deleted successfully',
+    };
   }
 }

@@ -58,6 +58,20 @@ export class CategoryController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
+    return this.categoryService.softDelete(+id);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/restore')
+  @ApiCreatedResponse({ type: CategoryEntity })
+  restore(@Param('id') id: string) {
+    return this.categoryService.restoreProduct(+id);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Delete(':id/permanent')
+  @ApiCreatedResponse({ type: CategoryEntity })
+  forceDelete(@Param('id') id: string) {
+    return this.categoryService.forceDelete(+id);
   }
 }
