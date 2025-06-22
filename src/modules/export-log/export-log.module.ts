@@ -6,5 +6,6 @@ import { PrismaService } from '../prisma/prisma.service';
 @Module({
   controllers: [ExportLogController],
   providers: [ExportLogService, PrismaService],
+  exports: [ExportLogService],
 })
 export class ExportLogModule {}

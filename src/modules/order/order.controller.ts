@@ -7,13 +7,14 @@ import {
   Post,
   Query,
   Req,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
 import { OrderStatus } from '@prisma/client';
 
@@ -44,17 +45,40 @@ export class OrderController {
     return this.orderService.findOne(+id);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('admin/:id')
+  adminFindOne(@Param('id') id: string) {
+    return this.orderService.adminFindOne(+id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
   }
 
+  @UseGuards(JwtAdminAuthGuard)
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
     @Body() status: { status: OrderStatus },
   ) {
     return this.orderService.updateStatus(+id, status);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/confirm')
+  confirmShipment(
+    @Param('id') id: string,
+    @Body() confirmShipmentDto: ConfirmShipmentDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.confirmShipment(
+      +id,
+      confirmShipmentDto.skuWarehouseMapping,
+      userId,
+    );
   }
 
   // @Delete(':id')

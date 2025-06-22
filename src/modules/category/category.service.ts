@@ -3,7 +3,6 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { convertToSlug } from 'src/utils/convertToSlug';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CategoryService {

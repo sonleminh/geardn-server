@@ -7,12 +7,14 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { typeToStatusMap } from 'src/common/enums/order-status.enum';
 import { CartService } from '../cart/cart.service';
+import { ExportLogService } from '../export-log/export-log.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     private prisma: PrismaService,
     private readonly cartService: CartService,
+    private readonly exportLogService: ExportLogService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -158,6 +160,42 @@ export class OrderService {
     return { data: res };
   }
 
+  async adminFindOne(id: number) {
+    const res = await this.prisma.order.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        orderItems: {
+          select: {
+            productName: true,
+            productId: true,
+            productSlug: true,
+            skuId: true,
+            sku: {
+              select: {
+                stocks: {
+                  select: {
+                    quantity: true,
+                    warehouseId: true,
+                    costPrice: true,
+                  },
+                },
+              },
+            },
+            skuCode: true,
+            price: true,
+            quantity: true,
+            imageUrl: true,
+            skuAttributes: true,
+          },
+        },
+        paymentMethod: true,
+      },
+    });
+    return { data: res };
+  }
+
   async getUserPurchases(userId: number, type: number) {
     const status = typeToStatusMap[type];
     const orders = await this.prisma.order.findMany({
@@ -182,7 +220,7 @@ export class OrderService {
         data: {
           ...orderData,
           orderItems: {
-            create: orderItems.map(item => ({
+            create: orderItems.map((item) => ({
               productId: item.productId,
               skuId: item.skuId,
               quantity: item.quantity,
@@ -211,19 +249,170 @@ export class OrderService {
     });
   }
 
-  // findAll() {
-  //   return `This action returns all orders`;
-  // }
+  async confirmShipment(
+    orderId: number,
+    skuWarehouseMapping: { skuId: number; warehouseId: number }[],
+    userId: number,
+  ) {
+    console.log('skuWarehouseMapping', skuWarehouseMapping);
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} order`;
-  // }
+    // Validate input parameters
+    if (!skuWarehouseMapping) {
+      throw new BadRequestException('skuWarehouseMapping is required');
+    }
 
-  // update(id: number, updateOrderDto: UpdateOrderDto) {
-  //   return `This action updates a #${id} order`;
-  // }
+    if (!Array.isArray(skuWarehouseMapping)) {
+      throw new BadRequestException('skuWarehouseMapping must be an array');
+    }
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} order`;
-  // }
+    if (skuWarehouseMapping.length === 0) {
+      throw new BadRequestException('skuWarehouseMapping cannot be empty');
+    }
+
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // First, get the order with all order items
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderItems: true,
+        },
+      });
+
+      if (!order) {
+        throw new BadRequestException('Order not found');
+      }
+
+      // Group order items by warehouse for optimized export logs
+      const warehouseGroups = new Map<
+        number,
+        Array<{
+          skuId: number;
+          quantity: number;
+          costPrice: any;
+        }>
+      >();
+
+      // Process each mapping and group by warehouse
+      for (const mapping of skuWarehouseMapping) {
+        // Validate mapping object
+        if (!mapping || typeof mapping !== 'object') {
+          throw new BadRequestException('Invalid mapping object');
+        }
+
+        if (!mapping.skuId || !mapping.warehouseId) {
+          throw new BadRequestException(
+            'Each mapping must have skuId and warehouseId',
+          );
+        }
+
+        const stock = await tx.stock.findFirst({
+          where: { skuId: mapping.skuId, warehouseId: mapping.warehouseId },
+        });
+
+        if (!stock || stock.quantity <= 0) {
+          throw new BadRequestException(
+            `Not enough stock for SKU ${mapping.skuId} in warehouse ${mapping.warehouseId}`,
+          );
+        }
+
+        // Find the corresponding order item
+        const orderItem = order.orderItems.find(
+          (item) => item.skuId === mapping.skuId,
+        );
+        if (!orderItem) {
+          throw new BadRequestException(
+            `Order item not found for SKU ${mapping.skuId}`,
+          );
+        }
+
+        // Update order item with warehouse and cost price
+        await tx.orderItem.update({
+          where: { id: orderItem.id },
+          data: {
+            warehouseId: mapping.warehouseId,
+            costPrice: stock.costPrice,
+          },
+        });
+
+        // Group by warehouse for export log optimization
+        if (!warehouseGroups.has(mapping.warehouseId)) {
+          warehouseGroups.set(mapping.warehouseId, []);
+        }
+
+        warehouseGroups.get(mapping.warehouseId)!.push({
+          skuId: mapping.skuId,
+          quantity: orderItem.quantity,
+          costPrice: stock.costPrice,
+        });
+      }
+
+      // Create one export log per warehouse (optimized approach)
+      for (const [warehouseId, items] of warehouseGroups) {
+        // Create export log within transaction
+        const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        const countToday = await tx.exportLog.count({
+          where: {
+            createdAt: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lte: new Date(new Date().setHours(23, 59, 59, 999)),
+            },
+          },
+        });
+
+        const referenceCode = `EXP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+
+        const exportLog = await tx.exportLog.create({
+          data: {
+            warehouseId: warehouseId,
+            createdBy: userId,
+            type: 'CUSTOMER_ORDER',
+            orderId: orderId,
+            note: `Order shipment confirmation for order ${order.orderCode}`,
+            referenceCode,
+          },
+        });
+
+        // Create export log items
+        const exportLogItems = items.map((item) => ({
+          exportLogId: exportLog.id,
+          skuId: item.skuId,
+          quantity: item.quantity,
+          costPrice: item.costPrice,
+        }));
+
+        await tx.exportLogItem.createMany({
+          data: exportLogItems,
+        });
+
+        // Update stock quantities
+        for (const item of items) {
+          await tx.stock.update({
+            where: {
+              skuId_warehouseId: {
+                skuId: item.skuId,
+                warehouseId,
+              },
+            },
+            data: {
+              quantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+      }
+
+      // Update order status to shipped
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'SHIPPED' },
+      });
+
+      return { message: 'Shipment confirmed successfully' };
+    });
+  }
 }
