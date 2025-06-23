@@ -61,9 +61,19 @@ export class OrderController {
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
-    @Body() status: { status: OrderStatus },
+    @Body()
+    {
+      oldStatus,
+      newStatus,
+    }: { oldStatus: OrderStatus; newStatus: OrderStatus },
+    @Req() req: Request,
   ) {
-    return this.orderService.updateStatus(+id, status);
+    const userId = req.user?.id;
+    return this.orderService.updateStatus(
+      +id,
+      { oldStatus, newStatus },
+      userId,
+    );
   }
 
   @UseGuards(JwtAdminAuthGuard)

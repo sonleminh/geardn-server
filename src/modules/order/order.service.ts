@@ -118,6 +118,9 @@ export class OrderService {
       include: {
         orderItems: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
     return { data: orders };
   }
@@ -229,11 +232,28 @@ export class OrderService {
     });
   }
 
-  async updateStatus(orderId: number, status: { status: OrderStatus }) {
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: { status: status.status },
+  async updateStatus(
+    orderId: number,
+    status: { oldStatus: OrderStatus; newStatus: OrderStatus },
+    userId: number,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: status.newStatus },
+      });
+
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          oldStatus: status.oldStatus,
+          newStatus: status.newStatus,
+          changedBy: userId,
+        },
+      });
     });
+
+    return { message: 'Order status updated successfully' };
   }
 
   async confirmShipment(
