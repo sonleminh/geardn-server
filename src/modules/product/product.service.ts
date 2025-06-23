@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { createSearchFilter } from '../../common/helpers/query.helper';
 import { FindProductsDto } from './dto/find-product.dto';
 import { ProductStatus } from '@prisma/client';
+import { AdminFindProductsDto } from './dto/admin-find-products.dto';
 
 @Injectable()
 export class ProductService {
@@ -33,9 +34,8 @@ export class ProductService {
   }
 
   async findAll(query: FindProductsDto) {
-    const { categoryIds, page = 1, limit = 10, search, status } = query;
+    const { categoryIds, page = 1, limit = 10, search, statuses } = query;
     const skip = (page - 1) * limit;
-
     // Convert categoryIds string to array of numbers if it exists
     const categoryIdArray = categoryIds
       ? categoryIds.split(',').map(Number)
@@ -50,7 +50,7 @@ export class ProductService {
           ? [{ categoryId: { in: categoryIdArray } }]
           : []),
         // Status filter
-        ...(status ? [{ status }] : []),
+        ...(statuses ? [{ status: { in: statuses } }] : []),
         { isDeleted: false },
       ],
     };
@@ -280,30 +280,24 @@ export class ProductService {
     };
   }
 
-  async adminFindAll(query: {
-    categoryIds?: string;
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: ProductStatus[];
-    isDeleted?: boolean;
-  }) {
+  async adminFindAll(query: AdminFindProductsDto) {
     const {
       categoryIds,
       page = 1,
       limit = 10,
       search,
-      status,
+      statuses,
       isDeleted,
     } = query;
     const skip = (page - 1) * limit;
+    console.log('statuses', statuses);
 
     // Convert categoryIds string to array of numbers if it exists
     const categoryIdArray = categoryIds
       ? categoryIds.split(',').map(Number)
       : undefined;
 
-    const where: Prisma.ProductWhereInput = {
+    const where = {
       AND: [
         // Search filter
         ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
@@ -312,7 +306,7 @@ export class ProductService {
           ? [{ categoryId: { in: categoryIdArray } }]
           : []),
         // Status filter
-        ...(status && status.length > 0 ? [{ status: { in: status } }] : []),
+        ...(statuses?.length ? [{ status: { in: statuses } }] : []),
         // Deleted filter
         ...(typeof isDeleted === 'boolean' ? [{ isDeleted }] : []),
       ],

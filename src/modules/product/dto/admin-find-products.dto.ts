@@ -17,7 +17,7 @@ export class AdminFindProductsDto extends BaseQueryDto {
     if (!value) return undefined;
     return value.split(',').map((type: string) => type as ProductStatus);
   })
-  status?: ProductStatus[];
+  statuses?: ProductStatus[];
 
   @Transform(({ value }) => {
     if (value === undefined || value === '') return undefined;

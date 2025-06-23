@@ -17,6 +17,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
 import { OrderStatus } from '@prisma/client';
+import { FindOrdersDto } from './dto/find-orders.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -29,8 +30,8 @@ export class OrderController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Get()
-  findAll() {
-    return this.orderService.findAll();
+  findAll(@Query() query: FindOrdersDto) {
+    return this.orderService.findAll(query);
   }
 
   @UseGuards(JwtAuthGuard)

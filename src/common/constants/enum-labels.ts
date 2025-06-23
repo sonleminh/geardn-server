@@ -9,7 +9,7 @@ export const ENUM_LABELS = {
   'order-status': [
     { value: OrderStatus.PENDING, label: 'Chờ xác nhận' },
     { value: OrderStatus.PROCESSING, label: 'Đang xử lý' },
-    { value: OrderStatus.SHIPPED, label: 'Đang vận chuyển' },
+    { value: OrderStatus.SHIPPED, label: 'Đang giao' },
     { value: OrderStatus.DELIVERED, label: 'Đã giao' },
     { value: OrderStatus.CANCELED, label: 'Đã huỷ' },
   ],

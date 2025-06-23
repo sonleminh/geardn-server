@@ -8,6 +8,11 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { typeToStatusMap } from 'src/common/enums/order-status.enum';
 import { CartService } from '../cart/cart.service';
 import { ExportLogService } from '../export-log/export-log.service';
+import {
+  createDateRangeFilter,
+  createSearchFilter,
+} from '../../common/helpers/query.helper';
+import { FindOrdersDto } from './dto/find-orders.dto';
 
 @Injectable()
 export class OrderService {
@@ -113,16 +118,78 @@ export class OrderService {
     return order;
   }
 
-  async findAll() {
-    const orders = await this.prisma.order.findMany({
-      include: {
-        orderItems: true,
+  async findAll(query: FindOrdersDto) {
+    const {
+      productIds,
+      statuses,
+      fromDate,
+      toDate,
+      search,
+      page = 1,
+      limit = 10,
+      sort = 'desc',
+    } = query || {};
+    const skip = (page - 1) * limit;
+
+
+    // Build where clause
+    const where: any = {
+      AND: [
+        ...(productIds?.length
+          ? [
+              {
+                orderItems: {
+                  some: {
+                    productId: { in: productIds },
+                  },
+                },
+              },
+            ]
+          : []),
+        ...(statuses?.length ? [{ status: { in: statuses } }] : []),
+        ...(fromDate && toDate
+          ? [
+              {
+                createdAt: createDateRangeFilter(fromDate, toDate),
+              },
+            ]
+          : []),
+        ...(search
+          ? [
+              {
+                OR: [
+                  { orderCode: createSearchFilter(search) },
+                  { fullName: createSearchFilter(search) },
+                  { phoneNumber: createSearchFilter(search) },
+                  { email: createSearchFilter(search) },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: sort },
+        include: { orderItems: true },
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      data: orders,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return { data: orders };
+      message: 'Order list retrieved successfully',
+    };
   }
 
   async findOne(id: number) {
