@@ -290,7 +290,6 @@ export class ProductService {
       isDeleted,
     } = query;
     const skip = (page - 1) * limit;
-    console.log('statuses', statuses);
 
     // Convert categoryIds string to array of numbers if it exists
     const categoryIdArray = categoryIds

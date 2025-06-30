@@ -1,22 +1,7 @@
-import { OrderStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-export class FindOrdersDto {
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (!value) return undefined;
-    return value.split(',').map(Number);
-  })
-  productIds?: number[];
-
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (!value) return undefined;
-    return value.split(',').map((type: string) => type as OrderStatus);
-  })
-  statuses?: OrderStatus[];
-
+export class FindOrderStatusHistoryDto {
   @IsOptional()
   @IsString()
   fromDate?: string;

@@ -18,6 +18,7 @@ import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
 import { OrderStatus } from '@prisma/client';
 import { FindOrdersDto } from './dto/find-orders.dto';
+import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -39,6 +40,12 @@ export class OrderController {
   getUserPurchases(@Req() req: Request, @Query('type') type: string) {
     const userId = req.user?.id;
     return this.orderService.getUserPurchases(userId, +type);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('update-history-logs')
+  findOrderStatusHistory(@Query() query: FindOrderStatusHistoryDto) {
+    return this.orderService.findOrderStatusHistory(query);
   }
 
   @Get(':id')

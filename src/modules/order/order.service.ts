@@ -13,6 +13,7 @@ import {
   createSearchFilter,
 } from '../../common/helpers/query.helper';
 import { FindOrdersDto } from './dto/find-orders.dto';
+import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 
 @Injectable()
 export class OrderService {
@@ -260,6 +261,77 @@ export class OrderService {
       include: { orderItems: { include: { product: true, sku: true } } },
     });
     return { data: orders };
+  }
+
+  async findOrderStatusHistory(query: FindOrderStatusHistoryDto) {
+    const {
+      fromDate,
+      toDate,
+      search,
+      page = 1,
+      limit = 10,
+      sort = 'desc',
+    } = query || {};
+    const skip = (page - 1) * limit;
+
+
+    // Build where clause
+    const where: any = {
+      AND: [
+        ...(fromDate && toDate
+          ? [
+              {
+                createdAt: createDateRangeFilter(fromDate, toDate),
+              },
+            ]
+          : []),
+        ...(search
+          ? [
+              {
+                OR: [{ orderCode: createSearchFilter(search) }],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const [orders, total] = await Promise.all([
+      this.prisma.orderStatusHistory.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: sort },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          order: {
+            select: {
+              id: true,
+              orderCode: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      }),
+      this.prisma.orderStatusHistory.count({ where }),
+    ]);
+
+    return {
+      data: orders,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      message: 'Order status history retrieved successfully',
+    };
   }
 
   async update(orderId: number, updateOrderDto: UpdateOrderDto) {
