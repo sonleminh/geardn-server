@@ -274,7 +274,6 @@ export class OrderService {
     } = query || {};
     const skip = (page - 1) * limit;
 
-
     // Build where clause
     const where: any = {
       AND: [
@@ -288,7 +287,9 @@ export class OrderService {
         ...(search
           ? [
               {
-                OR: [{ orderCode: createSearchFilter(search) }],
+                order: {
+                  orderCode: createSearchFilter(search),
+                },
               },
             ]
           : []),
