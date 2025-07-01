@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "skillful-cosine-431217-f0",
+  "private_key_id": "569407b5e413ad017c80972da46679aa9129c9e7",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDjTJz6KIRSx/vg\n3jz1JbepZghskH7f0NW2NjDf8geG3shO/vfIN4SQlXWm7B2drcvNgJtto60KIIz6\n6iT70OxlFEG5r40lIq+r+DSkmiuHObOHDaosqaff4YKDJx2At4po3rStKf3tehvP\nQWAPfB0StqKhPzBkoPVNX4oUqYf5MGp/9RB/CfFMs40foptoZ7Uplq5C7sFeKmGG\n452dBQRTpWDnLZACuyVbLsjTAqsxc/w8lzUMkyJPGDpqqfJW408q97SxFb/SCO0U\n5VqTNbYTUdMwBgdWhW/oZwsuTBF85VPEgR1DDVC+2cyZlR+AeeSkUSmMxPTHdQqm\ncLaN5VV/AgMBAAECggEAHi+dA03hMNs1NKpe/xGIwBr4UG6qItApqZ6tw/fxDvTE\nNlV/E5xn4wmuS8I8tqWPlNWZDqj3gIpNHr98tOKMmmnjxqStQnrGSLjYSOnekQFV\nOcDTUkYfsMhSnFdUADWf0IiPBxY2DlUyn0Yn2zaY59TQaUiqhRqpKSLghBj1oV6P\n/8J3hO+lTvLbqlDhc5Aqgui96qDHQZqT1A7tba8RqDfPZUQpTYwObANJ1QajBa1c\n5TNAN8UBex4L5ZzPSyuVtMZoToV2cwtWuUJXgJSC6k0t+xIn8uspwiQywYpy2lPi\n7LaWR2oWY4zBaA4QpZUYZomd0gL0bNfSiILUSjtiIQKBgQD/zCgXeTsmOWZt/+oG\nJoY8rLmJp7aHhab5ZtnwOLkX/1p6x82Ma4FSWfc0ChzbWmSvyOFW0ABmH7VZ5pJC\n8ncsDhbRAdGC9IgScRbvM+8mxD26qV47Ak0W2CERxllbWX6P955WUqfd41TW7dOH\nE5hqwI0APZeNP+LoMWvT8MN8IQKBgQDjeq5Fh6nQOFAtXp7PGb4dDcbHePJ9dL9t\nSIDRIDgeLTe/VrM4/9qKTq+be1XYp6YOH37SwAPs56VhYuh27wlxpp5LgGNm9Khv\nyujau9qkWFOEgpemS5G67YmN/uvcfDzboxMD8UhZjtHNt+Pe8JKH6oBeFoTaO7iR\nIU/7zfudnwKBgQDgpJe0/bevewt0oSISIrUTBhGvTYWkgQDB2MyfBgGvjIcWevAO\nWL9q5i2OGy96iGkSY5VaGzOufDxU5oQenTeBjiIFjdZEbqItp/mfOvnVDtSzYFir\n8/pljIuGQ65n5jGbF7iLUO2xlRsF4jk5UEEzx0RNKMo2txt8FSMAL1pOYQKBgQCW\nm1zST/WQFBiRUToXp9WE6uAWpO73PNqYgg43ZvuAjzN/jOlv7YVFWL9PU6MMpEJ+\nyz9uTQ7MRLnr9k4uoChChKv9FO269nSmP1NXrlQdxxTUgJni0dmURzxxNLv36JFq\nYVdvnsnl8XbamstViTWaoxmGMaaXzj5uZ/3Kmx/hxQKBgELoAIRvKxUkbAgghPV2\nkD1DCHD1kwNPN4yGiomz5Q16S5UhhWhEc1XDJYqWxgV9DcHEdUEhiSVRva6zbKu3\ngrP1czE8uNqiW1Nin0Jr/FkyGQqznwA0pMh6Be9krKsXD6OZPl6EhmmbEFhBvE8l\nho2oAEIj1bEKLs/EehwCXlL3\n-----END PRIVATE KEY-----\n",
+  "client_email": "son-le@skillful-cosine-431217-f0.iam.gserviceaccount.com",
+  "client_id": "112076664881956793930",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/son-le%40skillful-cosine-431217-f0.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
