@@ -9,6 +9,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 // import { RolesGuard } from '../auth/guards/roles.guard';
 // import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { GetProfitRevenueStatsDto } from './dto/get-profit-revenue-stats.dto';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard)
@@ -128,6 +129,40 @@ export class StatisticsController {
     };
   }
 
+  // @Get('overview')
+  // async getDashboardOverview() {
+  //   const endDate = new Date();
+  //   const startDate = new Date();
+  //   startDate.setDate(endDate.getDate() - 29); // 30 days including today
+
+  //   const fromDate = startDate.toISOString().split('T')[0];
+  //   const toDate = endDate.toISOString().split('T')[0];
+
+  //   const [revenueStats, profitStats, pendingRevenueStats, bestSellingProduct, topCategory] = await Promise.all([
+  //     this.statisticsService.getRevenueStats(fromDate, toDate),
+  //     this.statisticsService.getProfitStats(fromDate, toDate),
+  //     this.statisticsService.getRevenueStats(fromDate, toDate, [
+  //       'PENDING',
+  //       'PROCESSING',
+  //       'SHIPPED',
+  //     ]),
+  //     this.statisticsService.getProductStats(fromDate, toDate, ['DELIVERED']),
+  //     this.statisticsService.getBestSellerCategories(fromDate, toDate, ['DELIVERED']),
+  //   ]);
+
+  //   return {
+  //     data: {
+  //       totalRevenue: revenueStats.totalRevenue,
+  //       totalProfit: profitStats.totalProfit,
+  //       totalOrders: revenueStats.totalOrders,
+  //       pendingOrders: pendingRevenueStats.totalOrders,
+  //       bestSellingProduct: bestSellingProduct,
+  //       topCategory: topCategory,
+  //     },
+  //     message: '30-day overview statistics retrieved successfully',
+  //   };
+  // }
+
   @Get('overview')
   async getDashboardOverview() {
     const endDate = new Date();
@@ -137,7 +172,13 @@ export class StatisticsController {
     const fromDate = startDate.toISOString().split('T')[0];
     const toDate = endDate.toISOString().split('T')[0];
 
-    const [revenueStats, profitStats, pendingRevenueStats, bestSellingProduct, topCategory] = await Promise.all([
+    const [
+      revenueStats,
+      profitStats,
+      pendingRevenueStats,
+      bestSellingProduct,
+      topCategory,
+    ] = await Promise.all([
       this.statisticsService.getRevenueStats(fromDate, toDate),
       this.statisticsService.getProfitStats(fromDate, toDate),
       this.statisticsService.getRevenueStats(fromDate, toDate, [
@@ -145,8 +186,12 @@ export class StatisticsController {
         'PROCESSING',
         'SHIPPED',
       ]),
-      this.statisticsService.getProductStats(fromDate, toDate, ['DELIVERED']),
-      this.statisticsService.getBestSellerCategories(fromDate, toDate, ['DELIVERED']),
+      this.statisticsService.getBestSellerProducts(fromDate, toDate, [
+        'DELIVERED',
+      ]),
+      this.statisticsService.getBestSellerCategories(fromDate, toDate, [
+        'DELIVERED',
+      ]),
     ]);
 
     return {
@@ -159,6 +204,25 @@ export class StatisticsController {
         topCategory: topCategory,
       },
       message: '30-day overview statistics retrieved successfully',
+    };
+  }
+
+  /**
+   * Get profit and revenue stats between two dates for charting.
+   */
+  @Get('profit-revenue-daily')
+  async getProfitRevenueDailyStats(@Query() query: GetProfitRevenueStatsDto) {
+    const dailyStats = await this.statisticsService.getDailyStats(
+      query.fromDate,
+      query.toDate,
+    );
+    return {
+      data: dailyStats.map(stat => ({
+        date: stat.startDate,
+        revenue: stat.revenue,
+        profit: stat.profit,
+      })),
+      message: 'Daily profit and revenue statistics retrieved successfully',
     };
   }
 }

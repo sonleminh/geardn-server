@@ -489,6 +489,7 @@ export class StatisticsService {
       stats.quantitySold += item.quantity;
       stats.revenue += Number(item.price) * item.quantity;
     }
+    // console.log('productMap', productMap);
     return Array.from(productMap.values())
       .sort((a, b) => b.quantitySold - a.quantitySold)
       .slice(0, limit);
