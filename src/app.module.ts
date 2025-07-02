@@ -23,6 +23,7 @@ import { ExportLogModule } from './modules/export-log/export-log.module';
 import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.module';
 import { ProvinceModule } from './modules/province/province.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
+import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { StatisticsModule } from './modules/statistics/statistics.module';
     StockModule,
     ProvinceModule,
     StatisticsModule,
+    GoogleAnalyticsModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

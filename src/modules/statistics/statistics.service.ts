@@ -14,7 +14,10 @@ export interface ProfitStats {
   totalCost: number;
   totalProfit: number;
   profitMargin: number;
-  profitByStatus: Record<OrderStatus, { revenue: number; cost: number; profit: number }>;
+  profitByStatus: Record<
+    OrderStatus,
+    { revenue: number; cost: number; profit: number }
+  >;
 }
 
 export interface TimeRangeStats {
@@ -44,10 +47,11 @@ export class StatisticsService {
   async getRevenueStats(
     fromDate?: string,
     toDate?: string,
+    statuses?: OrderStatus[],
   ): Promise<RevenueStats> {
     const whereClause: any = {
       isDeleted: false,
-      status: 'DELIVERED',
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
     };
 
     if (fromDate && toDate) {
@@ -68,15 +72,21 @@ export class StatisticsService {
 
     console.log('orders', orders);
 
-    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalPrice), 0);
+    const totalRevenue = orders.reduce(
+      (sum, order) => sum + Number(order.totalPrice),
+      0,
+    );
     const totalOrders = orders.length;
     const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    const revenueByStatus = orders.reduce((acc, order) => {
-      const status = order.status as OrderStatus;
-      acc[status] = (acc[status] || 0) + Number(order.totalPrice);
-      return acc;
-    }, {} as Record<OrderStatus, number>);
+    const revenueByStatus = orders.reduce(
+      (acc, order) => {
+        const status = order.status as OrderStatus;
+        acc[status] = (acc[status] || 0) + Number(order.totalPrice);
+        return acc;
+      },
+      {} as Record<OrderStatus, number>,
+    );
 
     return {
       totalRevenue,
@@ -89,11 +99,11 @@ export class StatisticsService {
   async getProfitStats(
     fromDate?: string,
     toDate?: string,
-    // statuses?: OrderStatus[],
+    statuses?: OrderStatus[],
   ): Promise<ProfitStats> {
     const whereClause: any = {
       isDeleted: false,
-      status: 'DELIVERED',
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
     };
 
     if (fromDate && toDate) {
@@ -120,14 +130,17 @@ export class StatisticsService {
 
     let totalRevenue = 0;
     let totalCost = 0;
-    const profitByStatus: Record<OrderStatus, { revenue: number; cost: number; profit: number }> = {} as any;
+    const profitByStatus: Record<
+      OrderStatus,
+      { revenue: number; cost: number; profit: number }
+    > = {} as any;
 
     for (const order of orders) {
       console.log('orderId', order?.id);
 
       const orderRevenue = Number(order.totalPrice);
       const orderCost = order.orderItems.reduce((sum, item) => {
-        return sum + (Number(item.costPrice || 0) * item.quantity);
+        return sum + Number(item.costPrice || 0) * item.quantity;
       }, 0);
 
       console.log('orderCost', orderCost);
@@ -145,7 +158,8 @@ export class StatisticsService {
     }
 
     const totalProfit = totalRevenue - totalCost;
-    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    const profitMargin =
+      totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
 
     return {
       totalRevenue,
@@ -167,7 +181,7 @@ export class StatisticsService {
         gte: new Date(fromDate),
         lte: new Date(toDate),
       },
-      status: 'DELIVERED',
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
     };
 
     const orders = await this.prisma.order.findMany({
@@ -185,11 +199,17 @@ export class StatisticsService {
       },
     });
 
-    const revenue = orders.reduce((sum, order) => sum + Number(order.totalPrice), 0);
+    const revenue = orders.reduce(
+      (sum, order) => sum + Number(order.totalPrice),
+      0,
+    );
     const cost = orders.reduce((sum, order) => {
-      return sum + order.orderItems.reduce((itemSum, item) => {
-        return itemSum + (Number(item.costPrice || 0) * item.quantity);
-      }, 0);
+      return (
+        sum +
+        order.orderItems.reduce((itemSum, item) => {
+          return itemSum + Number(item.costPrice || 0) * item.quantity;
+        }, 0)
+      );
     }, 0);
     const profit = revenue - cost;
     const ordersCount = orders.length;
@@ -214,7 +234,7 @@ export class StatisticsService {
     const whereClause: any = {
       order: {
         isDeleted: false,
-        status: 'DELIVERED',
+        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
       },
     };
 
@@ -265,10 +285,13 @@ export class StatisticsService {
 
     // Calculate profit margins
     for (const stats of productStatsMap.values()) {
-      stats.profitMargin = stats.revenue > 0 ? (stats.profit / stats.revenue) * 100 : 0;
+      stats.profitMargin =
+        stats.revenue > 0 ? (stats.profit / stats.revenue) * 100 : 0;
     }
 
-    return Array.from(productStatsMap.values()).sort((a, b) => b.profit - a.profit);
+    return Array.from(productStatsMap.values()).sort(
+      (a, b) => b.profit - a.profit,
+    );
   }
 
   async getDailyStats(
@@ -282,7 +305,7 @@ export class StatisticsService {
         gte: new Date(fromDate),
         lte: new Date(toDate),
       },
-      status: 'DELIVERED',
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
     };
 
     const orders = await this.prisma.order.findMany({
@@ -306,7 +329,7 @@ export class StatisticsService {
       const dateKey = order.createdAt.toISOString().split('T')[0];
       const revenue = Number(order.totalPrice);
       const cost = order.orderItems.reduce((sum, item) => {
-        return sum + (Number(item.costPrice || 0) * item.quantity);
+        return sum + Number(item.costPrice || 0) * item.quantity;
       }, 0);
       const profit = revenue - cost;
 
@@ -331,10 +354,13 @@ export class StatisticsService {
 
     // Calculate average order values
     for (const stats of dailyStatsMap.values()) {
-      stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+      stats.averageOrderValue =
+        stats.orders > 0 ? stats.revenue / stats.orders : 0;
     }
 
-    return Array.from(dailyStatsMap.values()).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    return Array.from(dailyStatsMap.values()).sort(
+      (a, b) => a.startDate.getTime() - b.startDate.getTime(),
+    );
   }
 
   async getMonthlyStats(
@@ -347,7 +373,7 @@ export class StatisticsService {
         gte: new Date(year, 0, 1),
         lte: new Date(year, 11, 31, 23, 59, 59, 999),
       },
-      status: 'DELIVERED',
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
     };
 
     const orders = await this.prisma.order.findMany({
@@ -371,7 +397,7 @@ export class StatisticsService {
       const month = order.createdAt.getMonth();
       const revenue = Number(order.totalPrice);
       const cost = order.orderItems.reduce((sum, item) => {
-        return sum + (Number(item.costPrice || 0) * item.quantity);
+        return sum + Number(item.costPrice || 0) * item.quantity;
       }, 0);
       const profit = revenue - cost;
 
@@ -398,9 +424,159 @@ export class StatisticsService {
 
     // Calculate average order values
     for (const stats of monthlyStatsMap.values()) {
-      stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+      stats.averageOrderValue =
+        stats.orders > 0 ? stats.revenue / stats.orders : 0;
     }
 
-    return Array.from(monthlyStatsMap.values()).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    return Array.from(monthlyStatsMap.values()).sort(
+      (a, b) => a.startDate.getTime() - b.startDate.getTime(),
+    );
   }
-} 
+
+  /**
+   * Get best seller products by quantity sold or revenue
+   * @param fromDate
+   * @param toDate
+   * @param statuses
+   * @param limit
+   */
+  async getBestSellerProducts(
+    fromDate?: string,
+    toDate?: string,
+    statuses?: OrderStatus[],
+    limit: number = 10,
+  ) {
+    const whereClause: any = {
+      order: {
+        isDeleted: false,
+        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+      },
+    };
+    if (fromDate && toDate) {
+      whereClause.order.createdAt = {
+        gte: new Date(fromDate),
+        lte: new Date(toDate),
+      };
+    }
+    const orderItems = await this.prisma.orderItem.findMany({
+      where: whereClause,
+      select: {
+        productId: true,
+        productName: true,
+        quantity: true,
+        price: true,
+      },
+    });
+    const productMap = new Map<
+      number,
+      {
+        productId: number;
+        productName: string;
+        quantitySold: number;
+        revenue: number;
+      }
+    >();
+    for (const item of orderItems) {
+      if (!productMap.has(item.productId)) {
+        productMap.set(item.productId, {
+          productId: item.productId,
+          productName: item.productName,
+          quantitySold: 0,
+          revenue: 0,
+        });
+      }
+      const stats = productMap.get(item.productId)!;
+      stats.quantitySold += item.quantity;
+      stats.revenue += Number(item.price) * item.quantity;
+    }
+    return Array.from(productMap.values())
+      .sort((a, b) => b.quantitySold - a.quantitySold)
+      .slice(0, limit);
+  }
+
+  /**
+   * Get best seller categories by quantity sold or revenue
+   * @param fromDate
+   * @param toDate
+   * @param statuses
+   * @param limit
+   */
+  async getBestSellerCategories(
+    fromDate?: string,
+    toDate?: string,
+    statuses?: OrderStatus[],
+    limit: number = 3,
+  ) {
+    // Get all order items with productId
+    const whereClause: any = {
+      order: {
+        isDeleted: false,
+        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+      },
+    };
+    if (fromDate && toDate) {
+      whereClause.order.createdAt = {
+        gte: new Date(fromDate),
+        lte: new Date(toDate),
+      };
+    }
+    // Get productId, quantity, price from order items
+    const orderItems = await this.prisma.orderItem.findMany({
+      where: whereClause,
+      select: {
+        productId: true,
+        quantity: true,
+        price: true,
+      },
+    });
+    if (orderItems.length === 0) return [];
+    // Get all involved productIds
+    const productIds = Array.from(new Set(orderItems.map((i) => i.productId)));
+    // Get productId -> categoryId, categoryName
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        categoryId: true,
+      },
+    });
+    const categoryIds = Array.from(new Set(products.map((p) => p.categoryId)));
+    // Get categoryId -> categoryName
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true, name: true },
+    });
+    // Build productId -> categoryId map
+    const productToCategory = new Map<number, number>();
+    for (const p of products) productToCategory.set(p.id, p.categoryId);
+    // Build categoryId -> { id, name, quantitySold, revenue }
+    const categoryMap = new Map<
+      number,
+      {
+        categoryId: number;
+        categoryName: string;
+        quantitySold: number;
+        revenue: number;
+      }
+    >();
+    for (const c of categories) {
+      categoryMap.set(c.id, {
+        categoryId: c.id,
+        categoryName: c.name,
+        quantitySold: 0,
+        revenue: 0,
+      });
+    }
+    for (const item of orderItems) {
+      const categoryId = productToCategory.get(item.productId);
+      if (!categoryId) continue;
+      const stats = categoryMap.get(categoryId);
+      if (!stats) continue;
+      stats.quantitySold += item.quantity;
+      stats.revenue += Number(item.price) * item.quantity;
+    }
+    return Array.from(categoryMap.values())
+      .sort((a, b) => b.quantitySold - a.quantitySold)
+      .slice(0, limit);
+  }
+}
