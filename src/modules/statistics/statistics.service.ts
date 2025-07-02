@@ -351,16 +351,34 @@ export class StatisticsService {
       stats.profit += profit;
       stats.orders += 1;
     }
+    console.log('dailyStatsMap', dailyStatsMap);
 
-    // Calculate average order values
-    for (const stats of dailyStatsMap.values()) {
-      stats.averageOrderValue =
-        stats.orders > 0 ? stats.revenue / stats.orders : 0;
+    // Fill missing dates with zeroed stats
+    const result: TimeRangeStats[] = [];
+    let current = new Date(fromDate);
+    const end = new Date(toDate);
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0];
+      if (dailyStatsMap.has(dateKey)) {
+        const stats = dailyStatsMap.get(dateKey)!;
+        console.log('stats', stats);
+        stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+        result.push(stats);
+      } else {
+        result.push({
+          startDate: new Date(dateKey),
+          endDate: new Date(dateKey),
+          revenue: 0,
+          cost: 0,
+          profit: 0,
+          orders: 0,
+          averageOrderValue: 0,
+        });
+      }
+      current.setDate(current.getDate() + 1);
     }
 
-    return Array.from(dailyStatsMap.values()).sort(
-      (a, b) => a.startDate.getTime() - b.startDate.getTime(),
-    );
+    return result;
   }
 
   async getMonthlyStats(
