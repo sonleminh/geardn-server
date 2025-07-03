@@ -177,7 +177,7 @@ export class StatisticsController {
       profitStats,
       pendingRevenueStats,
       bestSellingProduct,
-      topCategory,
+      topCategories,
     ] = await Promise.all([
       this.statisticsService.getRevenueStats(fromDate, toDate),
       this.statisticsService.getProfitStats(fromDate, toDate),
@@ -201,7 +201,7 @@ export class StatisticsController {
         totalOrders: revenueStats.totalOrders,
         pendingOrders: pendingRevenueStats.totalOrders,
         bestSellingProduct: bestSellingProduct,
-        topCategory: topCategory,
+        topCategories: topCategories,
       },
       message: '30-day overview statistics retrieved successfully',
     };

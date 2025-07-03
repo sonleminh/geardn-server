@@ -351,7 +351,6 @@ export class StatisticsService {
       stats.profit += profit;
       stats.orders += 1;
     }
-    console.log('dailyStatsMap', dailyStatsMap);
 
     // Fill missing dates with zeroed stats
     const result: TimeRangeStats[] = [];
@@ -481,6 +480,7 @@ export class StatisticsService {
       select: {
         productId: true,
         productName: true,
+        imageUrl: true,
         quantity: true,
         price: true,
       },
