@@ -57,11 +57,11 @@ export class CreateOrderDto {
   fullName: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   phoneNumber: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   email: string;
 
   @ApiProperty()

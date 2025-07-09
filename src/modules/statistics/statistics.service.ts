@@ -70,8 +70,6 @@ export class StatisticsService {
       },
     });
 
-    console.log('orders', orders);
-
     const totalRevenue = orders.reduce(
       (sum, order) => sum + Number(order.totalPrice),
       0,
@@ -136,14 +134,11 @@ export class StatisticsService {
     > = {} as any;
 
     for (const order of orders) {
-      console.log('orderId', order?.id);
 
       const orderRevenue = Number(order.totalPrice);
       const orderCost = order.orderItems.reduce((sum, item) => {
         return sum + Number(item.costPrice || 0) * item.quantity;
       }, 0);
-
-      console.log('orderCost', orderCost);
 
       totalRevenue += orderRevenue;
       totalCost += orderCost;
@@ -360,7 +355,6 @@ export class StatisticsService {
       const dateKey = current.toISOString().split('T')[0];
       if (dailyStatsMap.has(dateKey)) {
         const stats = dailyStatsMap.get(dateKey)!;
-        console.log('stats', stats);
         stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
         result.push(stats);
       } else {
@@ -526,6 +520,9 @@ export class StatisticsService {
     statuses?: OrderStatus[],
     limit: number = 3,
   ) {
+
+    console.log('fromDate', fromDate);
+    console.log('toDate', toDate);
     // Get all order items with productId
     const whereClause: any = {
       order: {
@@ -536,9 +533,12 @@ export class StatisticsService {
     if (fromDate && toDate) {
       whereClause.order.createdAt = {
         gte: new Date(fromDate),
-        lte: new Date(toDate),
+        lte: new Date(),
+        // lte: new Date(toDate),
       };
     }
+    console.log('whereClause', whereClause);
+
     // Get productId, quantity, price from order items
     const orderItems = await this.prisma.orderItem.findMany({
       where: whereClause,
@@ -548,6 +548,7 @@ export class StatisticsService {
         price: true,
       },
     });
+
     if (orderItems.length === 0) return [];
     // Get all involved productIds
     const productIds = Array.from(new Set(orderItems.map((i) => i.productId)));
