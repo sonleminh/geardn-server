@@ -170,14 +170,14 @@ export class StatisticsController {
     startDate.setDate(endDate.getDate() - 29); // 30 days including today
 
     const fromDate = startDate.toISOString().split('T')[0];
-    const toDate = endDate.toISOString().split('T')[0];
+    const toDate = endDate.toISOString();
 
     const [
       revenueStats,
       profitStats,
       pendingRevenueStats,
       bestSellingProduct,
-      topCategories,
+      bestSellingCategory,
     ] = await Promise.all([
       this.statisticsService.getRevenueStats(fromDate, toDate),
       this.statisticsService.getProfitStats(fromDate, toDate),
@@ -201,7 +201,7 @@ export class StatisticsController {
         totalOrders: revenueStats.totalOrders,
         pendingOrders: pendingRevenueStats.totalOrders,
         bestSellingProduct: bestSellingProduct,
-        topCategories: topCategories,
+        bestSellingCategory: bestSellingCategory,
       },
       message: '30-day overview statistics retrieved successfully',
     };

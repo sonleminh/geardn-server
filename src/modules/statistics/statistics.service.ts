@@ -484,6 +484,7 @@ export class StatisticsService {
       {
         productId: number;
         productName: string;
+        imageUrl: string;
         quantitySold: number;
         revenue: number;
       }
@@ -493,6 +494,7 @@ export class StatisticsService {
         productMap.set(item.productId, {
           productId: item.productId,
           productName: item.productName,
+          imageUrl: item.imageUrl,
           quantitySold: 0,
           revenue: 0,
         });
@@ -521,8 +523,8 @@ export class StatisticsService {
     limit: number = 3,
   ) {
 
-    console.log('fromDate', fromDate);
-    console.log('toDate', toDate);
+    // console.log('fromDate', fromDate);
+    // console.log('toDate', toDate);
     // Get all order items with productId
     const whereClause: any = {
       order: {
@@ -533,8 +535,7 @@ export class StatisticsService {
     if (fromDate && toDate) {
       whereClause.order.createdAt = {
         gte: new Date(fromDate),
-        lte: new Date(),
-        // lte: new Date(toDate),
+        lte: new Date(toDate),
       };
     }
     console.log('whereClause', whereClause);
