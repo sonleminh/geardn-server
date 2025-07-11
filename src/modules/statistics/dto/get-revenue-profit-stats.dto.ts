@@ -1,9 +1,9 @@
-import { IsDateString, IsOptional } from 'class-validator';
+import { IsDateString } from 'class-validator';
 
 /**
  * DTO for getting profit and revenue stats between two dates.
  */
-export class GetProfitRevenueStatsDto {
+export class GetRevenueProfitStatsDto {
   @IsDateString()
   fromDate!: string;
 

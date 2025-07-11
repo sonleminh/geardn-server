@@ -165,6 +165,98 @@ export class StatisticsService {
     };
   }
 
+  async getRevenueProfitStats(
+    fromDate?: string,
+    toDate?: string,
+    statuses?: OrderStatus[],
+  ) {
+    const whereClause: any = {
+      isDeleted: false,
+      createdAt: {
+        gte: new Date(fromDate),
+        lte: new Date(toDate),
+      },
+      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+    };
+
+    const orders = await this.prisma.order.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        totalPrice: true,
+        createdAt: true,
+        orderItems: {
+          select: {
+            quantity: true,
+            costPrice: true,
+          },
+        },
+      },
+    });
+
+    const dailyStatsMap = new Map<string, TimeRangeStats>();
+
+    for (const order of orders) {
+      const dateKey = order.createdAt.toISOString().split('T')[0];
+      const revenue = Number(order.totalPrice);
+      const cost = order.orderItems.reduce((sum, item) => {
+        return sum + Number(item.costPrice || 0) * item.quantity;
+      }, 0);
+      const profit = revenue - cost;
+
+      if (!dailyStatsMap.has(dateKey)) {
+        dailyStatsMap.set(dateKey, {
+          startDate: new Date(dateKey),
+          endDate: new Date(dateKey),
+          revenue: 0,
+          profit: 0,
+          // cost: 0,
+          // orders: 0,
+          // averageOrderValue: 0,
+        });
+      }
+
+      const stats = dailyStatsMap.get(dateKey)!;
+      stats.revenue += revenue;
+      stats.profit += profit;
+      // stats.cost += cost;
+      // stats.orders += 1;
+    }
+
+    // Fill missing dates with zeroed stats
+    const result: TimeRangeStats[] = [];
+    let current = new Date(fromDate);
+    const end = new Date(toDate);
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0];
+      if (dailyStatsMap.has(dateKey)) {
+        const stats = dailyStatsMap.get(dateKey)!;
+        stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+        result.push(stats);
+      } else {
+        result.push({
+          startDate: new Date(dateKey),
+          endDate: new Date(dateKey),
+          revenue: 0,
+          profit: 0,
+          // cost: 0,
+          // orders: 0,
+          // averageOrderValue: 0,
+        });
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    const totalRevenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
+    const totalProfit = result.reduce((sum, stat) => sum + stat.profit, 0);
+
+    return {
+      revenueProfitData: result,
+      totalRevenue,
+      totalProfit,
+    };
+  }
+
   async getTimeRangeStats(
     fromDate: string,
     toDate: string,
@@ -485,6 +577,7 @@ export class StatisticsService {
         productId: number;
         productName: string;
         imageUrl: string;
+        price: number;
         quantitySold: number;
         revenue: number;
       }
@@ -495,6 +588,7 @@ export class StatisticsService {
           productId: item.productId,
           productName: item.productName,
           imageUrl: item.imageUrl,
+          price: Number(item.price),
           quantitySold: 0,
           revenue: 0,
         });
@@ -503,7 +597,6 @@ export class StatisticsService {
       stats.quantitySold += item.quantity;
       stats.revenue += Number(item.price) * item.quantity;
     }
-    // console.log('productMap', productMap);
     return Array.from(productMap.values())
       .sort((a, b) => b.quantitySold - a.quantitySold)
       .slice(0, limit);
