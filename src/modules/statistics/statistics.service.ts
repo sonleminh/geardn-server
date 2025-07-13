@@ -21,13 +21,12 @@ export interface ProfitStats {
 }
 
 export interface TimeRangeStats {
-  startDate: Date;
-  endDate: Date;
+  date: Date;
   revenue: number;
-  cost: number;
   profit: number;
-  orders: number;
-  averageOrderValue: number;
+  // cost: number;
+  // orders: number;
+  // averageOrderValue: number;
 }
 
 export interface ProductStats {
@@ -206,8 +205,7 @@ export class StatisticsService {
 
       if (!dailyStatsMap.has(dateKey)) {
         dailyStatsMap.set(dateKey, {
-          startDate: new Date(dateKey),
-          endDate: new Date(dateKey),
+          date: new Date(dateKey),
           revenue: 0,
           profit: 0,
           // cost: 0,
@@ -231,12 +229,11 @@ export class StatisticsService {
       const dateKey = current.toISOString().split('T')[0];
       if (dailyStatsMap.has(dateKey)) {
         const stats = dailyStatsMap.get(dateKey)!;
-        stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
         result.push(stats);
       } else {
         result.push({
-          startDate: new Date(dateKey),
-          endDate: new Date(dateKey),
+          date: new Date(dateKey),
           revenue: 0,
           profit: 0,
           // cost: 0,
@@ -257,61 +254,61 @@ export class StatisticsService {
     };
   }
 
-  async getTimeRangeStats(
-    fromDate: string,
-    toDate: string,
-    statuses?: OrderStatus[],
-  ): Promise<TimeRangeStats> {
-    const whereClause: any = {
-      isDeleted: false,
-      createdAt: {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      },
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-    };
+  // async getTimeRangeStats(
+  //   fromDate: string,
+  //   toDate: string,
+  //   statuses?: OrderStatus[],
+  // ): Promise<TimeRangeStats> {
+  //   const whereClause: any = {
+  //     isDeleted: false,
+  //     createdAt: {
+  //       gte: new Date(fromDate),
+  //       lte: new Date(toDate),
+  //     },
+  //     status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+  //   };
 
-    const orders = await this.prisma.order.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        totalPrice: true,
-        createdAt: true,
-        orderItems: {
-          select: {
-            quantity: true,
-            costPrice: true,
-          },
-        },
-      },
-    });
+  //   const orders = await this.prisma.order.findMany({
+  //     where: whereClause,
+  //     select: {
+  //       id: true,
+  //       totalPrice: true,
+  //       createdAt: true,
+  //       orderItems: {
+  //         select: {
+  //           quantity: true,
+  //           costPrice: true,
+  //         },
+  //       },
+  //     },
+  //   });
 
-    const revenue = orders.reduce(
-      (sum, order) => sum + Number(order.totalPrice),
-      0,
-    );
-    const cost = orders.reduce((sum, order) => {
-      return (
-        sum +
-        order.orderItems.reduce((itemSum, item) => {
-          return itemSum + Number(item.costPrice || 0) * item.quantity;
-        }, 0)
-      );
-    }, 0);
-    const profit = revenue - cost;
-    const ordersCount = orders.length;
-    const averageOrderValue = ordersCount > 0 ? revenue / ordersCount : 0;
+  //   const revenue = orders.reduce(
+  //     (sum, order) => sum + Number(order.totalPrice),
+  //     0,
+  //   );
+  //   const cost = orders.reduce((sum, order) => {
+  //     return (
+  //       sum +
+  //       order.orderItems.reduce((itemSum, item) => {
+  //         return itemSum + Number(item.costPrice || 0) * item.quantity;
+  //       }, 0)
+  //     );
+  //   }, 0);
+  //   const profit = revenue - cost;
+  //   const ordersCount = orders.length;
+  //   const averageOrderValue = ordersCount > 0 ? revenue / ordersCount : 0;
 
-    return {
-      startDate: new Date(fromDate),
-      endDate: new Date(toDate),
-      revenue,
-      cost,
-      profit,
-      orders: ordersCount,
-      averageOrderValue,
-    };
-  }
+  //   return {
+  //     startDate: new Date(fromDate),
+  //     endDate: new Date(toDate),
+  //     revenue,
+  //     cost,
+  //     profit,
+  //     orders: ordersCount,
+  //     averageOrderValue,
+  //   };
+  // }
 
   async getProductStats(
     fromDate?: string,
@@ -422,21 +419,20 @@ export class StatisticsService {
 
       if (!dailyStatsMap.has(dateKey)) {
         dailyStatsMap.set(dateKey, {
-          startDate: new Date(dateKey),
-          endDate: new Date(dateKey),
+          date: new Date(dateKey),
           revenue: 0,
-          cost: 0,
           profit: 0,
-          orders: 0,
-          averageOrderValue: 0,
+          // cost: 0,
+          // orders: 0,
+          // averageOrderValue: 0,
         });
       }
 
       const stats = dailyStatsMap.get(dateKey)!;
       stats.revenue += revenue;
-      stats.cost += cost;
       stats.profit += profit;
-      stats.orders += 1;
+      // stats.cost += cost;
+      // stats.orders += 1;
     }
 
     // Fill missing dates with zeroed stats
@@ -447,93 +443,22 @@ export class StatisticsService {
       const dateKey = current.toISOString().split('T')[0];
       if (dailyStatsMap.has(dateKey)) {
         const stats = dailyStatsMap.get(dateKey)!;
-        stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
         result.push(stats);
       } else {
         result.push({
-          startDate: new Date(dateKey),
-          endDate: new Date(dateKey),
+          date: new Date(dateKey),
           revenue: 0,
-          cost: 0,
           profit: 0,
-          orders: 0,
-          averageOrderValue: 0,
+          // cost: 0,
+          // orders: 0,
+          // averageOrderValue: 0,
         });
       }
       current.setDate(current.getDate() + 1);
     }
 
     return result;
-  }
-
-  async getMonthlyStats(
-    year: number,
-    statuses?: OrderStatus[],
-  ): Promise<TimeRangeStats[]> {
-    const whereClause: any = {
-      isDeleted: false,
-      createdAt: {
-        gte: new Date(year, 0, 1),
-        lte: new Date(year, 11, 31, 23, 59, 59, 999),
-      },
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-    };
-
-    const orders = await this.prisma.order.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        totalPrice: true,
-        createdAt: true,
-        orderItems: {
-          select: {
-            quantity: true,
-            costPrice: true,
-          },
-        },
-      },
-    });
-
-    const monthlyStatsMap = new Map<number, TimeRangeStats>();
-
-    for (const order of orders) {
-      const month = order.createdAt.getMonth();
-      const revenue = Number(order.totalPrice);
-      const cost = order.orderItems.reduce((sum, item) => {
-        return sum + Number(item.costPrice || 0) * item.quantity;
-      }, 0);
-      const profit = revenue - cost;
-
-      if (!monthlyStatsMap.has(month)) {
-        const startDate = new Date(year, month, 1);
-        const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999);
-        monthlyStatsMap.set(month, {
-          startDate,
-          endDate,
-          revenue: 0,
-          cost: 0,
-          profit: 0,
-          orders: 0,
-          averageOrderValue: 0,
-        });
-      }
-
-      const stats = monthlyStatsMap.get(month)!;
-      stats.revenue += revenue;
-      stats.cost += cost;
-      stats.profit += profit;
-      stats.orders += 1;
-    }
-
-    // Calculate average order values
-    for (const stats of monthlyStatsMap.values()) {
-      stats.averageOrderValue =
-        stats.orders > 0 ? stats.revenue / stats.orders : 0;
-    }
-
-    return Array.from(monthlyStatsMap.values()).sort(
-      (a, b) => a.startDate.getTime() - b.startDate.getTime(),
-    );
   }
 
   /**

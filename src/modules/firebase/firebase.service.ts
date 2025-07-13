@@ -11,6 +11,7 @@ export class FirebaseService {
 
   constructor(private configService: ConfigService) {
     const data = JSON.parse(fs.readFileSync('service_account.json', 'utf8'));
+    console.log('data:', data)
     this.serviceAccount = data;
     admin.initializeApp({
       credential: admin.credential.cert(this.serviceAccount),

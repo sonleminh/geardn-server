@@ -52,21 +52,21 @@ export class StatisticsController {
     );
   }
 
-  @Get('revenue-profit/daily')
-  async getRevenueProfitDailyStats(@Query() query: GetRevenueProfitStatsDto) {
-    const dailyStats = await this.statisticsService.getDailyStats(
-      query.fromDate,
-      query.toDate,
-    );
-    return {
-      data: dailyStats.map(stat => ({
-        date: stat.startDate,
-        revenue: stat.revenue,
-        profit: stat.profit,
-      })),
-      message: 'Daily revenue and profit statistics retrieved successfully',
-    };
-  }
+  // @Get('revenue-profit/daily')
+  // async getRevenueProfitDailyStats(@Query() query: GetRevenueProfitStatsDto) {
+  //   const dailyStats = await this.statisticsService.getDailyStats(
+  //     query.fromDate,
+  //     query.toDate,
+  //   );
+  //   return {
+  //     data: dailyStats.map(stat => ({
+  //       date: stat.startDate,
+  //       revenue: stat.revenue,
+  //       profit: stat.profit,
+  //     })),
+  //     message: 'Daily revenue and profit statistics retrieved successfully',
+  //   };
+  // }
 
   @Get('products')
   async getProductStats(@Query() query: GetProductStatsDto) {
@@ -96,18 +96,18 @@ export class StatisticsController {
     };
   }
 
-  @Get('monthly')
-  async getMonthlyStats(@Query() query: GetMonthlyStatsDto) {
-    const stats = await this.statisticsService.getMonthlyStats(
-      query.year,
-      query.statuses,
-    );
+  // @Get('monthly')
+  // async getMonthlyStats(@Query() query: GetMonthlyStatsDto) {
+  //   const stats = await this.statisticsService.getMonthlyStats(
+  //     query.year,
+  //     query.statuses,
+  //   );
 
-    return {
-      data: stats,
-      message: 'Monthly statistics retrieved successfully',
-    };
-  }
+  //   return {
+  //     data: stats,
+  //     message: 'Monthly statistics retrieved successfully',
+  //   };
+  // }
 
   @Get('overview')
   async getDashboardOverview() {
