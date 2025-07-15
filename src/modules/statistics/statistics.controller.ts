@@ -4,16 +4,11 @@ import { GetRevenueStatsDto } from './dto/get-revenue-stats.dto';
 import { GetProfitStatsDto } from './dto/get-profit-stats.dto';
 import { GetTimeRangeStatsDto } from './dto/get-time-range-stats.dto';
 import { GetProductStatsDto } from './dto/get-product-stats.dto';
-import { GetMonthlyStatsDto } from './dto/get-monthly-stats.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-// import { RolesGuard } from '../auth/guards/roles.guard';
-// import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
 import { GetRevenueProfitStatsDto } from './dto/get-revenue-profit-stats.dto';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard)
-// @Roles(UserRole.ADMIN)
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
@@ -50,6 +45,11 @@ export class StatisticsController {
       query.fromDate,
       query.toDate,
     );
+  }
+
+  @Get('revenue-profit-summary')
+  async getRevenueProfitSummary() {
+    return this.statisticsService.getRevenueProfitSummary();
   }
 
   // @Get('revenue-profit/daily')

@@ -133,7 +133,6 @@ export class StatisticsService {
     > = {} as any;
 
     for (const order of orders) {
-
       const orderRevenue = Number(order.totalPrice);
       const orderCost = order.orderItems.reduce((sum, item) => {
         return sum + Number(item.costPrice || 0) * item.quantity;
@@ -244,13 +243,45 @@ export class StatisticsService {
       current.setDate(current.getDate() + 1);
     }
 
-    const totalRevenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
-    const totalProfit = result.reduce((sum, stat) => sum + stat.profit, 0);
+    const revenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
+    const profit = result.reduce((sum, stat) => sum + stat.profit, 0);
 
     return {
       revenueProfitData: result,
-      totalRevenue,
-      totalProfit,
+      revenue,
+      profit,
+    };
+  }
+
+  async getRevenueProfitSummary() {
+    const now = new Date();
+    // Current month range
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    // Previous month range
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    const currentFrom = currentMonthStart.toISOString().split('T')[0];
+    const currentTo = currentMonthEnd.toISOString().split('T')[0];
+    const prevFrom = previousMonthStart.toISOString().split('T')[0];
+    const prevTo = previousMonthEnd.toISOString().split('T')[0];
+
+    const [current, previous] = await Promise.all([
+      this.getRevenueProfitStats(currentFrom, currentTo),
+      this.getRevenueProfitStats(prevFrom, prevTo),
+    ]);
+
+    const revenueGrowthPercent = previous.revenue === 0 ? 0 : ((current.revenue - previous.revenue) / previous.revenue) * 100;
+    const profitGrowthPercent = previous.profit === 0 ? 0 : ((current.profit - previous.profit) / previous.profit) * 100;
+
+    return {
+      revenue: current.revenue,
+      profit: current.profit,
+      previousRevenue: previous.revenue,
+      previousProfit: previous.profit,
+      revenueGrowthPercent,
+      profitGrowthPercent,
     };
   }
 
@@ -318,7 +349,8 @@ export class StatisticsService {
     const whereClause: any = {
       order: {
         isDeleted: false,
-        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+        status:
+          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
       },
     };
 
@@ -477,7 +509,8 @@ export class StatisticsService {
     const whereClause: any = {
       order: {
         isDeleted: false,
-        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+        status:
+          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
       },
     };
     if (fromDate && toDate) {
@@ -540,14 +573,14 @@ export class StatisticsService {
     statuses?: OrderStatus[],
     limit: number = 3,
   ) {
-
     // console.log('fromDate', fromDate);
     // console.log('toDate', toDate);
     // Get all order items with productId
     const whereClause: any = {
       order: {
         isDeleted: false,
-        status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+        status:
+          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
       },
     };
     if (fromDate && toDate) {
