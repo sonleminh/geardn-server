@@ -243,13 +243,15 @@ export class StatisticsService {
       current.setDate(current.getDate() + 1);
     }
 
-    const revenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
-    const profit = result.reduce((sum, stat) => sum + stat.profit, 0);
+    const totalRevenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
+    const totalProfit = result.reduce((sum, stat) => sum + stat.profit, 0);
 
     return {
       revenueProfitData: result,
-      revenue,
-      profit,
+      totals: {
+        totalRevenue,
+        totalProfit,
+      },
     };
   }
 
@@ -267,22 +269,56 @@ export class StatisticsService {
     const prevFrom = previousMonthStart.toISOString().split('T')[0];
     const prevTo = previousMonthEnd.toISOString().split('T')[0];
 
-    const [current, previous] = await Promise.all([
+    const [current, previous, { revenue: totalRevenue, profit: totalProfit }] = await Promise.all([
       this.getRevenueProfitStats(currentFrom, currentTo),
       this.getRevenueProfitStats(prevFrom, prevTo),
+      this.getTotalRevenueAndProfit()
     ]);
 
-    const revenueGrowthPercent = previous.revenue === 0 ? 0 : ((current.revenue - previous.revenue) / previous.revenue) * 100;
-    const profitGrowthPercent = previous.profit === 0 ? 0 : ((current.profit - previous.profit) / previous.profit) * 100;
+    const revenueGrowthPercent = totalRevenue === 0 ? 0 : ((current.totals.totalRevenue - previous.totals.totalRevenue) / previous.totals.totalRevenue) * 100;
+    const profitGrowthPercent = totalProfit === 0 ? 0 : ((current.totals.totalProfit - previous.totals.totalProfit) / previous.totals.totalProfit) * 100;
 
     return {
-      revenue: current.revenue,
-      profit: current.profit,
-      previousRevenue: previous.revenue,
-      previousProfit: previous.profit,
-      revenueGrowthPercent,
-      profitGrowthPercent,
+      totals: {
+        totalRevenue,
+        totalProfit,
+      },
+      growth: {
+        revenuePercent: revenueGrowthPercent,
+        profitPercent: profitGrowthPercent,
+      }
     };
+  }
+
+  /**
+   * Get the total revenue and profit for all non-deleted orders.
+   * @returns An object containing total revenue and total profit.
+   */
+  async getTotalRevenueAndProfit() {
+    const orders = await this.prisma.order.findMany({
+      where: { isDeleted: false, status: 'DELIVERED' },
+      select: {
+        totalPrice: true,
+        orderItems: {
+          select: {
+            price: true,
+            costPrice: true,
+            quantity: true,
+          },
+        },
+      },
+    });
+
+    console.log('orders:', orders)
+
+    const revenue = orders.reduce((sum, order) => sum + Number(order.totalPrice), 0);
+    let profit = 0;
+    for (const order of orders) {
+      for (const item of order.orderItems) {
+        profit += (Number(item.price) - Number(item.costPrice || 0)) * item.quantity;
+      }
+    }
+    return { revenue, profit,orders };
   }
 
   // async getTimeRangeStats(
