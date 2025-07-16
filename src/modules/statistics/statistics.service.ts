@@ -20,13 +20,15 @@ export interface ProfitStats {
   >;
 }
 
-export interface TimeRangeStats {
+export interface RevenueProfitTimeRangeStats {
   date: Date;
   revenue: number;
   profit: number;
-  // cost: number;
-  // orders: number;
-  // averageOrderValue: number;
+}
+
+export interface OrderTimeRangeStats {
+  date: Date;
+  order: number;
 }
 
 export interface ProductStats {
@@ -192,7 +194,7 @@ export class StatisticsService {
       },
     });
 
-    const dailyStatsMap = new Map<string, TimeRangeStats>();
+    const dailyStatsMap = new Map<string, RevenueProfitTimeRangeStats>();
 
     for (const order of orders) {
       const dateKey = order.createdAt.toISOString().split('T')[0];
@@ -207,9 +209,6 @@ export class StatisticsService {
           date: new Date(dateKey),
           revenue: 0,
           profit: 0,
-          // cost: 0,
-          // orders: 0,
-          // averageOrderValue: 0,
         });
       }
 
@@ -221,8 +220,8 @@ export class StatisticsService {
     }
 
     // Fill missing dates with zeroed stats
-    const result: TimeRangeStats[] = [];
-    let current = new Date(fromDate);
+    const result: RevenueProfitTimeRangeStats[] = [];
+    const current = new Date(fromDate);
     const end = new Date(toDate);
     while (current <= end) {
       const dateKey = current.toISOString().split('T')[0];
@@ -247,7 +246,7 @@ export class StatisticsService {
     const totalProfit = result.reduce((sum, stat) => sum + stat.profit, 0);
 
     return {
-      revenueProfitData: result,
+      revenueProfitStatsData: result,
       totals: {
         totalRevenue,
         totalProfit,
@@ -259,24 +258,55 @@ export class StatisticsService {
     const now = new Date();
     // Current month range
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const currentMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
     // Previous month range
-    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const previousMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1,
+    );
+    const previousMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
 
     const currentFrom = currentMonthStart.toISOString().split('T')[0];
     const currentTo = currentMonthEnd.toISOString().split('T')[0];
     const prevFrom = previousMonthStart.toISOString().split('T')[0];
     const prevTo = previousMonthEnd.toISOString().split('T')[0];
 
-    const [current, previous, { revenue: totalRevenue, profit: totalProfit }] = await Promise.all([
-      this.getRevenueProfitStats(currentFrom, currentTo),
-      this.getRevenueProfitStats(prevFrom, prevTo),
-      this.getTotalRevenueAndProfit()
-    ]);
+    const [current, previous, { revenue: totalRevenue, profit: totalProfit }] =
+      await Promise.all([
+        this.getRevenueProfitStats(currentFrom, currentTo),
+        this.getRevenueProfitStats(prevFrom, prevTo),
+        this.getTotalRevenueAndProfit(),
+      ]);
 
-    const revenueGrowthPercent = totalRevenue === 0 ? 0 : ((current.totals.totalRevenue - previous.totals.totalRevenue) / previous.totals.totalRevenue) * 100;
-    const profitGrowthPercent = totalProfit === 0 ? 0 : ((current.totals.totalProfit - previous.totals.totalProfit) / previous.totals.totalProfit) * 100;
+    const revenueGrowthPercent =
+      totalRevenue === 0
+        ? 0
+        : ((current.totals.totalRevenue - previous.totals.totalRevenue) /
+            previous.totals.totalRevenue) *
+          100;
+    const profitGrowthPercent =
+      totalProfit === 0
+        ? 0
+        : ((current.totals.totalProfit - previous.totals.totalProfit) /
+            previous.totals.totalProfit) *
+          100;
 
     return {
       totals: {
@@ -286,7 +316,7 @@ export class StatisticsService {
       growth: {
         revenuePercent: revenueGrowthPercent,
         profitPercent: profitGrowthPercent,
-      }
+      },
     };
   }
 
@@ -309,16 +339,122 @@ export class StatisticsService {
       },
     });
 
-    console.log('orders:', orders)
+    console.log('orders:', orders);
 
-    const revenue = orders.reduce((sum, order) => sum + Number(order.totalPrice), 0);
+    const revenue = orders.reduce(
+      (sum, order) => sum + Number(order.totalPrice),
+      0,
+    );
     let profit = 0;
     for (const order of orders) {
       for (const item of order.orderItems) {
-        profit += (Number(item.price) - Number(item.costPrice || 0)) * item.quantity;
+        profit +=
+          (Number(item.price) - Number(item.costPrice || 0)) * item.quantity;
       }
     }
-    return { revenue, profit,orders };
+    return { revenue, profit, orders };
+  }
+
+  async getOrderStats(fromDate?: string, toDate?: string) {
+    const whereClause: any = {
+      isDeleted: false,
+      createdAt: {
+        gte: new Date(fromDate),
+        lte: new Date(toDate),
+      },
+      status: 'DELIVERED',
+    };
+
+    const [orders, count] = await Promise.all([
+      this.prisma.order.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          totalPrice: true,
+          createdAt: true,
+          orderItems: {
+            select: {
+              quantity: true,
+              costPrice: true,
+            },
+          },
+        },
+      }),
+      this.prisma.order.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const dailyStatsMap = new Map<string, OrderTimeRangeStats>();
+
+    for (const order of orders) {
+      const dateKey = order.createdAt.toISOString().split('T')[0];
+
+      if (!dailyStatsMap.has(dateKey)) {
+        dailyStatsMap.set(dateKey, {
+          date: new Date(dateKey),
+          order: 0,
+        });
+      }
+
+      const stats = dailyStatsMap.get(dateKey)!;
+      stats.order += 1;
+      // stats.cost += cost;
+      // stats.orders += 1;
+    }
+
+    // Fill missing dates with zeroed stats
+    const result: OrderTimeRangeStats[] = [];
+    const current = new Date(fromDate);
+    const end = new Date(toDate);
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0];
+      if (dailyStatsMap.has(dateKey)) {
+        const stats = dailyStatsMap.get(dateKey)!;
+        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
+        result.push(stats);
+      } else {
+        result.push({
+          date: new Date(dateKey),
+          order: 0,
+        });
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    return {
+      orderStatsData: result,
+      totals: {
+        orders: count,
+      },
+    };
+  }
+
+  async getOrderSummary(fromDate?: string, toDate?: string) {
+    const [deliveredOrderCount, pendingOrderCount, canceledOrderCount] = await Promise.all([
+      this.prisma.order.count({
+        where: { status: 'DELIVERED' },
+      }),
+      this.prisma.order.count({
+        where: { status: { not: 'DELIVERED' } },
+      }),
+      this.prisma.order.count({
+        where: { status: 'CANCELED' },
+      }),
+    ]);
+  
+
+    return {
+      totals: {
+        deliveredOrderCount,
+        pendingOrderCount,
+        canceledOrderCount
+      },
+      growth: {
+        // revenuePercent: revenueGrowthPercent,
+        // profitPercent: profitGrowthPercent,
+      },
+    };
   }
 
   // async getTimeRangeStats(
@@ -450,7 +586,7 @@ export class StatisticsService {
     fromDate: string,
     toDate: string,
     statuses?: OrderStatus[],
-  ): Promise<TimeRangeStats[]> {
+  ): Promise<RevenueProfitTimeRangeStats[]> {
     const whereClause: any = {
       isDeleted: false,
       createdAt: {
@@ -475,7 +611,7 @@ export class StatisticsService {
       },
     });
 
-    const dailyStatsMap = new Map<string, TimeRangeStats>();
+    const dailyStatsMap = new Map<string, RevenueProfitTimeRangeStats>();
 
     for (const order of orders) {
       const dateKey = order.createdAt.toISOString().split('T')[0];
@@ -504,8 +640,8 @@ export class StatisticsService {
     }
 
     // Fill missing dates with zeroed stats
-    const result: TimeRangeStats[] = [];
-    let current = new Date(fromDate);
+    const result: RevenueProfitTimeRangeStats[] = [];
+    const current = new Date(fromDate);
     const end = new Date(toDate);
     while (current <= end) {
       const dateKey = current.toISOString().split('T')[0];

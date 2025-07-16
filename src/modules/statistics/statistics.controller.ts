@@ -6,6 +6,7 @@ import { GetTimeRangeStatsDto } from './dto/get-time-range-stats.dto';
 import { GetProductStatsDto } from './dto/get-product-stats.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetRevenueProfitStatsDto } from './dto/get-revenue-profit-stats.dto';
+import { GetOrderStatsDto } from './dto/get-order-stats.dto';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard)
@@ -50,6 +51,11 @@ export class StatisticsController {
   @Get('revenue-profit-summary')
   async getRevenueProfitSummary() {
     return this.statisticsService.getRevenueProfitSummary();
+  }
+
+  @Get('order')
+  async getOrderStats(@Query() query: GetOrderStatsDto) {
+    return this.statisticsService.getOrderStats(query.fromDate, query.toDate);
   }
 
   // @Get('revenue-profit/daily')
