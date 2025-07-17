@@ -28,7 +28,7 @@ export interface RevenueProfitTimeRangeStats {
 
 export interface OrderTimeRangeStats {
   date: Date;
-  order: number;
+  orders: number;
 }
 
 export interface ProductStats {
@@ -41,26 +41,166 @@ export interface ProductStats {
   profitMargin: number;
 }
 
+export interface BestSellerProduct {
+  productId: number;
+  productName: string;
+  imageUrl: string;
+  price: number;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface BestSellerCategory {
+  categoryId: number;
+  categoryName: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface DateRange {
+  fromDate?: string;
+  toDate?: string;
+}
+
+export interface StatsFilters extends DateRange {
+  statuses?: OrderStatus[];
+}
+
+export interface MonthlyRange {
+  currentFrom: string;
+  currentTo: string;
+  prevFrom: string;
+  prevTo: string;
+}
+
 @Injectable()
 export class StatisticsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getRevenueStats(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
-  ): Promise<RevenueStats> {
+  /**
+   * Build where clause for order queries
+   */
+  private buildOrderWhereClause(filters: StatsFilters): any {
     const whereClause: any = {
       isDeleted: false,
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
+      status:
+        filters.statuses && filters.statuses.length > 0
+          ? { in: filters.statuses }
+          : 'DELIVERED',
     };
 
-    if (fromDate && toDate) {
+    if (filters.fromDate && filters.toDate) {
       whereClause.createdAt = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
+        gte: new Date(filters.fromDate),
+        lte: new Date(filters.toDate),
       };
     }
+
+    return whereClause;
+  }
+
+  /**
+   * Build where clause for order item queries
+   */
+  private buildOrderItemWhereClause(filters: StatsFilters): any {
+    const whereClause: any = {
+      order: {
+        isDeleted: false,
+        status:
+          filters.statuses && filters.statuses.length > 0
+            ? { in: filters.statuses }
+            : 'DELIVERED',
+      },
+    };
+
+    if (filters.fromDate && filters.toDate) {
+      whereClause.order.createdAt = {
+        gte: new Date(filters.fromDate),
+        lte: new Date(filters.toDate),
+      };
+    }
+
+    return whereClause;
+  }
+
+  /**
+   * Calculate monthly date ranges
+   */
+  private getMonthlyRanges(): MonthlyRange {
+    const now = new Date();
+
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const previousMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1,
+    );
+    const previousMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    return {
+      currentFrom: currentMonthStart.toISOString().split('T')[0],
+      currentTo: currentMonthEnd.toISOString().split('T')[0],
+      prevFrom: previousMonthStart.toISOString().split('T')[0],
+      prevTo: previousMonthEnd.toISOString().split('T')[0],
+    };
+  }
+
+  /**
+   * Fill missing dates in time range stats
+   */
+  private fillMissingDates<T extends { date: Date }>(
+    statsMap: Map<string, T>,
+    fromDate: string,
+    toDate: string,
+    createEmptyStats: (date: Date) => T,
+  ): T[] {
+    const result: T[] = [];
+    const current = new Date(fromDate);
+    const end = new Date(toDate);
+
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0];
+
+      if (statsMap.has(dateKey)) {
+        result.push(statsMap.get(dateKey)!);
+      } else {
+        result.push(createEmptyStats(new Date(dateKey)));
+      }
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    return result;
+  }
+
+  /**
+   * Calculate growth percentage
+   */
+  private calculateGrowthPercent(current: number, previous: number): number {
+    if (previous === 0) return 0;
+    return ((current - previous) / previous) * 100;
+  }
+
+  async getRevenueStats(filters: DateRange = {}): Promise<RevenueStats> {
+    const whereClause = this.buildOrderWhereClause(filters);
 
     const orders = await this.prisma.order.findMany({
       where: whereClause,
@@ -95,22 +235,8 @@ export class StatisticsService {
     };
   }
 
-  async getProfitStats(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
-  ): Promise<ProfitStats> {
-    const whereClause: any = {
-      isDeleted: false,
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-    };
-
-    if (fromDate && toDate) {
-      whereClause.createdAt = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      };
-    }
+  async getProfitStats(filters: DateRange = {}): Promise<ProfitStats> {
+    const whereClause = this.buildOrderWhereClause(filters);
 
     const orders = await this.prisma.order.findMany({
       where: whereClause,
@@ -165,19 +291,15 @@ export class StatisticsService {
     };
   }
 
-  async getRevenueProfitStats(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
-  ) {
-    const whereClause: any = {
-      isDeleted: false,
-      createdAt: {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      },
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-    };
+  async getRevenueProfitStats(filters: DateRange = {}): Promise<{
+    revenueProfitStatsData: RevenueProfitTimeRangeStats[];
+    totals: { totalRevenue: number; totalProfit: number };
+  }> {
+    if (!filters.fromDate || !filters.toDate) {
+      throw new Error('Date range is required for revenue profit stats');
+    }
+
+    const whereClause = this.buildOrderWhereClause(filters);
 
     const orders = await this.prisma.order.findMany({
       where: whereClause,
@@ -215,104 +337,52 @@ export class StatisticsService {
       const stats = dailyStatsMap.get(dateKey)!;
       stats.revenue += revenue;
       stats.profit += profit;
-      // stats.cost += cost;
-      // stats.orders += 1;
     }
 
-    // Fill missing dates with zeroed stats
-    const result: RevenueProfitTimeRangeStats[] = [];
-    const current = new Date(fromDate);
-    const end = new Date(toDate);
-    while (current <= end) {
-      const dateKey = current.toISOString().split('T')[0];
-      if (dailyStatsMap.has(dateKey)) {
-        const stats = dailyStatsMap.get(dateKey)!;
-        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
-        result.push(stats);
-      } else {
-        result.push({
-          date: new Date(dateKey),
-          revenue: 0,
-          profit: 0,
-          // cost: 0,
-          // orders: 0,
-          // averageOrderValue: 0,
-        });
-      }
-      current.setDate(current.getDate() + 1);
-    }
+    const result = this.fillMissingDates(
+      dailyStatsMap,
+      filters.fromDate,
+      filters.toDate,
+      (date) => ({ date, revenue: 0, profit: 0 }),
+    );
 
     const totalRevenue = result.reduce((sum, stat) => sum + stat.revenue, 0);
     const totalProfit = result.reduce((sum, stat) => sum + stat.profit, 0);
 
     return {
       revenueProfitStatsData: result,
-      totals: {
-        totalRevenue,
-        totalProfit,
-      },
+      totals: { totalRevenue, totalProfit },
     };
   }
 
-  async getRevenueProfitSummary() {
-    const now = new Date();
-    // Current month range
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const currentMonthEnd = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999,
-    );
-    // Previous month range
-    const previousMonthStart = new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1,
-    );
-    const previousMonthEnd = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      0,
-      23,
-      59,
-      59,
-      999,
-    );
+  async getRevenueProfitSummary(): Promise<{
+    totals: { totalRevenue: number; totalProfit: number };
+    growth: { revenuePercent: number; profitPercent: number };
+  }> {
+    const { currentFrom, currentTo, prevFrom, prevTo } =
+      this.getMonthlyRanges();
 
-    const currentFrom = currentMonthStart.toISOString().split('T')[0];
-    const currentTo = currentMonthEnd.toISOString().split('T')[0];
-    const prevFrom = previousMonthStart.toISOString().split('T')[0];
-    const prevTo = previousMonthEnd.toISOString().split('T')[0];
+    const [
+      currentStats,
+      previousStats,
+      { revenue: totalRevenue, profit: totalProfit },
+    ] = await Promise.all([
+      this.getRevenueProfitStats({ fromDate: currentFrom, toDate: currentTo }),
+      this.getRevenueProfitStats({ fromDate: prevFrom, toDate: prevTo }),
+      this.getTotalRevenueAndProfit(),
+    ]);
 
-    const [current, previous, { revenue: totalRevenue, profit: totalProfit }] =
-      await Promise.all([
-        this.getRevenueProfitStats(currentFrom, currentTo),
-        this.getRevenueProfitStats(prevFrom, prevTo),
-        this.getTotalRevenueAndProfit(),
-      ]);
-
-    const revenueGrowthPercent =
-      totalRevenue === 0
-        ? 0
-        : ((current.totals.totalRevenue - previous.totals.totalRevenue) /
-            previous.totals.totalRevenue) *
-          100;
-    const profitGrowthPercent =
-      totalProfit === 0
-        ? 0
-        : ((current.totals.totalProfit - previous.totals.totalProfit) /
-            previous.totals.totalProfit) *
-          100;
+    const revenueGrowthPercent = this.calculateGrowthPercent(
+      currentStats.totals.totalRevenue,
+      previousStats.totals.totalRevenue,
+    );
+    const profitGrowthPercent = this.calculateGrowthPercent(
+      currentStats.totals.totalProfit,
+      previousStats.totals.totalProfit,
+    );
 
     return {
-      totals: {
-        totalRevenue,
-        totalProfit,
-      },
+      totals: { totalRevenue, totalProfit },
       growth: {
         revenuePercent: revenueGrowthPercent,
         profitPercent: profitGrowthPercent,
@@ -324,7 +394,11 @@ export class StatisticsService {
    * Get the total revenue and profit for all non-deleted orders.
    * @returns An object containing total revenue and total profit.
    */
-  async getTotalRevenueAndProfit() {
+  async getTotalRevenueAndProfit(): Promise<{
+    revenue: number;
+    profit: number;
+    orders: any[];
+  }> {
     const orders = await this.prisma.order.findMany({
       where: { isDeleted: false, status: 'DELIVERED' },
       select: {
@@ -338,8 +412,6 @@ export class StatisticsService {
         },
       },
     });
-
-    console.log('orders:', orders);
 
     const revenue = orders.reduce(
       (sum, order) => sum + Number(order.totalPrice),
@@ -355,15 +427,18 @@ export class StatisticsService {
     return { revenue, profit, orders };
   }
 
-  async getOrderStats(fromDate?: string, toDate?: string) {
-    const whereClause: any = {
-      isDeleted: false,
-      createdAt: {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      },
-      status: 'DELIVERED',
-    };
+  async getOrderStats(filters: DateRange): Promise<{
+    orderStats: OrderTimeRangeStats[];
+    totals: { orders: number };
+  }> {
+    if (!filters.fromDate || !filters.toDate) {
+      throw new Error('Date range is required for order stats');
+    }
+
+    const whereClause = this.buildOrderWhereClause({
+      ...filters,
+      statuses: ['DELIVERED'],
+    });
 
     const [orders, count] = await Promise.all([
       this.prisma.order.findMany({
@@ -380,9 +455,7 @@ export class StatisticsService {
           },
         },
       }),
-      this.prisma.order.count({
-        where: whereClause,
-      }),
+      this.prisma.order.count({ where: whereClause }),
     ]);
 
     const dailyStatsMap = new Map<string, OrderTimeRangeStats>();
@@ -393,145 +466,74 @@ export class StatisticsService {
       if (!dailyStatsMap.has(dateKey)) {
         dailyStatsMap.set(dateKey, {
           date: new Date(dateKey),
-          order: 0,
+          orders: 0,
         });
       }
 
       const stats = dailyStatsMap.get(dateKey)!;
-      stats.order += 1;
-      // stats.cost += cost;
-      // stats.orders += 1;
+      stats.orders += 1;
     }
 
-    // Fill missing dates with zeroed stats
-    const result: OrderTimeRangeStats[] = [];
-    const current = new Date(fromDate);
-    const end = new Date(toDate);
-    while (current <= end) {
-      const dateKey = current.toISOString().split('T')[0];
-      if (dailyStatsMap.has(dateKey)) {
-        const stats = dailyStatsMap.get(dateKey)!;
-        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
-        result.push(stats);
-      } else {
-        result.push({
-          date: new Date(dateKey),
-          order: 0,
-        });
-      }
-      current.setDate(current.getDate() + 1);
-    }
+    const result = this.fillMissingDates(
+      dailyStatsMap,
+      filters.fromDate,
+      filters.toDate,
+      (date) => ({ date, orders: 0 }),
+    );
 
     return {
-      orderStatsData: result,
-      totals: {
-        orders: count,
-      },
+      orderStats: result,
+      totals: { orders: count },
     };
   }
 
-  async getOrderSummary(fromDate?: string, toDate?: string) {
-    const [deliveredOrderCount, pendingOrderCount, canceledOrderCount] = await Promise.all([
-      this.prisma.order.count({
-        where: { status: 'DELIVERED' },
-      }),
-      this.prisma.order.count({
-        where: { status: { not: 'DELIVERED' } },
-      }),
-      this.prisma.order.count({
-        where: { status: 'CANCELED' },
-      }),
-    ]);
-  
+  async getOrderSummary(): Promise<{
+    totals: {
+      delivered: number;
+      pending: number;
+      canceled: number;
+    };
+    growth: { delivered: number };
+  }> {
+    const { currentFrom, currentTo, prevFrom, prevTo } =
+      this.getMonthlyRanges();
+
+    const [deliveredCount, pendingCount, canceledCount, current, previous] =
+      await Promise.all([
+        this.prisma.order.count({ where: { status: 'DELIVERED' } }),
+        this.prisma.order.count({ where: { status: { not: 'DELIVERED' } } }),
+        this.prisma.order.count({ where: { status: 'CANCELED' } }),
+        this.prisma.order.count({
+          where: {
+            status: 'DELIVERED',
+            createdAt: { gte: new Date(currentFrom), lte: new Date(currentTo) },
+          },
+        }),
+        this.prisma.order.count({
+          where: {
+            status: 'DELIVERED',
+            createdAt: { gte: new Date(prevFrom), lte: new Date(prevTo) },
+          },
+        }),
+      ]);
+
+    const deliveredGrowthPercent = this.calculateGrowthPercent(
+      current,
+      previous,
+    );
 
     return {
       totals: {
-        deliveredOrderCount,
-        pendingOrderCount,
-        canceledOrderCount
+        delivered: deliveredCount,
+        pending: pendingCount,
+        canceled: canceledCount,
       },
-      growth: {
-        // revenuePercent: revenueGrowthPercent,
-        // profitPercent: profitGrowthPercent,
-      },
+      growth: { delivered: deliveredGrowthPercent },
     };
   }
 
-  // async getTimeRangeStats(
-  //   fromDate: string,
-  //   toDate: string,
-  //   statuses?: OrderStatus[],
-  // ): Promise<TimeRangeStats> {
-  //   const whereClause: any = {
-  //     isDeleted: false,
-  //     createdAt: {
-  //       gte: new Date(fromDate),
-  //       lte: new Date(toDate),
-  //     },
-  //     status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-  //   };
-
-  //   const orders = await this.prisma.order.findMany({
-  //     where: whereClause,
-  //     select: {
-  //       id: true,
-  //       totalPrice: true,
-  //       createdAt: true,
-  //       orderItems: {
-  //         select: {
-  //           quantity: true,
-  //           costPrice: true,
-  //         },
-  //       },
-  //     },
-  //   });
-
-  //   const revenue = orders.reduce(
-  //     (sum, order) => sum + Number(order.totalPrice),
-  //     0,
-  //   );
-  //   const cost = orders.reduce((sum, order) => {
-  //     return (
-  //       sum +
-  //       order.orderItems.reduce((itemSum, item) => {
-  //         return itemSum + Number(item.costPrice || 0) * item.quantity;
-  //       }, 0)
-  //     );
-  //   }, 0);
-  //   const profit = revenue - cost;
-  //   const ordersCount = orders.length;
-  //   const averageOrderValue = ordersCount > 0 ? revenue / ordersCount : 0;
-
-  //   return {
-  //     startDate: new Date(fromDate),
-  //     endDate: new Date(toDate),
-  //     revenue,
-  //     cost,
-  //     profit,
-  //     orders: ordersCount,
-  //     averageOrderValue,
-  //   };
-  // }
-
-  async getProductStats(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
-  ): Promise<ProductStats[]> {
-    const whereClause: any = {
-      order: {
-        isDeleted: false,
-        status:
-          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-      },
-    };
-
-    if (fromDate && toDate) {
-      whereClause.order.createdAt = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      };
-    }
+  async getProductStats(filters: StatsFilters = {}): Promise<ProductStats[]> {
+    const whereClause = this.buildOrderItemWhereClause(filters);
 
     const orderItems = await this.prisma.orderItem.findMany({
       where: whereClause,
@@ -583,18 +585,13 @@ export class StatisticsService {
   }
 
   async getDailyStats(
-    fromDate: string,
-    toDate: string,
-    statuses?: OrderStatus[],
+    filters: StatsFilters,
   ): Promise<RevenueProfitTimeRangeStats[]> {
-    const whereClause: any = {
-      isDeleted: false,
-      createdAt: {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      },
-      status: statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-    };
+    if (!filters.fromDate || !filters.toDate) {
+      throw new Error('Date range is required for daily stats');
+    }
+
+    const whereClause = this.buildOrderWhereClause(filters);
 
     const orders = await this.prisma.order.findMany({
       where: whereClause,
@@ -626,43 +623,20 @@ export class StatisticsService {
           date: new Date(dateKey),
           revenue: 0,
           profit: 0,
-          // cost: 0,
-          // orders: 0,
-          // averageOrderValue: 0,
         });
       }
 
       const stats = dailyStatsMap.get(dateKey)!;
       stats.revenue += revenue;
       stats.profit += profit;
-      // stats.cost += cost;
-      // stats.orders += 1;
     }
 
-    // Fill missing dates with zeroed stats
-    const result: RevenueProfitTimeRangeStats[] = [];
-    const current = new Date(fromDate);
-    const end = new Date(toDate);
-    while (current <= end) {
-      const dateKey = current.toISOString().split('T')[0];
-      if (dailyStatsMap.has(dateKey)) {
-        const stats = dailyStatsMap.get(dateKey)!;
-        // stats.averageOrderValue = stats.orders > 0 ? stats.revenue / stats.orders : 0;
-        result.push(stats);
-      } else {
-        result.push({
-          date: new Date(dateKey),
-          revenue: 0,
-          profit: 0,
-          // cost: 0,
-          // orders: 0,
-          // averageOrderValue: 0,
-        });
-      }
-      current.setDate(current.getDate() + 1);
-    }
-
-    return result;
+    return this.fillMissingDates(
+      dailyStatsMap,
+      filters.fromDate,
+      filters.toDate,
+      (date) => ({ date, revenue: 0, profit: 0 }),
+    );
   }
 
   /**
@@ -673,24 +647,11 @@ export class StatisticsService {
    * @param limit
    */
   async getBestSellerProducts(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
+    filters: DateRange = {},
     limit: number = 10,
-  ) {
-    const whereClause: any = {
-      order: {
-        isDeleted: false,
-        status:
-          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-      },
-    };
-    if (fromDate && toDate) {
-      whereClause.order.createdAt = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      };
-    }
+  ): Promise<BestSellerProduct[]> {
+    const whereClause = this.buildOrderItemWhereClause(filters);
+
     const orderItems = await this.prisma.orderItem.findMany({
       where: whereClause,
       select: {
@@ -701,6 +662,7 @@ export class StatisticsService {
         price: true,
       },
     });
+
     const productMap = new Map<
       number,
       {
@@ -740,30 +702,11 @@ export class StatisticsService {
    * @param limit
    */
   async getBestSellerCategories(
-    fromDate?: string,
-    toDate?: string,
-    statuses?: OrderStatus[],
+    filters: StatsFilters = {},
     limit: number = 3,
-  ) {
-    // console.log('fromDate', fromDate);
-    // console.log('toDate', toDate);
-    // Get all order items with productId
-    const whereClause: any = {
-      order: {
-        isDeleted: false,
-        status:
-          statuses && statuses.length > 0 ? { in: statuses } : 'DELIVERED',
-      },
-    };
-    if (fromDate && toDate) {
-      whereClause.order.createdAt = {
-        gte: new Date(fromDate),
-        lte: new Date(toDate),
-      };
-    }
-    console.log('whereClause', whereClause);
+  ): Promise<BestSellerCategory[]> {
+    const whereClause = this.buildOrderItemWhereClause(filters);
 
-    // Get productId, quantity, price from order items
     const orderItems = await this.prisma.orderItem.findMany({
       where: whereClause,
       select: {

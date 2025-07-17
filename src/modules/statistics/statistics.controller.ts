@@ -15,10 +15,10 @@ export class StatisticsController {
 
   @Get('revenue')
   async getRevenueStats(@Query() query: GetRevenueStatsDto) {
-    const stats = await this.statisticsService.getRevenueStats(
-      query.fromDate,
-      query.toDate,
-    );
+    const stats = await this.statisticsService.getRevenueStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
 
     return {
       data: stats,
@@ -28,11 +28,10 @@ export class StatisticsController {
 
   @Get('profit')
   async getProfitStats(@Query() query: GetProfitStatsDto) {
-    const stats = await this.statisticsService.getProfitStats(
-      query.fromDate,
-      query.toDate,
-      // query.statuses,
-    );
+    const stats = await this.statisticsService.getProfitStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
 
     return {
       data: stats,
@@ -42,10 +41,10 @@ export class StatisticsController {
 
   @Get('revenue-profit')
   async getRevenueProfitStats(@Query() query: GetRevenueProfitStatsDto) {
-    return this.statisticsService.getRevenueProfitStats(
-      query.fromDate,
-      query.toDate,
-    );
+    return this.statisticsService.getRevenueProfitStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
   }
 
   @Get('revenue-profit-summary')
@@ -55,7 +54,15 @@ export class StatisticsController {
 
   @Get('order')
   async getOrderStats(@Query() query: GetOrderStatsDto) {
-    return this.statisticsService.getOrderStats(query.fromDate, query.toDate);
+    return this.statisticsService.getOrderStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
+  }
+
+  @Get('order-summary')
+  async getOrderSummary() {
+    return this.statisticsService.getOrderSummary();
   }
 
   // @Get('revenue-profit/daily')
@@ -76,11 +83,10 @@ export class StatisticsController {
 
   @Get('products')
   async getProductStats(@Query() query: GetProductStatsDto) {
-    const stats = await this.statisticsService.getProductStats(
-      query.fromDate,
-      query.toDate,
-      query.statuses,
-    );
+    const stats = await this.statisticsService.getProductStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
 
     return {
       data: stats,
@@ -90,11 +96,10 @@ export class StatisticsController {
 
   @Get('daily')
   async getDailyStats(@Query() query: GetTimeRangeStatsDto) {
-    const stats = await this.statisticsService.getRevenueProfitStats(
-      query.fromDate,
-      query.toDate,
-      query.statuses,
-    );
+    const stats = await this.statisticsService.getRevenueProfitStats({
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    });
 
     return {
       data: stats,
@@ -131,19 +136,11 @@ export class StatisticsController {
       bestSellingProduct,
       bestSellingCategory,
     ] = await Promise.all([
-      this.statisticsService.getRevenueStats(fromDate, toDate),
-      this.statisticsService.getProfitStats(fromDate, toDate),
-      this.statisticsService.getRevenueStats(fromDate, toDate, [
-        'PENDING',
-        'PROCESSING',
-        'SHIPPED',
-      ]),
-      this.statisticsService.getBestSellerProducts(fromDate, toDate, [
-        'DELIVERED',
-      ]),
-      this.statisticsService.getBestSellerCategories(fromDate, toDate, [
-        'DELIVERED',
-      ]),
+      this.statisticsService.getRevenueStats({ fromDate, toDate }),
+      this.statisticsService.getProfitStats({ fromDate, toDate }),
+      this.statisticsService.getRevenueStats({ fromDate, toDate }),
+      this.statisticsService.getBestSellerProducts({ fromDate, toDate }),
+      this.statisticsService.getBestSellerCategories({ fromDate, toDate }),
     ]);
 
     return {
