@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { StockService } from './stock.service';
-import { CreateStockDto } from './dto/create-stock.dto';
 import { FindStocksDto } from './dto/query-stock.dto';
 import { ApiQuery } from '@nestjs/swagger';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';

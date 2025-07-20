@@ -21,6 +21,7 @@ model Product {
   tags        Json
   details     Json?
   status      ProductStatus @default(ACTIVE)
+  isVisible   Boolean       @default(true)
   isDeleted   Boolean       @default(false)
   categoryId  Int
   createdAt   DateTime      @default(now())

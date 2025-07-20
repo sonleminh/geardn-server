@@ -31,13 +31,16 @@ export class ProductEntity implements Product {
   details: JsonValue;
 
   @ApiProperty()
-  status: ProductStatus;
-
-  @ApiProperty()
   description: string | null;
 
   @ApiProperty({ uniqueItems: true })
   slug: string;
+
+  @ApiProperty()
+  status: ProductStatus;
+
+  @ApiProperty({ required: true })
+  isVisible: boolean;
 
   @ApiProperty({ required: true })
   isDeleted: boolean;
