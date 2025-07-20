@@ -4,12 +4,11 @@ import { GetRevenueStatsDto } from './dto/get-revenue-stats.dto';
 import { GetProfitStatsDto } from './dto/get-profit-stats.dto';
 import { GetTimeRangeStatsDto } from './dto/get-time-range-stats.dto';
 import { GetProductStatsDto } from './dto/get-product-stats.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { GetRevenueProfitStatsDto } from './dto/get-revenue-profit-stats.dto';
 import { GetOrderStatsDto } from './dto/get-order-stats.dto';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller('statistics')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAdminAuthGuard)
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
@@ -40,7 +39,7 @@ export class StatisticsController {
   }
 
   @Get('revenue-profit')
-  async getRevenueProfitStats(@Query() query: GetRevenueProfitStatsDto) {
+  async getRevenueProfitStats(@Query() query: GetRevenueStatsDto) {
     return this.statisticsService.getRevenueProfitStats({
       fromDate: query.fromDate,
       toDate: query.toDate,

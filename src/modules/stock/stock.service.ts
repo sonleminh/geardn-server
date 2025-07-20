@@ -9,19 +9,7 @@ import { Prisma } from '@prisma/client';
 export class StockService {
   constructor(private prisma: PrismaService) {}
 
-  create(createStockDto: CreateStockDto) {
-    return 'This action adds a new stock';
-  }
-
-  findAll() {
-    return `This action returns all stock`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} stock`;
-  }
-
-  async findByWarehouse(id: number, query: FindStocksDto) {
+  async findByWarehouse(query: FindStocksDto) {
     const { page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
 
@@ -51,9 +39,7 @@ export class StockService {
         include: {
           skus: {
             include: {
-              stocks: {
-                where: { warehouseId: id },
-              },
+              stocks: true,
               productSkuAttributes: {
                 include: {
                   attributeValue: {

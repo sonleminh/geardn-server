@@ -6,30 +6,23 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { FindStocksDto } from './dto/query-stock.dto';
 import { ApiQuery } from '@nestjs/swagger';
+import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 
 @Controller('stocks')
+@UseGuards(JwtAdminAuthGuard)
 export class StockController {
   constructor(private readonly stockService: StockService) {}
 
-  @Post()
-  create(@Body() createStockDto: CreateStockDto) {
-    return this.stockService.create(createStockDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.stockService.findAll();
-  }
-
-  @Get(':id/warehouses')
+  @Get('')
   @ApiQuery({ type: FindStocksDto })
-  findAllByWarehouseId(@Param('id') id: string, @Query() query: FindStocksDto) {
-    return this.stockService.findByWarehouse(+id, query);
+  findAllByWarehouseId(@Query() query: FindStocksDto) {
+    return this.stockService.findByWarehouse(query);
   }
 
   @Get(':id/products')
