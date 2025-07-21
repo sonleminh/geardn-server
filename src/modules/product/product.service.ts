@@ -354,6 +354,7 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
+    console.log('updateProductDto', updateProductDto);
     const data: Prisma.ProductUpdateInput = {
       ...updateProductDto,
       tags: updateProductDto.tags
@@ -371,6 +372,27 @@ export class ProductService {
       data,
     });
     return { data: res };
+  }
+
+  async updateIsVisible(productId: number, isVisible: boolean, userId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: { isVisible },
+      });
+
+      // await tx.productLog.create({
+      //   data: {
+      //     productId,
+      //     field: 'isVisible',
+      //     oldValue: isVisible.toString(),
+      //     newValue: isVisible.toString(),
+      //     changedBy: userId,
+      //   },
+      // });
+    });
+
+    return { message: 'Product isVisible updated successfully' };
   }
 
   async softDelete(id: number): Promise<{ deleteCount: number }> {
@@ -391,6 +413,7 @@ export class ProductService {
   }
 
   async restoreProduct(id: number) {
+
     const entity = await this.prisma.product.findUnique({
       where: { id, isDeleted: true },
     });

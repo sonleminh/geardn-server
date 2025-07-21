@@ -330,6 +330,19 @@ model AdjustmentLogItem {
   sku           ProductSKU    @relation(fields: [skuId], references: [id])
 }
 
+// model AuditLog {
+//   id        Int      @id @default(autoincrement())
+//   table     String
+//   action    String
+//   targetId  Int
+//   actor     String
+//   actorId   Int
+//   diff      Json
+//   createdAt DateTime @default(now())
+
+//   user User @relation(fields: [actorId], references: [id])
+// }
+
 //
 // ==== USER & PAYMENT ====
 //

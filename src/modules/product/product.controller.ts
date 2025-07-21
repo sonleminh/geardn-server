@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Delete,
+  Req,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { ENUM_LABELS } from 'src/common/constants/enum-labels';
 import { ProductTag } from 'src/common/enums/product-tag.enum';
 import { ProductSkuService } from '../product-sku/product-sku.service';
@@ -115,6 +117,19 @@ export class ProductController {
   @ApiCreatedResponse({ type: ProductEntity })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(+id, updateProductDto);
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/is-visible')
+  @ApiCreatedResponse({ type: ProductEntity })
+  updateIsVisible(
+    @Param('id') id: string,
+    @Body() { isVisible }: { isVisible: boolean },
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+
+    return this.productService.updateIsVisible(+id, isVisible, userId);
   }
 
   @UseGuards(JwtAdminAuthGuard)

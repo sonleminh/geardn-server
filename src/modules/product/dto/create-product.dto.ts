@@ -8,11 +8,13 @@ import {
   IsString,
   ValidateNested,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 import { JsonValue } from '@prisma/client/runtime/library';
 import { Type } from 'class-transformer';
 import { TagDto } from './tag.dto';
 import { ProductTag } from 'src/common/enums/product-tag.enum';
+import { ProductStatus } from '@prisma/client';
 
 export class CreateProductDto {
   @ApiProperty()
@@ -55,4 +57,14 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   brand: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsEnum(ProductStatus)
+  status: ProductStatus;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isVisible: boolean;
 }
