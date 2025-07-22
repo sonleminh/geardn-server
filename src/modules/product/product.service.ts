@@ -330,7 +330,12 @@ export class ProductService {
               sku: true,
               price: true,
               status: true,
-              isDeleted: true,
+              // isDeleted: true,
+              stocks: {
+                select: {
+                  quantity: true,
+                },
+              },
             },
           },
         },
@@ -341,8 +346,16 @@ export class ProductService {
       this.prisma.product.count({ where }),
     ]);
 
+    const formattedProducts = products.map((product) => {
+      const totalStock = product.skus.reduce((sum, sku) => sum + sku.stocks.reduce((sum, stock) => sum + stock.quantity, 0), 0);
+      return {
+        ...product,
+        totalStock,
+      };
+    });
+
     return {
-      data: products,
+      data: formattedProducts,
       meta: {
         total,
         page,
@@ -374,7 +387,7 @@ export class ProductService {
     return { data: res };
   }
 
-  async updateIsVisible(productId: number, isVisible: boolean, userId: number) {
+  async updateIsVisible(productId: number, isVisible: boolean) {
     await this.prisma.$transaction(async (tx) => {
       await tx.product.update({
         where: { id: productId },

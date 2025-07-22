@@ -9,7 +9,7 @@ import { Prisma } from '@prisma/client';
 export class StockService {
   constructor(private prisma: PrismaService) {}
 
-  async findByWarehouse(query: FindStocksDto) {
+  async findAll(query: FindStocksDto) {
     const { page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
 

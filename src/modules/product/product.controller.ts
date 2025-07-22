@@ -125,11 +125,8 @@ export class ProductController {
   updateIsVisible(
     @Param('id') id: string,
     @Body() { isVisible }: { isVisible: boolean },
-    @Req() req: Request,
   ) {
-    const userId = req.user?.id;
-
-    return this.productService.updateIsVisible(+id, isVisible, userId);
+    return this.productService.updateIsVisible(+id, isVisible);
   }
 
   @UseGuards(JwtAdminAuthGuard)

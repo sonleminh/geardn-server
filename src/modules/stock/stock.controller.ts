@@ -20,8 +20,8 @@ export class StockController {
 
   @Get('')
   @ApiQuery({ type: FindStocksDto })
-  findAllByWarehouseId(@Query() query: FindStocksDto) {
-    return this.stockService.findByWarehouse(query);
+  findAll(@Query() query: FindStocksDto) {
+    return this.stockService.findAll(query);
   }
 
   @Get(':id/products')
