@@ -421,7 +421,8 @@ export class StatisticsService {
     for (const order of orders) {
       for (const item of order.orderItems) {
         profit +=
-          (Number(item.sellingPrice) - Number(item.unitCost || 0)) * item.quantity;
+          (Number(item.sellingPrice) - Number(item.unitCost || 0)) *
+          item.quantity;
       }
     }
     return { revenue, profit, orders };
@@ -713,7 +714,6 @@ export class StatisticsService {
         productId: true,
         quantity: true,
         sellingPrice: true,
-        unitCost: true,
       },
     });
 
@@ -769,10 +769,21 @@ export class StatisticsService {
   }
 
   async getStockSummary() {
-    const [totalStock, totalProduct, totalCost] = await Promise.all([
-      this.prisma.stock.count(),
-      this.prisma.product.count({ where: { isDeleted: false } }),
-    ]);
-    return { totalStock, totalProduct };
+    const { totalStock, totalProducts } = await this.prisma.$transaction(
+      async (tx) => {
+        const totalStock = await tx.stock.aggregate({
+          _sum: {
+            quantity: true,
+          },
+        });
+        const totalProducts = await tx.product.count({
+          where: {
+            isDeleted: false,
+          },
+        });
+        return { totalStock, totalProducts };
+      },
+    );
+    return { totalStock: totalStock._sum.quantity ?? 0, totalProducts };
   }
 }

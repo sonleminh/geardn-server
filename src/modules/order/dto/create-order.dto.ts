@@ -14,7 +14,7 @@ export class CreateOrderItemDto {
   quantity: number;
 
   @IsInt()
-  price: number;
+  sellingPrice: number;
 
   @IsInt()
   imageUrl: string;

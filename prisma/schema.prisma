@@ -138,14 +138,14 @@ model Order {
 }
 
 model OrderItem {
-  id        Int      @id @default(autoincrement())
-  orderId   Int
-  productId Int
-  skuId     Int
-  quantity  Int
-  price     Decimal
-  unitCost  Decimal?
-  imageUrl  String?
+  id           Int      @id @default(autoincrement())
+  orderId      Int
+  productId    Int
+  skuId        Int
+  quantity     Int
+  sellingPrice Decimal?
+  unitCost     Decimal?
+  imageUrl     String?
 
   productName String
   productSlug String

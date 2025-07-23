@@ -25,7 +25,7 @@ export class UpdateOrderItemDto {
   quantity: number;
 
   @IsInt()
-  price: number;
+  sellingPrice: number;
 
   @IsInt()
   imageUrl: string;
