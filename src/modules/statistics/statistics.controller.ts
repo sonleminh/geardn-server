@@ -154,4 +154,14 @@ export class StatisticsController {
       message: '30-day overview statistics retrieved successfully',
     };
   }
+
+  @Get('stock-summary')
+  async getStockSummary() {
+    const stats = await this.statisticsService.getStockSummary();
+
+    return {
+      data: stats,
+      message: 'Stock summary retrieved successfully',
+    };
+  }
 }

@@ -2,6 +2,7 @@ import { ImportType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsArray,
+  IsDecimal,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -35,8 +36,8 @@ export class CreateImportLogItemDto {
   quantity: number;
 
   @IsNotEmpty()
-  @IsInt()
-  costPrice: Decimal;
+  @IsDecimal()
+  unitCost: Decimal;
 
   @IsNotEmpty()
   @IsInt()

@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateStockDto } from './dto/create-stock.dto';
-import { UpdateStockDto } from './dto/update-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { FindStocksDto } from './dto/query-stock.dto';
 import { Prisma } from '@prisma/client';
@@ -105,7 +103,7 @@ export class StockService {
               select: {
                 id: true,
                 quantity: true,
-                costPrice: true,
+                unitCost: true,
               },
             },
             productSkuAttributes: {

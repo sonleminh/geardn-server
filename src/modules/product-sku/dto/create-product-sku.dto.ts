@@ -12,7 +12,7 @@ export class CreateProductSkuDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  price: number;
+  sellingPrice: number;
 
   @ApiProperty()
   @IsOptional()

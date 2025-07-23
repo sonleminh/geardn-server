@@ -70,10 +70,10 @@ export class ProductService {
           },
           skus: {
             select: {
-              price: true,
+              sellingPrice: true,
             },
             orderBy: {
-              price: 'asc',
+              sellingPrice: 'asc',
             },
             take: 1,
           },
@@ -109,7 +109,7 @@ export class ProductService {
           select: {
             id: true,
             sku: true,
-            price: true,
+            sellingPrice: true,
             imageUrl: true,
             productSkuAttributes: {
               select: {
@@ -159,7 +159,7 @@ export class ProductService {
             id: true,
             productId: true,
             sku: true,
-            price: true,
+            sellingPrice: true,
             // quantity: true,
             imageUrl: true,
             productSkuAttributes: {
@@ -212,7 +212,7 @@ export class ProductService {
         skus: {
           select: {
             id: true,
-            price: true,
+            sellingPrice: true,
             imageUrl: true,
             productSkuAttributes: {
               select: {
@@ -257,7 +257,7 @@ export class ProductService {
             id: true,
             productId: true,
             sku: true,
-            price: true,
+            sellingPrice: true,
             imageUrl: true,
             productSkuAttributes: {
               select: {
@@ -328,7 +328,7 @@ export class ProductService {
             select: {
               id: true,
               sku: true,
-              price: true,
+              sellingPrice: true,
               status: true,
               // isDeleted: true,
               stocks: {

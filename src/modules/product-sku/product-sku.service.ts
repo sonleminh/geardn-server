@@ -30,7 +30,7 @@ export class ProductSkuService {
 
   async create(createProductSkusDto: CreateProductSkuDto) {
     const sku = await this.generateSKU();
-    const { productId, imageUrl, price, attributeValues } =
+    const { productId, imageUrl, sellingPrice, attributeValues } =
       createProductSkusDto;
 
     const existingSkus = await this.prisma.productSKU.findMany({
@@ -58,7 +58,7 @@ export class ProductSkuService {
         productId,
         sku,
         imageUrl,
-        price,
+        sellingPrice,
         // quantity,
       },
     });
@@ -185,7 +185,7 @@ export class ProductSkuService {
       select: {
         id: true,
         sku: true,
-        price: true,
+        sellingPrice: true,
         // quantity: true,
         imageUrl: true,
         product: {
@@ -226,7 +226,7 @@ export class ProductSkuService {
   }
 
   async update(id: number, updateProductSkusDto: UpdateProductSkuDto) {
-    const { productId, price, imageUrl, attributeValues } =
+    const { productId, sellingPrice, imageUrl, attributeValues } =
       updateProductSkusDto;
     const existingSkus = await this.prisma.productSKU.findMany({
       where: { productId: productId },
@@ -252,7 +252,7 @@ export class ProductSkuService {
     const res = await this.prisma.productSKU.update({
       where: { id },
       data: {
-        price,
+        sellingPrice,
         // quantity,
         imageUrl,
         productSkuAttributes: {

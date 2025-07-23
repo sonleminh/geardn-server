@@ -37,15 +37,15 @@ model Product {
 }
 
 model ProductSKU {
-  id        Int       @id @default(autoincrement())
-  productId Int
-  sku       String    @unique
-  price     Decimal
-  imageUrl  String?
-  status    SKUStatus @default(ACTIVE)
-  isDeleted Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           Int       @id @default(autoincrement())
+  productId    Int
+  sku          String    @unique
+  sellingPrice Decimal
+  imageUrl     String?
+  status       SKUStatus @default(ACTIVE)
+  isDeleted    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   product              Product               @relation("ProductToSKU", fields: [productId], references: [id])
   productSkuAttributes ProductSKUAttribute[] @relation("SkuToAttribute")
@@ -144,7 +144,7 @@ model OrderItem {
   skuId     Int
   quantity  Int
   price     Decimal
-  costPrice Decimal?
+  unitCost  Decimal?
   imageUrl  String?
 
   productName String
@@ -232,7 +232,7 @@ model Stock {
   skuId       Int
   warehouseId Int
   quantity    Int      @default(0)
-  costPrice   Decimal  @default(0)
+  unitCost    Decimal  @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -260,11 +260,11 @@ model ImportLog {
 }
 
 model ImportLogItem {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   importLogId Int
   skuId       Int
   quantity    Int
-  costPrice   Decimal
+  unitCost    Decimal?
   note        String?
 
   importLog ImportLog  @relation(fields: [importLogId], references: [id])
@@ -289,11 +289,11 @@ model ExportLog {
 }
 
 model ExportLogItem {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   exportLogId Int
   skuId       Int
   quantity    Int
-  costPrice   Decimal
+  unitCost    Decimal?
   note        String?
 
   exportLog ExportLog  @relation(fields: [exportLogId], references: [id])
@@ -322,9 +322,9 @@ model AdjustmentLogItem {
   skuId           Int
   warehouseId     Int
 
-  quantityBefore  Int
-  quantityChange  Int
-  costPriceBefore Decimal
+  quantityBefore Int
+  quantityChange Int
+  unitCostBefore Decimal?
 
   adjustmentLog AdjustmentLog @relation(fields: [adjustmentLogId], references: [id])
   sku           ProductSKU    @relation(fields: [skuId], references: [id])

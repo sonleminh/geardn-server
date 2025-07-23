@@ -18,10 +18,10 @@ export class ProductSkuEntity implements ProductSKU {
   sku: string;
 
   @ApiProperty()
-  price: Decimal;
+  sellingPrice: Decimal;
 
   @ApiProperty()
-  costPrice: Decimal;
+  unitCost: Decimal;
 
   @ApiProperty()
   quantity: number;

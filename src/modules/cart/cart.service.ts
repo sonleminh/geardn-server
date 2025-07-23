@@ -173,7 +173,7 @@ export class CartService {
               select: {
                 id: true,
                 sku: true,
-                price: true,
+                sellingPrice: true,
                 imageUrl: true,
                 // quantity: true,
                 productSkuAttributes: {
@@ -259,7 +259,7 @@ export class CartService {
               select: {
                 id: true,
                 sku: true,
-                price: true,
+                sellingPrice: true,
                 imageUrl: true,
                 // quantity: true,
                 productSkuAttributes: {
@@ -305,7 +305,7 @@ export class CartService {
               select: {
                 id: true,
                 sku: true,
-                price: true,
+                sellingPrice: true,
                 imageUrl: true,
                 // quantity: true,
                 productSkuAttributes: {

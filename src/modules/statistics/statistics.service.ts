@@ -247,7 +247,7 @@ export class StatisticsService {
         orderItems: {
           select: {
             quantity: true,
-            costPrice: true,
+            unitCost: true,
           },
         },
       },
@@ -263,7 +263,7 @@ export class StatisticsService {
     for (const order of orders) {
       const orderRevenue = Number(order.totalPrice);
       const orderCost = order.orderItems.reduce((sum, item) => {
-        return sum + Number(item.costPrice || 0) * item.quantity;
+        return sum + Number(item.unitCost || 0) * item.quantity;
       }, 0);
 
       totalRevenue += orderRevenue;
@@ -310,7 +310,7 @@ export class StatisticsService {
         orderItems: {
           select: {
             quantity: true,
-            costPrice: true,
+            unitCost: true,
           },
         },
       },
@@ -322,7 +322,7 @@ export class StatisticsService {
       const dateKey = order.createdAt.toISOString().split('T')[0];
       const revenue = Number(order.totalPrice);
       const cost = order.orderItems.reduce((sum, item) => {
-        return sum + Number(item.costPrice || 0) * item.quantity;
+        return sum + Number(item.unitCost || 0) * item.quantity;
       }, 0);
       const profit = revenue - cost;
 
@@ -405,8 +405,8 @@ export class StatisticsService {
         totalPrice: true,
         orderItems: {
           select: {
-            price: true,
-            costPrice: true,
+            sellingPrice: true,
+            unitCost: true,
             quantity: true,
           },
         },
@@ -421,7 +421,7 @@ export class StatisticsService {
     for (const order of orders) {
       for (const item of order.orderItems) {
         profit +=
-          (Number(item.price) - Number(item.costPrice || 0)) * item.quantity;
+          (Number(item.sellingPrice) - Number(item.unitCost || 0)) * item.quantity;
       }
     }
     return { revenue, profit, orders };
@@ -450,7 +450,7 @@ export class StatisticsService {
           orderItems: {
             select: {
               quantity: true,
-              costPrice: true,
+              unitCost: true,
             },
           },
         },
@@ -541,8 +541,8 @@ export class StatisticsService {
         productId: true,
         productName: true,
         quantity: true,
-        price: true,
-        costPrice: true,
+        sellingPrice: true,
+        unitCost: true,
       },
     });
 
@@ -550,8 +550,8 @@ export class StatisticsService {
 
     for (const item of orderItems) {
       const productId = item.productId;
-      const revenue = Number(item.price) * item.quantity;
-      const cost = Number(item.costPrice || 0) * item.quantity;
+      const revenue = Number(item.sellingPrice) * item.quantity;
+      const cost = Number(item.unitCost || 0) * item.quantity;
       const profit = revenue - cost;
 
       if (!productStatsMap.has(productId)) {
@@ -602,7 +602,7 @@ export class StatisticsService {
         orderItems: {
           select: {
             quantity: true,
-            costPrice: true,
+            unitCost: true,
           },
         },
       },
@@ -614,7 +614,7 @@ export class StatisticsService {
       const dateKey = order.createdAt.toISOString().split('T')[0];
       const revenue = Number(order.totalPrice);
       const cost = order.orderItems.reduce((sum, item) => {
-        return sum + Number(item.costPrice || 0) * item.quantity;
+        return sum + Number(item.unitCost || 0) * item.quantity;
       }, 0);
       const profit = revenue - cost;
 
@@ -659,7 +659,7 @@ export class StatisticsService {
         productName: true,
         imageUrl: true,
         quantity: true,
-        price: true,
+        sellingPrice: true,
       },
     });
 
@@ -680,14 +680,14 @@ export class StatisticsService {
           productId: item.productId,
           productName: item.productName,
           imageUrl: item.imageUrl,
-          price: Number(item.price),
+          price: Number(item.sellingPrice),
           quantitySold: 0,
           revenue: 0,
         });
       }
       const stats = productMap.get(item.productId)!;
       stats.quantitySold += item.quantity;
-      stats.revenue += Number(item.price) * item.quantity;
+      stats.revenue += Number(item.sellingPrice) * item.quantity;
     }
     return Array.from(productMap.values())
       .sort((a, b) => b.quantitySold - a.quantitySold)
@@ -712,7 +712,8 @@ export class StatisticsService {
       select: {
         productId: true,
         quantity: true,
-        price: true,
+        sellingPrice: true,
+        unitCost: true,
       },
     });
 
@@ -760,10 +761,18 @@ export class StatisticsService {
       const stats = categoryMap.get(categoryId);
       if (!stats) continue;
       stats.quantitySold += item.quantity;
-      stats.revenue += Number(item.price) * item.quantity;
+      stats.revenue += Number(item.sellingPrice) * item.quantity;
     }
     return Array.from(categoryMap.values())
       .sort((a, b) => b.quantitySold - a.quantitySold)
       .slice(0, limit);
+  }
+
+  async getStockSummary() {
+    const [totalStock, totalProduct, totalCost] = await Promise.all([
+      this.prisma.stock.count(),
+      this.prisma.product.count({ where: { isDeleted: false } }),
+    ]);
+    return { totalStock, totalProduct };
   }
 }

@@ -49,13 +49,13 @@ export class OrderService {
       orderItemsData = orderItems.map((item) => {
         const sku = skus.find((s) => s.id === item.skuId);
         if (!sku) throw new BadRequestException(`SKU ${item.skuId} not found`);
-        totalPrice += Number(sku.price) * item.quantity;
+        totalPrice += Number(sku.sellingPrice) * item.quantity;
 
         return {
           productId: item.productId,
           skuId: item.skuId,
           quantity: item.quantity,
-          price: item.price,
+          sellingPrice: item.sellingPrice,
           imageUrl: item.imageUrl,
           productName: item.productName,
           productSlug: item.productSlug,
@@ -206,7 +206,7 @@ export class OrderService {
             productSlug: true,
             skuId: true,
             skuCode: true,
-            price: true,
+            sellingPrice: true,
             quantity: true,
             imageUrl: true,
             skuAttributes: true,
@@ -236,13 +236,13 @@ export class OrderService {
                   select: {
                     quantity: true,
                     warehouseId: true,
-                    costPrice: true,
+                    unitCost: true,
                   },
                 },
               },
             },
             skuCode: true,
-            price: true,
+            sellingPrice: true,
             quantity: true,
             imageUrl: true,
             skuAttributes: true,
@@ -354,7 +354,7 @@ export class OrderService {
               productId: item.productId,
               skuId: item.skuId,
               quantity: item.quantity,
-              price: item.price,
+              sellingPrice: item.sellingPrice,
               imageUrl: item.imageUrl,
               productName: item.productName,
               productSlug: item.productSlug,
@@ -439,7 +439,7 @@ export class OrderService {
           Array<{
             skuId: number;
             quantity: number;
-            costPrice: any;
+            unitCost: any;
           }>
         >();
 
@@ -481,7 +481,7 @@ export class OrderService {
             where: { id: orderItem.id },
             data: {
               warehouseId: mapping.warehouseId,
-              costPrice: stock.costPrice,
+              unitCost: stock.unitCost,
             },
           });
 
@@ -493,7 +493,7 @@ export class OrderService {
           warehouseGroups.get(mapping.warehouseId)!.push({
             skuId: mapping.skuId,
             quantity: orderItem.quantity,
-            costPrice: stock.costPrice,
+            unitCost: stock.unitCost,
           });
         }
 
@@ -531,7 +531,7 @@ export class OrderService {
             exportLogId: exportLog.id,
             skuId: item.skuId,
             quantity: item.quantity,
-            costPrice: item.costPrice,
+            costPrice: item.unitCost,
           }));
 
           await tx.exportLogItem.createMany({

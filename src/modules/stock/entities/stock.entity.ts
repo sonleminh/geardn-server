@@ -16,7 +16,7 @@ export class StockEntity implements Stock {
   quantity: number;
 
   @ApiProperty()
-  costPrice: Decimal;
+  unitCost: Decimal;
 
   @ApiProperty()
   createdAt: Date;

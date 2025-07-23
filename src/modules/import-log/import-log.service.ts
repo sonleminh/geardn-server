@@ -26,11 +26,11 @@ export class ImportLogService {
     // Merge duplicated SKU
     const mergedItemsMap = new Map<
       number,
-      { quantity: number; costPrice: Decimal; note?: string }
+      { quantity: number; unitCost: Decimal; note?: string }
     >();
 
     for (const item of items) {
-      if (item.quantity <= 0 || Number(item.costPrice) < 0) {
+      if (item.quantity <= 0 || Number(item.unitCost) < 0) {
         throw new BadRequestException(
           `Invalid quantity or price for SKU ${item.skuId}`,
         );
@@ -39,11 +39,11 @@ export class ImportLogService {
       if (mergedItemsMap.has(item.skuId)) {
         const existing = mergedItemsMap.get(item.skuId)!;
         existing.quantity += item.quantity;
-        existing.costPrice = item.costPrice; // Keep latest price (or handle average if needed)
+        existing.unitCost = item.unitCost; // Keep latest price (or handle average if needed)
       } else {
         mergedItemsMap.set(item.skuId, {
           quantity: item.quantity,
-          costPrice: item.costPrice,
+          unitCost: item.unitCost,
           note: item.note,
         });
       }
@@ -86,7 +86,7 @@ export class ImportLogService {
           importLogId: importLog.id,
           skuId: item.skuId,
           quantity: item.quantity,
-          costPrice: item.costPrice,
+          unitCost: item.unitCost,
           note: item.note,
         }));
 
@@ -106,12 +106,12 @@ export class ImportLogService {
 
           if (existingStock) {
             const oldQty = Number(existingStock.quantity);
-            const oldCostPrice = Number(existingStock?.costPrice) ?? 0;
+            const oldUnitCost = Number(existingStock?.unitCost) ?? 0;
             const importQty = Number(item.quantity);
-            const importPrice = Number(item.costPrice);
+            const importPrice = Number(item.unitCost);
 
-            const newCostPrice =
-              (oldQty * oldCostPrice + importQty * importPrice) /
+            const newUnitCost =
+              (oldQty * oldUnitCost + importQty * importPrice) /
               (oldQty + importQty);
 
             await tx.stock.update({
@@ -125,7 +125,7 @@ export class ImportLogService {
                 quantity: {
                   increment: item.quantity,
                 },
-                costPrice: newCostPrice,
+                unitCost: newUnitCost,
               },
             });
           } else {
@@ -134,7 +134,7 @@ export class ImportLogService {
                 skuId: item.skuId,
                 warehouseId,
                 quantity: item.quantity,
-                costPrice: item.costPrice,
+                unitCost: item.unitCost,
               },
             });
           }
