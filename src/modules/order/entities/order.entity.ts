@@ -43,6 +43,12 @@ export class OrderEntity implements Order {
   isDeleted: boolean;
 
   @ApiProperty()
+  confirmedAt: Date;
+
+  @ApiProperty()
+  completedAt: Date;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

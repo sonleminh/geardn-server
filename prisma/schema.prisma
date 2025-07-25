@@ -127,8 +127,11 @@ model Order {
   shipment        Json        @default("{}")
   paymentMethodId Int
   isDeleted       Boolean     @default(false)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  confirmedAt     DateTime?
+  completedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user          User?                @relation(fields: [userId], references: [id])
   paymentMethod PaymentMethod        @relation(fields: [paymentMethodId], references: [id])
