@@ -82,6 +82,12 @@ export class CreateOrderDto {
   orderItems: CreateOrderItemDto[];
 
   @ApiProperty()
+  confirmedAt: Date;
+
+  @ApiProperty()
+  completedAt: Date;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

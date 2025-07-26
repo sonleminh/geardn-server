@@ -90,7 +90,7 @@ export class StatisticsService {
     };
 
     if (filters.fromDate && filters.toDate) {
-      whereClause.createdAt = {
+      whereClause.completedAt = {
         gte: new Date(filters.fromDate),
         lte: new Date(filters.toDate),
       };
@@ -447,7 +447,7 @@ export class StatisticsService {
         select: {
           id: true,
           totalPrice: true,
-          createdAt: true,
+          completedAt: true,
           orderItems: {
             select: {
               quantity: true,
@@ -459,10 +459,12 @@ export class StatisticsService {
       this.prisma.order.count({ where: whereClause }),
     ]);
 
+    console.log('order:', orders)
+
     const dailyStatsMap = new Map<string, OrderTimeRangeStats>();
 
     for (const order of orders) {
-      const dateKey = order.createdAt.toISOString().split('T')[0];
+      const dateKey = order.completedAt.toISOString().split('T')[0];
 
       if (!dailyStatsMap.has(dateKey)) {
         dailyStatsMap.set(dateKey, {

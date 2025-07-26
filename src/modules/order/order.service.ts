@@ -34,6 +34,9 @@ export class OrderService {
       note,
       shipment,
       flag,
+      status,
+      confirmedAt,
+      completedAt
     } = createOrderDto;
 
     let orderItemsData = [];
@@ -74,12 +77,14 @@ export class OrderService {
           phoneNumber,
           email,
           note,
-          status: 'PENDING',
+          status: status ?? 'PENDING',
           shipment: shipment as JsonObject,
           flag: flag as JsonObject,
           orderItems: {
             create: orderItemsData,
           },
+          confirmedAt,
+          completedAt,
         },
         include: {
           orderItems: true,
