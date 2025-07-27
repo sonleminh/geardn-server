@@ -41,10 +41,6 @@ export class CreateOrderDto {
   userId: number;
 
   @ApiProperty()
-  @IsOptional()
-  status: OrderStatus;
-
-  @ApiProperty()
   @IsNotEmpty()
   paymentMethodId: number;
 

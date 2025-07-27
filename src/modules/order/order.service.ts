@@ -34,7 +34,6 @@ export class OrderService {
       note,
       shipment,
       flag,
-      status,
       confirmedAt,
       completedAt
     } = createOrderDto;
@@ -77,7 +76,6 @@ export class OrderService {
           phoneNumber,
           email,
           note,
-          status: status ?? 'PENDING',
           shipment: shipment as JsonObject,
           flag: flag as JsonObject,
           orderItems: {

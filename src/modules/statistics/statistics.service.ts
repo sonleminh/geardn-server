@@ -459,8 +459,6 @@ export class StatisticsService {
       this.prisma.order.count({ where: whereClause }),
     ]);
 
-    console.log('order:', orders)
-
     const dailyStatsMap = new Map<string, OrderTimeRangeStats>();
 
     for (const order of orders) {

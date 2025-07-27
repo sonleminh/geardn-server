@@ -141,14 +141,14 @@ model Order {
 }
 
 model OrderItem {
-  id           Int      @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   orderId      Int
   productId    Int
   skuId        Int
   quantity     Int
-  sellingPrice Decimal?
-  unitCost     Decimal?
-  imageUrl     String?
+  sellingPrice Decimal
+  unitCost     Decimal
+  imageUrl     String
 
   productName String
   productSlug String
@@ -254,6 +254,7 @@ model ImportLog {
   note          String?
   createdBy     Int
   referenceCode String     @unique
+  importDate    DateTime
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -282,6 +283,7 @@ model ExportLog {
   note          String?
   referenceCode String     @unique
   createdBy     Int
+  exportDate    DateTime
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -304,15 +306,16 @@ model ExportLogItem {
 }
 
 model AdjustmentLog {
-  id            Int              @id @default(autoincrement())
-  warehouseId   Int
-  reason        AdjustmentReason
-  type          AdjustmentType
-  note          String?
-  referenceCode String           @unique
-  createdBy     Int
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id             Int              @id @default(autoincrement())
+  warehouseId    Int
+  reason         AdjustmentReason
+  type           AdjustmentType
+  note           String?
+  referenceCode  String           @unique
+  createdBy      Int
+  adjustmentDate DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   warehouse Warehouse           @relation(fields: [warehouseId], references: [id])
   user      User                @relation(fields: [createdBy], references: [id])
