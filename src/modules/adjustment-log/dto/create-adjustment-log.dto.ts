@@ -2,6 +2,7 @@ import { AdjustmentReason, AdjustmentType, ExportType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsArray,
+  IsDate,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -22,6 +23,10 @@ export class CreateAdjustmentLogDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsNotEmpty()
+  @IsDate()
+  adjustmentDate: Date;
 
   @IsNotEmpty()
   @IsArray()

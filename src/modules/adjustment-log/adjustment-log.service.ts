@@ -21,7 +21,7 @@ export class AdjustmentLogService {
   constructor(private prisma: PrismaService) {}
 
   async create(createAdjustmentLogDto: CreateAdjustmentLogDto, userId: number) {
-    const { warehouseId, reason, type, note, items } = createAdjustmentLogDto;
+    const { warehouseId, reason, type, note, adjustmentDate, items } = createAdjustmentLogDto;
 
     if (!items || items.length === 0) {
       throw new BadRequestException('At least one item is required.');
@@ -103,6 +103,7 @@ export class AdjustmentLogService {
             type,
             note,
             referenceCode,
+            adjustmentDate,
             createdBy: userId,
           },
         });

@@ -18,6 +18,9 @@ export class ImportLogEntity implements ImportLog {
   referenceCode: string;
 
   @ApiProperty()
+  importDate: Date;
+
+  @ApiProperty()
   createdBy: number;
 
   @ApiProperty()

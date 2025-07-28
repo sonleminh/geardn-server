@@ -2,6 +2,7 @@ import { ImportType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsArray,
+  IsDate,
   IsDecimal,
   IsInt,
   IsNotEmpty,
@@ -20,6 +21,10 @@ export class CreateImportLogDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsNotEmpty()
+  @IsDate()
+  importDate: Date;
 
   @IsNotEmpty()
   @IsArray()

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ImportLog, ImportType } from '@prisma/client';
+import { ExportLog, ExportType } from '@prisma/client';
 
-export class ImportLogEntity implements ImportLog {
+export class ExportLogEntity implements ExportLog {
   @ApiProperty()
   id: number;
 
@@ -9,7 +9,7 @@ export class ImportLogEntity implements ImportLog {
   warehouseId: number;
 
   @ApiProperty()
-  type: ImportType;
+  type: ExportType;
 
   @ApiProperty()
   orderId: number;
@@ -19,6 +19,9 @@ export class ImportLogEntity implements ImportLog {
 
   @ApiProperty()
   referenceCode: string;
+
+  @ApiProperty()
+  exportDate: Date;
 
   @ApiProperty()
   createdBy: number;

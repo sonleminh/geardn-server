@@ -358,6 +358,7 @@ export class OrderService {
               skuId: item.skuId,
               quantity: item.quantity,
               sellingPrice: item.sellingPrice,
+              unitCost: item.unitCost,
               imageUrl: item.imageUrl,
               productName: item.productName,
               productSlug: item.productSlug,
@@ -526,6 +527,7 @@ export class OrderService {
               orderId: orderId,
               note: `Xác nhận đơn hàng ${order.orderCode}`,
               referenceCode,
+              exportDate: new Date(),
             },
           });
 

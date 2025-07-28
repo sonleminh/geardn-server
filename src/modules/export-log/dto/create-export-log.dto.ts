@@ -2,6 +2,7 @@ import { ExportType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import {
   IsArray,
+  IsDate,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -23,6 +24,10 @@ export class CreateExportLogDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsNotEmpty()
+  @IsDate()
+  exportDate: Date;
 
   @IsNotEmpty()
   @IsArray()

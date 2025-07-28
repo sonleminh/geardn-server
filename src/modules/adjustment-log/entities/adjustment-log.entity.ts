@@ -25,6 +25,9 @@ export class AdjustmentLogEntity implements AdjustmentLog {
   referenceCode: string;
 
   @ApiProperty()
+  adjustmentDate: Date;
+
+  @ApiProperty()
   createdBy: number;
 
   @ApiProperty()

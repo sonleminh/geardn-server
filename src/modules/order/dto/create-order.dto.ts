@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from '@prisma/client';
 import { Decimal, JsonObject } from '@prisma/client/runtime/library';
-import { IsArray, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDecimal, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrderItemDto {
   @IsInt()
@@ -15,6 +15,9 @@ export class CreateOrderItemDto {
 
   @IsInt()
   sellingPrice: number;
+
+  @IsDecimal()
+  unitCost: number;
 
   @IsInt()
   imageUrl: string;

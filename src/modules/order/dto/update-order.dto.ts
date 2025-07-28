@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDecimal,
   IsEmail,
   IsInt,
   IsJSON,
@@ -26,6 +27,9 @@ export class UpdateOrderItemDto {
 
   @IsInt()
   sellingPrice: number;
+
+  @IsDecimal()
+  unitCost: number;
 
   @IsInt()
   imageUrl: string;
@@ -78,7 +82,7 @@ export class UpdateOrderDto {
 
   @IsNotEmpty()
   @IsArray()
-//   @ValidateNested({ each: true })
-//   @Type(() => UpdateOrderItemDto)
+  @ValidateNested({ each: true })
+  @Type(() => UpdateOrderItemDto)
   orderItems: UpdateOrderItemDto[];
 }

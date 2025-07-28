@@ -17,7 +17,7 @@ export class ExportLogService {
   constructor(private prisma: PrismaService) {}
 
   async create(createExportLogDto: CreateExportLogDto, userId: number) {
-    const { warehouseId, type, note, items } = createExportLogDto;
+    const { warehouseId, type, note, exportDate, items } = createExportLogDto;
 
     const existedWarehouse = await this.prisma.warehouse.findUnique({
       where: { id: warehouseId, isDeleted: false },
@@ -98,6 +98,7 @@ export class ExportLogService {
             type,
             note,
             referenceCode,
+            exportDate,
           },
         });
 
