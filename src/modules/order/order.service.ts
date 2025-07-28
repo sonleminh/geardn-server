@@ -24,6 +24,7 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
+    console.log('createOrderDto', createOrderDto);
     const {
       userId,
       orderItems,
@@ -35,7 +36,7 @@ export class OrderService {
       shipment,
       flag,
       confirmedAt,
-      completedAt
+      completedAt,
     } = createOrderDto;
 
     let orderItemsData = [];
@@ -134,7 +135,6 @@ export class OrderService {
       sort = 'desc',
     } = query || {};
     const skip = (page - 1) * limit;
-
 
     // Build where clause
     const where: any = {
@@ -536,7 +536,7 @@ export class OrderService {
             exportLogId: exportLog.id,
             skuId: item.skuId,
             quantity: item.quantity,
-            costPrice: item.unitCost,
+            unitCost: item.unitCost,
           }));
 
           await tx.exportLogItem.createMany({

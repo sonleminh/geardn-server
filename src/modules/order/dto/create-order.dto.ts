@@ -1,94 +1,113 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from '@prisma/client';
-import { Decimal, JsonObject } from '@prisma/client/runtime/library';
-import { IsArray, IsDecimal, IsInt, IsJSON, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { JsonObject } from '@prisma/client/runtime/library';
+import {
+  IsArray,
+  IsNumber,
+  IsInt,
+  IsObject,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateOrderItemDto {
+  @ApiProperty()
   @IsInt()
   skuId: number;
 
+  @ApiProperty()
   @IsInt()
   productId: number;
 
+  @ApiProperty()
   @IsInt()
   quantity: number;
 
-  @IsInt()
+  @ApiProperty()
+  @IsNumber()
   sellingPrice: number;
 
-  @IsDecimal()
-  unitCost: number;
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  unitCost?: number;
 
-  @IsInt()
+  @ApiProperty()
+  @IsString()
   imageUrl: string;
 
+  @ApiProperty()
   @IsString()
   productName: string;
 
+  @ApiProperty()
   @IsString()
   productSlug: string;
 
+  @ApiProperty()
   @IsString()
   skuCode: string;
 
-  @IsJSON()
+  @ApiProperty()
+  @IsObject()
   skuAttributes: JsonObject;
 }
 
 export class CreateOrderDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
-  userId: number;
+  userId?: number;
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsInt()
   paymentMethodId: number;
 
   @ApiProperty()
   @IsNotEmpty()
-  totalPrice: Decimal;
+  @IsNumber()
+  totalPrice: number;
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
   fullName: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
-  phoneNumber: string;
+  @IsString()
+  phoneNumber?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
-  email: string;
+  @IsString()
+  email?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
-  note: string;
+  @IsString()
+  note?: string;
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsObject()
   shipment: JsonObject;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
-  flag: JsonObject;
+  @IsObject()
+  flag?: JsonObject;
 
-  @ApiProperty()
+  @ApiProperty({ type: [CreateOrderItemDto] })
   @IsNotEmpty()
   @IsArray()
   orderItems: CreateOrderItemDto[];
 
-  @ApiProperty()
-  confirmedAt: Date;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  confirmedAt?: Date;
 
-  @ApiProperty()
-  completedAt: Date;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
+  @ApiProperty({ required: false })
+  @IsOptional()
+  completedAt?: Date;
 }

@@ -157,7 +157,7 @@ const productSeedList = [
     description: '<p>Đèn màn hình LED Xiaomi Lymax L1 / L1 Plus bảo vệ mắt 3 chế độ sáng</p>',
     brand: 'Xiaomi',
     images: [
-      'https://storage.googleapis.com/geardn-a6c28.appspot.com/1753410205152-lymax-l1-plus.webp',
+      'https://storage.googleapis.com/geardn-a6c28.appspot.com/1753711124667-xiaomi-lymax-l1.png',
     ],
     tags: [{ label: 'Giảm giá', value: 'sale' }],
     details: {
