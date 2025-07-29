@@ -9,50 +9,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-
-export class CreateOrderItemDto {
-  @ApiProperty()
-  @IsInt()
-  skuId: number;
-
-  @ApiProperty()
-  @IsInt()
-  productId: number;
-
-  @ApiProperty()
-  @IsInt()
-  quantity: number;
-
-  @ApiProperty()
-  @IsNumber()
-  sellingPrice: number;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsNumber()
-  unitCost?: number;
-
-  @ApiProperty()
-  @IsString()
-  imageUrl: string;
-
-  @ApiProperty()
-  @IsString()
-  productName: string;
-
-  @ApiProperty()
-  @IsString()
-  productSlug: string;
-
-  @ApiProperty()
-  @IsString()
-  skuCode: string;
-
-  @ApiProperty()
-  @IsObject()
-  skuAttributes: JsonObject;
-}
-
+import { CreateOrderItemDto } from './create-order-item.dto';
 export class CreateOrderDto {
   @ApiProperty({ required: false })
   @IsOptional()

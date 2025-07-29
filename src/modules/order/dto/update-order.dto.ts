@@ -1,10 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsDecimal,
   IsEmail,
-  IsInt,
-  IsJSON,
   IsNotEmpty,
   IsNumber,
   IsObject,
@@ -12,40 +9,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-// import { UpdateOrderItemDto } from './update-order-item.dto';
-import { JsonObject } from '@prisma/client/runtime/library';
-
-export class UpdateOrderItemDto {
-  @IsInt()
-  skuId: number;
-
-  @IsInt()
-  productId: number;
-
-  @IsInt()
-  quantity: number;
-
-  @IsInt()
-  sellingPrice: number;
-
-  @IsDecimal()
-  unitCost: number;
-
-  @IsInt()
-  imageUrl: string;
-
-  @IsString()
-  productName: string;
-
-  @IsString()
-  productSlug: string;
-
-  @IsString()
-  skuCode: string;
-
-  @IsJSON()
-  skuAttributes: JsonObject;
-}
+import { UpdateOrderItemDto } from './update-order-item.dto';
 
 export class UpdateOrderDto {
   @IsString()

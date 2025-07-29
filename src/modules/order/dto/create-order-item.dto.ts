@@ -14,6 +14,18 @@ export class CreateOrderItemDto {
   productId: number;
 
   @ApiProperty()
+  productName: string;
+
+  @ApiProperty()
+  productSlug: string;
+
+  @ApiProperty()
+  imageUrl: string;
+
+  @ApiProperty()
+  skuCode: string;
+
+  @ApiProperty()
   @IsOptional()
   skuId: number;
 
@@ -21,7 +33,14 @@ export class CreateOrderItemDto {
   quantity: number;
 
   @ApiProperty()
-  price: Decimal;
+  sellingPrice: number;
+
+  @ApiProperty()
+  @IsOptional()
+  unitCost?: number;
+
+  @ApiProperty()
+  skuAttributes: Record<string, any>;
 
   @ApiProperty()
   createdAt: Date;

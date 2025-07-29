@@ -358,7 +358,7 @@ export class OrderService {
               skuId: item.skuId,
               quantity: item.quantity,
               sellingPrice: item.sellingPrice,
-              unitCost: item.unitCost,
+              // unitCost: item.unitCost,
               imageUrl: item.imageUrl,
               productName: item.productName,
               productSlug: item.productSlug,
@@ -381,21 +381,25 @@ export class OrderService {
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
   ) {
-    await this.prisma.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: orderId },
-        data: { status: status.newStatus },
-      });
-
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId,
-          oldStatus: status.oldStatus,
-          newStatus: status.newStatus,
-          changedBy: userId,
-        },
-      });
+    const existingItems = await this.prisma.orderItem.findMany({
+      where: { orderId },
     });
+    console.log('existingItems', existingItems);
+    // await this.prisma.$transaction(async (tx) => {
+    //   await tx.order.update({
+    //     where: { id: orderId },
+    //     data: { status: status.newStatus },
+    //   });
+
+    //   await tx.orderStatusHistory.create({
+    //     data: {
+    //       orderId,
+    //       oldStatus: status.oldStatus,
+    //       newStatus: status.newStatus,
+    //       changedBy: userId,
+    //     },
+    //   });
+    // });
 
     return { message: 'Order status updated successfully' };
   }
