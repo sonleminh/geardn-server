@@ -47,9 +47,9 @@ export class CreateOrderItemDto {
   @Type(() => SkuAttributeDto)
   skuAttributes: SkuAttributeDto[];
 
-  // @ApiProperty()
-  // @IsOptional()
-  // orderId?: number;
+  @ApiProperty()
+  @IsOptional()
+  orderId?: number;
 
   @ApiProperty()
   createdAt: Date;

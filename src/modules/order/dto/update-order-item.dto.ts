@@ -47,7 +47,7 @@ export class UpdateOrderItemDto {
   @Min(1)
   quantity: number;
 
-  sellingPrice: Decimal;
+  sellingPrice: number;
 
   @IsNumber()
   @Min(0)

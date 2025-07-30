@@ -344,81 +344,56 @@ export class OrderService {
       where: { orderId },
     });
 
-    console.log('existingItems', existingItems);
-
-    const existingMap = new Map(existingItems.map(i => [`${i.skuId}`, i]));
-    const newMap = new Map(orderItems.map(i => [`${i.skuId}`, i]));
-
-    console.log('existingMap', existingMap);
-    console.log('newMap', newMap);
+    const existingMap = new Map(
+      existingItems.map((item) => [`${item.skuId}`, item]),
+    );
+    const newMap = new Map(orderItems.map((item) => [`${item.skuId}`, item]));
 
     await this.prisma.$transaction(async (tx) => {
       for (const [skuId, newItem] of newMap.entries()) {
         const existing = existingMap.get(skuId);
 
-        console.log('newItem', newItem);
-
-        // if (!existing) {
-        //   // Thêm mới
-        //   await tx.orderItem.create({ data: { orderId, ...newItem } });
-        // } else {
-        //   // So sánh nếu quantity hoặc price thay đổi thì update
-        //   if (
-        //     newItem.quantity !== existing.quantity ||
-        //     newItem.sellingPrice !== existing.sellingPrice
-        //   ) {
-        //     await tx.orderItem.update({
-        //       where: { id: existing.id },
-        //       data: {
-        //         quantity: newItem.quantity,
-        //         sellingPrice: newItem.sellingPrice,
-        //         imageUrl: newItem.imageUrl,
-        //         productName: newItem.productName,
-        //         productSlug: newItem.productSlug,
-        //         skuCode: newItem.skuCode,
-        //         skuAttributes: JSON.parse(
-        //           JSON.stringify(newItem.skuAttributes),
-        //         ),
-        //       },
-        //     });
-        //   }
-        // }
+        if (!existing) {
+          // Add new order item
+          await tx.orderItem.create({
+            data: {
+              orderId,
+              productId: newItem.productId,
+              skuId: newItem.skuId,
+              quantity: newItem.quantity,
+              sellingPrice: newItem.sellingPrice,
+              unitCost: newItem.unitCost,
+              imageUrl: newItem.imageUrl,
+              productName: newItem.productName,
+              productSlug: newItem.productSlug,
+              skuCode: newItem.skuCode,
+              skuAttributes: JSON.parse(JSON.stringify(newItem.skuAttributes)),
+            },
+          });
+        } else {
+          // So sánh nếu quantity hoặc price thay đổi thì update
+          if (
+            newItem.quantity !== existing.quantity ||
+            newItem.sellingPrice !== Number(existing.sellingPrice)
+          ) {
+            await tx.orderItem.update({
+              where: { id: existing.id },
+              data: {
+                quantity: newItem.quantity,
+                sellingPrice: newItem.sellingPrice,
+                imageUrl: newItem.imageUrl,
+                productName: newItem.productName,
+                productSlug: newItem.productSlug,
+                skuCode: newItem.skuCode,
+                skuAttributes: JSON.parse(
+                  JSON.stringify(newItem.skuAttributes),
+                ),
+              },
+            });
+          }
+        }
       }
     });
-
-    // return this.prisma.$transaction(async (tx) => {
-    //   // First, delete existing order items
-    //   await tx.orderItem.deleteMany({
-    //     where: { orderId },
-    //   });
-
-    //   // Then update the order with new data and create new order items
-    //   return tx.order.update({
-    //     where: { id: orderId },
-    //     data: {
-    //       ...orderData,
-    //       orderItems: {
-    //         create: orderItems.map((item) => ({
-    //           productId: item.productId,
-    //           skuId: item.skuId,
-    //           quantity: item.quantity,
-    //           sellingPrice: item.sellingPrice,
-    //           // unitCost: item.unitCost,
-    //           imageUrl: item.imageUrl,
-    //           productName: item.productName,
-    //           productSlug: item.productSlug,
-    //           skuCode: item.skuCode,
-    //           skuAttributes: item.skuAttributes,
-    //         })),
-    //       },
-    //     },
-    //     include: {
-    //       orderItems: true,
-    //       paymentMethod: true,
-    //       user: true,
-    //     },
-    //   });
-    // });
   }
 
   async updateStatus(
