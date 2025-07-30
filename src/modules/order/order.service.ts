@@ -24,7 +24,6 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-    console.log('createOrderDto', createOrderDto);
     const {
       userId,
       orderItems,
@@ -341,39 +340,85 @@ export class OrderService {
   async update(orderId: number, updateOrderDto: UpdateOrderDto) {
     const { orderItems, ...orderData } = updateOrderDto;
 
-    return this.prisma.$transaction(async (tx) => {
-      // First, delete existing order items
-      await tx.orderItem.deleteMany({
-        where: { orderId },
-      });
-
-      // Then update the order with new data and create new order items
-      return tx.order.update({
-        where: { id: orderId },
-        data: {
-          ...orderData,
-          orderItems: {
-            create: orderItems.map((item) => ({
-              productId: item.productId,
-              skuId: item.skuId,
-              quantity: item.quantity,
-              sellingPrice: item.sellingPrice,
-              // unitCost: item.unitCost,
-              imageUrl: item.imageUrl,
-              productName: item.productName,
-              productSlug: item.productSlug,
-              skuCode: item.skuCode,
-              skuAttributes: item.skuAttributes,
-            })),
-          },
-        },
-        include: {
-          orderItems: true,
-          paymentMethod: true,
-          user: true,
-        },
-      });
+    const existingItems = await this.prisma.orderItem.findMany({
+      where: { orderId },
     });
+
+    console.log('existingItems', existingItems);
+
+    const existingMap = new Map(existingItems.map(i => [`${i.skuId}`, i]));
+    const newMap = new Map(orderItems.map(i => [`${i.skuId}`, i]));
+
+    console.log('existingMap', existingMap);
+    console.log('newMap', newMap);
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const [skuId, newItem] of newMap.entries()) {
+        const existing = existingMap.get(skuId);
+
+        console.log('newItem', newItem);
+
+        // if (!existing) {
+        //   // Thêm mới
+        //   await tx.orderItem.create({ data: { orderId, ...newItem } });
+        // } else {
+        //   // So sánh nếu quantity hoặc price thay đổi thì update
+        //   if (
+        //     newItem.quantity !== existing.quantity ||
+        //     newItem.sellingPrice !== existing.sellingPrice
+        //   ) {
+        //     await tx.orderItem.update({
+        //       where: { id: existing.id },
+        //       data: {
+        //         quantity: newItem.quantity,
+        //         sellingPrice: newItem.sellingPrice,
+        //         imageUrl: newItem.imageUrl,
+        //         productName: newItem.productName,
+        //         productSlug: newItem.productSlug,
+        //         skuCode: newItem.skuCode,
+        //         skuAttributes: JSON.parse(
+        //           JSON.stringify(newItem.skuAttributes),
+        //         ),
+        //       },
+        //     });
+        //   }
+        // }
+      }
+    });
+
+    // return this.prisma.$transaction(async (tx) => {
+    //   // First, delete existing order items
+    //   await tx.orderItem.deleteMany({
+    //     where: { orderId },
+    //   });
+
+    //   // Then update the order with new data and create new order items
+    //   return tx.order.update({
+    //     where: { id: orderId },
+    //     data: {
+    //       ...orderData,
+    //       orderItems: {
+    //         create: orderItems.map((item) => ({
+    //           productId: item.productId,
+    //           skuId: item.skuId,
+    //           quantity: item.quantity,
+    //           sellingPrice: item.sellingPrice,
+    //           // unitCost: item.unitCost,
+    //           imageUrl: item.imageUrl,
+    //           productName: item.productName,
+    //           productSlug: item.productSlug,
+    //           skuCode: item.skuCode,
+    //           skuAttributes: item.skuAttributes,
+    //         })),
+    //       },
+    //     },
+    //     include: {
+    //       orderItems: true,
+    //       paymentMethod: true,
+    //       user: true,
+    //     },
+    //   });
+    // });
   }
 
   async updateStatus(
@@ -381,25 +426,22 @@ export class OrderService {
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
   ) {
-    const existingItems = await this.prisma.orderItem.findMany({
-      where: { orderId },
-    });
-    console.log('existingItems', existingItems);
-    // await this.prisma.$transaction(async (tx) => {
-    //   await tx.order.update({
-    //     where: { id: orderId },
-    //     data: { status: status.newStatus },
-    //   });
+  
+    await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: status.newStatus },
+      });
 
-    //   await tx.orderStatusHistory.create({
-    //     data: {
-    //       orderId,
-    //       oldStatus: status.oldStatus,
-    //       newStatus: status.newStatus,
-    //       changedBy: userId,
-    //     },
-    //   });
-    // });
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          oldStatus: status.oldStatus,
+          newStatus: status.newStatus,
+          changedBy: userId,
+        },
+      });
+    });
 
     return { message: 'Order status updated successfully' };
   }

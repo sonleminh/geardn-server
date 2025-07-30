@@ -1,4 +1,4 @@
-import { JsonObject } from '@prisma/client/runtime/library';
+import { Decimal, JsonObject } from '@prisma/client/runtime/library';
 import { Transform, Type } from 'class-transformer';
 import {
   IsNumber,
@@ -21,28 +21,15 @@ class SkuAttributeDto {
 export class UpdateOrderItemDto {
   @IsNumber()
   @IsNotEmpty()
-  productId: number;
+  skuId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  skuCode: string;
 
   @IsNumber()
   @IsNotEmpty()
-  skuId: number;
-
-  @IsNumber()
-  @Min(1)
-  quantity: number;
-
-  @IsNumber()
-  @Min(0)
-  sellingPrice: number;
-
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  unitCost?: number;
-
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
+  productId: number;
 
   @IsString()
   @IsNotEmpty()
@@ -53,15 +40,22 @@ export class UpdateOrderItemDto {
   productSlug: string;
 
   @IsString()
-  @IsNotEmpty()
-  skuCode: string;
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsNumber()
+  @Min(1)
+  quantity: number;
+
+  sellingPrice: Decimal;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  unitCost?: number; 
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SkuAttributeDto)
   skuAttributes: SkuAttributeDto[];
-
-  @IsNumber()
-  @IsOptional()
-  warehouseId?: number;
-} 
+}

@@ -1,14 +1,23 @@
-
 import { ApiProperty } from '@nestjs/swagger';
 import { Decimal } from '@prisma/client/runtime/library';
-import { IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+
+class SkuAttributeDto {
+  @IsString()
+  attribute: string;
+
+  @IsString()
+  value: string;
+}
 
 export class CreateOrderItemDto {
   @ApiProperty()
-  id: number;
+  @IsNotEmpty()
+  skuId: number;
 
   @ApiProperty()
-  orderId: number;
+  skuCode: string;
 
   @ApiProperty()
   productId: number;
@@ -23,13 +32,6 @@ export class CreateOrderItemDto {
   imageUrl: string;
 
   @ApiProperty()
-  skuCode: string;
-
-  @ApiProperty()
-  @IsOptional()
-  skuId: number;
-
-  @ApiProperty()
   quantity: number;
 
   @ApiProperty()
@@ -40,7 +42,14 @@ export class CreateOrderItemDto {
   unitCost?: number;
 
   @ApiProperty()
-  skuAttributes: Record<string, any>;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SkuAttributeDto)
+  skuAttributes: SkuAttributeDto[];
+
+  // @ApiProperty()
+  // @IsOptional()
+  // orderId?: number;
 
   @ApiProperty()
   createdAt: Date;

@@ -17,7 +17,7 @@ export class UpdateOrderDto {
   fullName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   phoneNumber: string;
 
   @IsEmail()
