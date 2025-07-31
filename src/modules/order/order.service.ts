@@ -393,6 +393,21 @@ export class OrderService {
           }
         }
       }
+
+      for (const [skuId, existing] of existingMap.entries()) {
+        if (!newMap.has(skuId)) {
+          // Xoá những cái không còn
+          await tx.orderItem.delete({
+            where: { id: existing.id },
+          });
+        }
+      }
+
+      // Update các field khác của đơn hàng
+      await tx.order.update({
+        where: { id: orderId },
+        data: { ...orderData },
+      });
     });
   }
 
@@ -401,7 +416,6 @@ export class OrderService {
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
   ) {
-  
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: orderId },

@@ -126,9 +126,13 @@ model Order {
   flag            Json        @default("{}")
   shipment        Json        @default("{}")
   paymentMethodId Int
-  isDeleted       Boolean     @default(false)
-  confirmedAt     DateTime?
-  completedAt     DateTime?
+
+  cancelReason     String?
+  cancelReasonCode CancelReasonCode?
+
+  isDeleted   Boolean   @default(false)
+  confirmedAt DateTime?
+  completedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -173,6 +177,7 @@ model OrderStatusHistory {
   oldStatus OrderStatus
   newStatus OrderStatus
   changedBy Int
+  note      String?
   createdAt DateTime    @default(now())
 
   order Order @relation(fields: [orderId], references: [id])
@@ -440,4 +445,13 @@ enum ProductStatus {
   ACTIVE
   OUT_OF_STOCK
   DISCONTINUED
+}
+
+enum CancelReasonCode {
+  CUSTOMER_CHANGED_MIND // ✅ Khách đổi ý
+  OUT_OF_STOCK // ✅ Hết hàng
+  DUPLICATE_ORDER // ✅ Trùng đơn
+  PAYMENT_FAILED // ✅ Thanh toán lỗi
+  REFUSED_ON_DELIVERY // ✅ Từ chối nhận hàng
+  OTHER // ✅ Lý do khác
 }
