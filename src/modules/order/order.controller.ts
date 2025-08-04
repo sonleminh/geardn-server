@@ -16,7 +16,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, ReturnReasonCode } from '@prisma/client';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 
@@ -73,7 +73,14 @@ export class OrderController {
     {
       oldStatus,
       newStatus,
-    }: { oldStatus: OrderStatus; newStatus: OrderStatus },
+      reasonCode,
+      note,
+    }: {
+      oldStatus: OrderStatus;
+      newStatus: OrderStatus;
+      reasonCode: ReturnReasonCode;
+      note: string;
+    },
     @Req() req: Request,
   ) {
     const userId = req.user?.id;
@@ -81,6 +88,8 @@ export class OrderController {
       +id,
       { oldStatus, newStatus },
       userId,
+      reasonCode,
+      note,
     );
   }
 
@@ -98,6 +107,18 @@ export class OrderController {
       userId,
     );
   }
+
+  // @UseGuards(JwtAdminAuthGuard)
+  // @Patch(':id/cancel')
+  // cancelOrder(
+  //   @Param('id') id: string,
+  //   @Body()
+  //   { oldStatus, note }: { oldStatus: OrderStatus; note: string },
+  //   @Req() req: Request,
+  // ) {
+  //   const userId = req.user?.id;
+  //   return this.orderService.cancelOrder(+id, userId, oldStatus, note);
+  // }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {

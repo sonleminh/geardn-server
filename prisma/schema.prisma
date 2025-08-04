@@ -137,11 +137,12 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user          User?                @relation(fields: [userId], references: [id])
-  paymentMethod PaymentMethod        @relation(fields: [paymentMethodId], references: [id])
-  orderItems    OrderItem[]
-  ExportLog     ExportLog[]
-  statusHistory OrderStatusHistory[]
+  user               User?                @relation(fields: [userId], references: [id])
+  paymentMethod      PaymentMethod        @relation(fields: [paymentMethodId], references: [id])
+  orderItems         OrderItem[]
+  ExportLog          ExportLog[]
+  statusHistory      OrderStatusHistory[]
+  OrderReturnRequest OrderReturnRequest[]
 }
 
 model OrderItem {
@@ -162,10 +163,11 @@ model OrderItem {
 
   warehouseId Int?
 
-  order     Order      @relation(fields: [orderId], references: [id])
-  product   Product    @relation(fields: [productId], references: [id])
-  sku       ProductSKU @relation(fields: [skuId], references: [id])
-  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
+  order           Order             @relation(fields: [orderId], references: [id])
+  product         Product           @relation(fields: [productId], references: [id])
+  sku             ProductSKU        @relation(fields: [skuId], references: [id])
+  warehouse       Warehouse?        @relation(fields: [warehouseId], references: [id])
+  OrderReturnItem OrderReturnItem[]
 
   @@index([orderId])
   @@index([productId])
@@ -185,6 +187,38 @@ model OrderStatusHistory {
 
   @@index([orderId])
   @@index([changedBy])
+}
+
+model OrderReturnRequest {
+  id           Int              @id @default(autoincrement())
+  orderId      Int
+  status       ReturnStatus
+  reasonCode   ReturnReasonCode
+  reasonNote   String?
+  createdById  Int
+  approvedById Int?
+  userId       Int?
+
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  createdBy  User  @relation("ReturnRequestCreatedBy", fields: [createdById], references: [id])
+  approvedBy User? @relation("ReturnRequestApprovedBy", fields: [approvedById], references: [id])
+  user       User? @relation("ReturnRequestUser", fields: [userId], references: [id])
+
+  OrderReturnItem OrderReturnItem[]
+}
+
+model OrderReturnItem {
+  id              Int @id @default(autoincrement())
+  returnRequestId Int
+  orderItemId     Int
+  quantity        Int
+
+  returnRequest OrderReturnRequest @relation(fields: [returnRequestId], references: [id])
+  orderItem     OrderItem          @relation(fields: [orderItemId], references: [id])
 }
 
 model Cart {
@@ -341,19 +375,6 @@ model AdjustmentLogItem {
   sku           ProductSKU    @relation(fields: [skuId], references: [id])
 }
 
-// model AuditLog {
-//   id        Int      @id @default(autoincrement())
-//   table     String
-//   action    String
-//   targetId  Int
-//   actor     String
-//   actorId   Int
-//   diff      Json
-//   createdAt DateTime @default(now())
-
-//   user User @relation(fields: [actorId], references: [id])
-// }
-
 //
 // ==== USER & PAYMENT ====
 //
@@ -373,6 +394,10 @@ model User {
   ExportLog          ExportLog[]
   AdjustmentLog      AdjustmentLog[]
   OrderStatusHistory OrderStatusHistory[]
+
+  returnRequestsCreated    OrderReturnRequest[] @relation("ReturnRequestCreatedBy")
+  returnRequestsApproved   OrderReturnRequest[] @relation("ReturnRequestApprovedBy")
+  returnRequestsByCustomer OrderReturnRequest[] @relation("ReturnRequestUser")
 }
 
 model PaymentMethod {
@@ -407,6 +432,7 @@ enum OrderStatus {
   PROCESSING
   SHIPPED
   DELIVERED
+  DELIVERY_FAILED
   CANCELED
 }
 
@@ -454,4 +480,20 @@ enum CancelReasonCode {
   PAYMENT_FAILED // ✅ Thanh toán lỗi
   REFUSED_ON_DELIVERY // ✅ Từ chối nhận hàng
   OTHER // ✅ Lý do khác
+}
+
+enum ReturnStatus {
+  PENDING // Khách gửi yêu cầu
+  APPROVED // Admin duyệt hoàn hàng
+  REJECTED // Admin từ chối
+  COMPLETED // Đã hoàn hàng thành công
+  CANCELED // Khách rút lại / hệ thống huỷ
+}
+
+enum ReturnReasonCode {
+  DEFECTIVE
+  WRONG_ITEM
+  CUSTOMER_CHANGED_MIND
+  BETTER_PRICE_FOUND
+  OTHER
 }

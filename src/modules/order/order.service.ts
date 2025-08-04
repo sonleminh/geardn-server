@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, ReturnReasonCode } from '@prisma/client';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -415,6 +415,8 @@ export class OrderService {
     orderId: number,
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
+    reasonCode: ReturnReasonCode,
+    note: string, 
   ) {
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({
@@ -428,8 +430,24 @@ export class OrderService {
           oldStatus: status.oldStatus,
           newStatus: status.newStatus,
           changedBy: userId,
+          note,
         },
       });
+
+      if (
+        status.newStatus === 'CANCELED' &&
+        status.oldStatus === 'DELIVERY_FAILED'
+      ) {
+        await tx.orderReturnRequest.create({
+          data: {
+            orderId,
+            status: 'PENDING',
+            reasonCode,
+            createdById: userId,
+            userId,
+          },
+        });
+      }
     });
 
     return { message: 'Order status updated successfully' };
@@ -609,4 +627,38 @@ export class OrderService {
 
     return { message: 'Shipment confirmed successfully' };
   }
+
+  // async cancelOrder(
+  //   orderId: number,
+  //   userId: number,
+  //   oldStatus: OrderStatus,
+  //   note: string,
+  // ) {
+  //   await this.prisma.$transaction(async (tx) => {
+  //     await tx.order.update({
+  //       where: { id: orderId },
+  //       data: { status: 'CANCELED' },
+  //     });
+
+  //     await tx.orderStatusHistory.create({
+  //       data: {
+  //         orderId,
+  //         oldStatus: oldStatus,
+  //         newStatus: 'CANCELED',
+  //         changedBy: userId,
+  //         note,
+  //       },
+  //     });
+
+  //     await tx.orderReturnRequest.create({
+  //       data: {
+  //         orderId,
+  //         oldStatus: oldStatus,
+  //         newStatus: 'CANCELED',
+  //         changedBy: userId,
+  //         note,
+  //       },
+  //     });
+  //   });
+  // }
 }
