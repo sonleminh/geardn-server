@@ -415,7 +415,10 @@ export class OrderService {
     orderId: number,
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
+    cancelReason: ReturnReasonCode,
+    cancelReasonCode: ReturnReasonCode,
     reasonCode: ReturnReasonCode,
+    reasonNote: ReturnReasonCode,
     note: string, 
   ) {
     await this.prisma.$transaction(async (tx) => {

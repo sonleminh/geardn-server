@@ -74,11 +74,17 @@ export class OrderController {
       oldStatus,
       newStatus,
       reasonCode,
+      cancelReason,
+      cancelReasonCode,
+      reasonNote,
       note,
     }: {
       oldStatus: OrderStatus;
       newStatus: OrderStatus;
       reasonCode: ReturnReasonCode;
+      cancelReason: ReturnReasonCode;
+      cancelReasonCode: ReturnReasonCode;
+      reasonNote: ReturnReasonCode;
       note: string;
     },
     @Req() req: Request,
@@ -88,7 +94,10 @@ export class OrderController {
       +id,
       { oldStatus, newStatus },
       userId,
+      cancelReason,
+      cancelReasonCode,
       reasonCode,
+      reasonNote,
       note,
     );
   }

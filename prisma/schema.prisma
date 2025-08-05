@@ -190,9 +190,10 @@ model OrderStatusHistory {
 }
 
 model OrderReturnRequest {
-  id           Int              @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   orderId      Int
   status       ReturnStatus
+  type         ReturnRequestType
   reasonCode   ReturnReasonCode
   reasonNote   String?
   createdById  Int
@@ -488,6 +489,12 @@ enum ReturnStatus {
   REJECTED // Admin từ chối
   COMPLETED // Đã hoàn hàng thành công
   CANCELED // Khách rút lại / hệ thống huỷ
+}
+
+enum ReturnRequestType {
+  CANCEL // yêu cầu hủy đơn (có thể chưa giao)
+  RETURN // hoàn hàng sau giao
+  DELIVERY_FAIL // giao thất bại, hoàn về kho
 }
 
 enum ReturnReasonCode {

@@ -1,4 +1,4 @@
-import { AdjustmentType, ProductStatus } from '@prisma/client';
+import { AdjustmentType, CancelReasonCode, ProductStatus } from '@prisma/client';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
 import { OrderStatus } from '../enums/order-status.enum';
@@ -11,6 +11,7 @@ export const ENUM_LABELS = {
     { value: OrderStatus.PROCESSING, label: 'Đang xử lý' },
     { value: OrderStatus.SHIPPED, label: 'Đang giao' },
     { value: OrderStatus.DELIVERED, label: 'Đã giao' },
+    { value: OrderStatus.DELIVERY_FAILED, label: 'Giao hàng thất bại' },
     { value: OrderStatus.CANCELED, label: 'Đã huỷ' },
   ],
   'import-type': [
@@ -50,5 +51,13 @@ export const ENUM_LABELS = {
     { value: ProductStatus.ACTIVE, label: 'Hoạt động' },
     { value: ProductStatus.OUT_OF_STOCK, label: 'Hết hàng' },
     { value: ProductStatus.DISCONTINUED, label: 'Ngừng bán' },
+  ],
+  'cancel-reason-code': [
+    { value: CancelReasonCode.CUSTOMER_CHANGED_MIND, label: 'Khách hàng đổi ý' },
+    { value: CancelReasonCode.OUT_OF_STOCK, label: 'Hết hàng' },
+    { value: CancelReasonCode.DUPLICATE_ORDER, label: 'Trùng đơn' },
+    { value: CancelReasonCode.PAYMENT_FAILED, label: 'Thanh toán lỗi' },
+    { value: CancelReasonCode.REFUSED_ON_DELIVERY, label: 'Từ chối nhận hàng' },
+    { value: CancelReasonCode.OTHER, label: 'Khác' },
   ],
 };

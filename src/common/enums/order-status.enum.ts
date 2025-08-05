@@ -3,6 +3,7 @@ export enum OrderStatus {
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
+  DELIVERY_FAILED = 'DELIVERY_FAILED',
   CANCELED = 'CANCELED',
 }
 
@@ -11,5 +12,6 @@ export const typeToStatusMap: Record<string, OrderStatus> = {
   '2': OrderStatus.PROCESSING,
   '3': OrderStatus.SHIPPED,
   '4': OrderStatus.DELIVERED,
-  '5': OrderStatus.CANCELED,
+  '5': OrderStatus.DELIVERY_FAILED,
+  '6': OrderStatus.CANCELED,
 };
