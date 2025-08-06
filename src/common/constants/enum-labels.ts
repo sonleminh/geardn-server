@@ -1,9 +1,10 @@
 import { AdjustmentType, OrderReasonCode, ProductStatus } from '@prisma/client';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
-import { OrderStatus } from '../enums/order-status.enum';
 import { AdjustmentReason } from '../enums/adjustment-type.enum';
 import { ProductTag } from '../enums/product-tag.enum';
+import { OrderStatus } from '../enums/order-status.enum';
+import { ReturnStatus } from '../enums/return-status.enum';
 
 export const ENUM_LABELS = {
   'order-status': [
@@ -60,7 +61,17 @@ export const ENUM_LABELS = {
     { value: OrderReasonCode.REFUSED_ON_DELIVERY, label: 'Từ chối nhận hàng' },
     { value: OrderReasonCode.DEFECTIVE, label: 'Hàng lỗi' },
     { value: OrderReasonCode.WRONG_ITEM, label: 'Giao sai sản phẩm' },
-    { value: OrderReasonCode.BETTER_PRICE_FOUND, label: 'Tìm được chỗ khác rẻ hơn' },
+    {
+      value: OrderReasonCode.BETTER_PRICE_FOUND,
+      label: 'Tìm được chỗ khác rẻ hơn',
+    },
     { value: OrderReasonCode.OTHER, label: 'Khác' },
+  ],
+  'return-status': [
+    { value: ReturnStatus.PENDING, label: 'Chờ xử lý' },
+    { value: ReturnStatus.APPROVED, label: 'Đã duyệt' },
+    { value: ReturnStatus.REJECTED, label: 'Từ chối' },
+    { value: ReturnStatus.COMPLETED, label: 'Hoàn thành' },
+    { value: ReturnStatus.CANCELED, label: 'Đã huỷ' },
   ],
 };

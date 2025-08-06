@@ -5,15 +5,16 @@ import { OrderReasonCode, OrderStatus } from '@prisma/client';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { typeToStatusMap } from 'src/common/enums/order-status.enum';
+import { ReturnStatus } from 'src/common/enums/return-status.enum';
 import { CartService } from '../cart/cart.service';
 import { ExportLogService } from '../export-log/export-log.service';
 import {
   createDateRangeFilter,
   createSearchFilter,
 } from '../../common/helpers/query.helper';
-import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
+import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
+import { FindOrdersDto } from './dto/find-orders.dto';
 
 @Injectable()
 export class OrderService {
@@ -89,12 +90,8 @@ export class OrderService {
         },
       });
 
-      const formattedDate = new Date()
-        .toISOString()
-        .split('T')[0]
-        .replace(/-/g, '');
       const paddedId = String(tempOrder.id).padStart(6, '0');
-      const orderCode = `GDN-${formattedDate}-${paddedId}`;
+      const orderCode = `GDN-${paddedId}`;
       return tx.order.update({
         where: { id: tempOrder.id },
         data: { orderCode },
@@ -195,6 +192,88 @@ export class OrderService {
     };
   }
 
+  async findAllReturnRequest(query: FindOrdersReturnRequestDto) {
+    const {
+      productIds,
+      fromDate,
+      toDate,
+      search,
+      page = 1,
+      limit = 10,
+      sort = 'desc',
+    } = query || {};
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    // const where: any = {
+    //   AND: [
+    //     ...(productIds?.length
+    //       ? [
+    //           {
+    //             orderItems: {
+    //               some: {
+    //                 productId: { in: productIds },
+    //               },
+    //             },
+    //           },
+    //         ]
+    //       : []),
+    //     ...(fromDate && toDate
+    //       ? [
+    //           {
+    //             createdAt: createDateRangeFilter(fromDate, toDate),
+    //           },
+    //         ]
+    //       : []),
+    //     ...(search
+    //       ? [
+    //           {
+    //             OR: [
+    //               { orderCode: createSearchFilter(search) },
+    //               { fullName: createSearchFilter(search) },
+    //               { phoneNumber: createSearchFilter(search) },
+    //               { email: createSearchFilter(search) },
+    //             ],
+    //           },
+    //         ]
+    //       : []),
+    //   ],
+    // };
+
+    const [orderReturnRequests, total] = await Promise.all([
+      this.prisma.orderReturnRequest.findMany({
+        // where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: sort },
+        include: {
+          order: {
+            select: {
+              fullName: true,
+              phoneNumber: true,
+              email: true,
+              totalPrice: true,
+              orderItems: true,
+            },
+          },
+          orderReturnItems: true,
+        },
+      }),
+      this.prisma.orderReturnRequest.count({}),
+    ]);
+
+    return {
+      data: orderReturnRequests,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      message: 'Order return request list retrieved successfully',
+    };
+  }
+
   async findOne(id: number) {
     const res = await this.prisma.order.findUnique({
       where: {
@@ -256,14 +335,14 @@ export class OrderService {
     return { data: res };
   }
 
-  async getUserPurchases(userId: number, type: number) {
-    const status = typeToStatusMap[type];
-    const orders = await this.prisma.order.findMany({
-      where: { userId, status: status },
-      include: { orderItems: { include: { product: true, sku: true } } },
-    });
-    return { data: orders };
-  }
+  // async getUserPurchases(userId: number, type: number) {
+  //   const status = typeToStatusMap[type];
+  //   const orders = await this.prisma.order.findMany({
+  //     where: { userId, status: status },
+  //     include: { orderItems: { include: { product: true, sku: true } } },
+  //   });
+  //   return { data: orders };
+  // }
 
   async findOrderStatusHistory(query: FindOrderStatusHistoryDto) {
     const {
@@ -636,7 +715,6 @@ export class OrderService {
       });
 
       const orderReturnItems = order.orderItems.map((item) => ({
-        returnRequestId: orderId,
         orderItemId: item.id,
         quantity: item.quantity,
       }));
@@ -658,6 +736,58 @@ export class OrderService {
           status: 'PENDING',
           reasonCode: cancelReasonCode,
           reasonNote: cancelReason,
+          orderReturnItems: {
+            create: orderReturnItems,
+          },
+          createdById: userId,
+        },
+      });
+    });
+  }
+
+  async updateDeliveryFailed(
+    orderId: number,
+    userId: number,
+    oldStatus: OrderStatus,
+    reasonCode: OrderReasonCode,
+    reasonNote: string,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'DELIVERY_FAILED' },
+        include: {
+          orderItems: {
+            select: {
+              id: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      const orderReturnItems = order.orderItems.map((item) => ({
+        orderItemId: item.id,
+        quantity: item.quantity,
+      }));
+
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          oldStatus: oldStatus,
+          newStatus: 'CANCELED',
+          changedBy: userId,
+          note: reasonNote,
+        },
+      });
+
+      await tx.orderReturnRequest.create({
+        data: {
+          orderId,
+          type: 'CANCEL',
+          status: 'PENDING',
+          reasonCode: reasonCode,
+          reasonNote: reasonNote,
           orderReturnItems: {
             create: orderReturnItems,
           },

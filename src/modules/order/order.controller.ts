@@ -17,8 +17,9 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
 import { OrderReasonCode, OrderStatus } from '@prisma/client';
-import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
+import { FindOrdersDto } from './dto/find-orders.dto';
+import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -35,12 +36,18 @@ export class OrderController {
     return this.orderService.findAll(query);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('user-purchases')
-  getUserPurchases(@Req() req: Request, @Query('type') type: string) {
-    const userId = req.user?.id;
-    return this.orderService.getUserPurchases(userId, +type);
+  @UseGuards(JwtAdminAuthGuard)
+  @Get('return-requests')
+  findAllReturnRequest(@Query() query: FindOrdersReturnRequestDto) {
+    return this.orderService.findAllReturnRequest(query);
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('user-purchases')
+  // getUserPurchases(@Req() req: Request, @Query('type') type: string) {
+  //   const userId = req.user?.id;
+  //   return this.orderService.getUserPurchases(userId, +type);
+  // }
 
   @UseGuards(JwtAdminAuthGuard)
   @Get('update-history-logs')
@@ -131,8 +138,29 @@ export class OrderController {
     );
   }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.orderService.remove(+id);
-  // }
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/delivery-failed')
+  updateDeliveryFailed(
+    @Param('id') id: string,
+    @Body()
+    {
+      oldStatus,
+      reasonCode,
+      reasonNote,
+    }: {
+      oldStatus: OrderStatus;
+      reasonCode: OrderReasonCode;
+      reasonNote: string;
+    },
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.updateDeliveryFailed(
+      +id,
+      userId,
+      oldStatus,
+      reasonCode,
+      reasonNote,
+    );
+  }
 }
