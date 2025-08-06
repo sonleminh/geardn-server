@@ -128,7 +128,7 @@ model Order {
   paymentMethodId Int
 
   cancelReason     String?
-  cancelReasonCode CancelReasonCode?
+  cancelReasonCode OrderReasonCode?
 
   isDeleted   Boolean   @default(false)
   confirmedAt DateTime?
@@ -142,7 +142,7 @@ model Order {
   orderItems         OrderItem[]
   ExportLog          ExportLog[]
   statusHistory      OrderStatusHistory[]
-  OrderReturnRequest OrderReturnRequest[]
+  orderReturnRequest OrderReturnRequest?  @relation("OrderToReturnRequest")
 }
 
 model OrderItem {
@@ -163,11 +163,11 @@ model OrderItem {
 
   warehouseId Int?
 
-  order           Order             @relation(fields: [orderId], references: [id])
-  product         Product           @relation(fields: [productId], references: [id])
-  sku             ProductSKU        @relation(fields: [skuId], references: [id])
-  warehouse       Warehouse?        @relation(fields: [warehouseId], references: [id])
-  OrderReturnItem OrderReturnItem[]
+  order           Order            @relation(fields: [orderId], references: [id])
+  product         Product          @relation(fields: [productId], references: [id])
+  sku             ProductSKU       @relation(fields: [skuId], references: [id])
+  warehouse       Warehouse?       @relation(fields: [warehouseId], references: [id])
+  OrderReturnItem OrderReturnItem? @relation("OrderToReturnItem")
 
   @@index([orderId])
   @@index([productId])
@@ -191,10 +191,10 @@ model OrderStatusHistory {
 
 model OrderReturnRequest {
   id           Int               @id @default(autoincrement())
-  orderId      Int
+  orderId      Int               @unique
   status       ReturnStatus
   type         ReturnRequestType
-  reasonCode   ReturnReasonCode
+  reasonCode   OrderReasonCode
   reasonNote   String?
   createdById  Int
   approvedById Int?
@@ -203,23 +203,23 @@ model OrderReturnRequest {
   completedAt DateTime?
   createdAt   DateTime  @default(now())
 
-  order Order @relation(fields: [orderId], references: [id])
+  order Order @relation("OrderToReturnRequest", fields: [orderId], references: [id])
 
   createdBy  User  @relation("ReturnRequestCreatedBy", fields: [createdById], references: [id])
   approvedBy User? @relation("ReturnRequestApprovedBy", fields: [approvedById], references: [id])
   user       User? @relation("ReturnRequestUser", fields: [userId], references: [id])
 
-  OrderReturnItem OrderReturnItem[]
+  orderReturnItems OrderReturnItem[]
 }
 
 model OrderReturnItem {
   id              Int @id @default(autoincrement())
   returnRequestId Int
-  orderItemId     Int
+  orderItemId     Int @unique
   quantity        Int
 
   returnRequest OrderReturnRequest @relation(fields: [returnRequestId], references: [id])
-  orderItem     OrderItem          @relation(fields: [orderItemId], references: [id])
+  orderItem     OrderItem          @relation("OrderToReturnItem", fields: [orderItemId], references: [id])
 }
 
 model Cart {
@@ -474,13 +474,16 @@ enum ProductStatus {
   DISCONTINUED
 }
 
-enum CancelReasonCode {
-  CUSTOMER_CHANGED_MIND // ✅ Khách đổi ý
-  OUT_OF_STOCK // ✅ Hết hàng
-  DUPLICATE_ORDER // ✅ Trùng đơn
-  PAYMENT_FAILED // ✅ Thanh toán lỗi
-  REFUSED_ON_DELIVERY // ✅ Từ chối nhận hàng
-  OTHER // ✅ Lý do khác
+enum OrderReasonCode {
+  CUSTOMER_CHANGED_MIND // Khách đổi ý
+  OUT_OF_STOCK // Hết hàng
+  DUPLICATE_ORDER // Trùng đơn
+  PAYMENT_FAILED // Lỗi thanh toán
+  REFUSED_ON_DELIVERY // Từ chối nhận khi giao
+  DEFECTIVE // Hàng lỗi
+  WRONG_ITEM // Giao sai sản phẩm
+  BETTER_PRICE_FOUND // Tìm được chỗ khác rẻ hơn
+  OTHER // Lý do khác
 }
 
 enum ReturnStatus {
@@ -495,12 +498,4 @@ enum ReturnRequestType {
   CANCEL // yêu cầu hủy đơn (có thể chưa giao)
   RETURN // hoàn hàng sau giao
   DELIVERY_FAIL // giao thất bại, hoàn về kho
-}
-
-enum ReturnReasonCode {
-  DEFECTIVE
-  WRONG_ITEM
-  CUSTOMER_CHANGED_MIND
-  BETTER_PRICE_FOUND
-  OTHER
 }

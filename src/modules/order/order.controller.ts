@@ -16,7 +16,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
-import { OrderStatus, ReturnReasonCode } from '@prisma/client';
+import { OrderReasonCode, OrderStatus } from '@prisma/client';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 
@@ -73,18 +73,10 @@ export class OrderController {
     {
       oldStatus,
       newStatus,
-      reasonCode,
-      cancelReason,
-      cancelReasonCode,
-      reasonNote,
       note,
     }: {
       oldStatus: OrderStatus;
       newStatus: OrderStatus;
-      reasonCode: ReturnReasonCode;
-      cancelReason: ReturnReasonCode;
-      cancelReasonCode: ReturnReasonCode;
-      reasonNote: ReturnReasonCode;
       note: string;
     },
     @Req() req: Request,
@@ -94,10 +86,6 @@ export class OrderController {
       +id,
       { oldStatus, newStatus },
       userId,
-      cancelReason,
-      cancelReasonCode,
-      reasonCode,
-      reasonNote,
       note,
     );
   }
@@ -117,17 +105,31 @@ export class OrderController {
     );
   }
 
-  // @UseGuards(JwtAdminAuthGuard)
-  // @Patch(':id/cancel')
-  // cancelOrder(
-  //   @Param('id') id: string,
-  //   @Body()
-  //   { oldStatus, note }: { oldStatus: OrderStatus; note: string },
-  //   @Req() req: Request,
-  // ) {
-  //   const userId = req.user?.id;
-  //   return this.orderService.cancelOrder(+id, userId, oldStatus, note);
-  // }
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/cancel')
+  cancelOrder(
+    @Param('id') id: string,
+    @Body()
+    {
+      oldStatus,
+      cancelReasonCode,
+      cancelReason,
+    }: {
+      oldStatus: OrderStatus;
+      cancelReasonCode: OrderReasonCode;
+      cancelReason: string;
+    },
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.cancelOrder(
+      +id,
+      userId,
+      oldStatus,
+      cancelReasonCode,
+      cancelReason,
+    );
+  }
 
   // @Delete(':id')
   // remove(@Param('id') id: string) {

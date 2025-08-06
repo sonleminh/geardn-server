@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
-import { OrderStatus, ReturnReasonCode } from '@prisma/client';
+import { OrderReasonCode, OrderStatus } from '@prisma/client';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -415,16 +415,14 @@ export class OrderService {
     orderId: number,
     status: { oldStatus: OrderStatus; newStatus: OrderStatus },
     userId: number,
-    cancelReason: ReturnReasonCode,
-    cancelReasonCode: ReturnReasonCode,
-    reasonCode: ReturnReasonCode,
-    reasonNote: ReturnReasonCode,
-    note: string, 
+    note: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: orderId },
-        data: { status: status.newStatus },
+        data: {
+          status: status.newStatus,
+        },
       });
 
       await tx.orderStatusHistory.create({
@@ -436,21 +434,6 @@ export class OrderService {
           note,
         },
       });
-
-      if (
-        status.newStatus === 'CANCELED' &&
-        status.oldStatus === 'DELIVERY_FAILED'
-      ) {
-        await tx.orderReturnRequest.create({
-          data: {
-            orderId,
-            status: 'PENDING',
-            reasonCode,
-            createdById: userId,
-            userId,
-          },
-        });
-      }
     });
 
     return { message: 'Order status updated successfully' };
@@ -631,37 +614,56 @@ export class OrderService {
     return { message: 'Shipment confirmed successfully' };
   }
 
-  // async cancelOrder(
-  //   orderId: number,
-  //   userId: number,
-  //   oldStatus: OrderStatus,
-  //   note: string,
-  // ) {
-  //   await this.prisma.$transaction(async (tx) => {
-  //     await tx.order.update({
-  //       where: { id: orderId },
-  //       data: { status: 'CANCELED' },
-  //     });
+  async cancelOrder(
+    orderId: number,
+    userId: number,
+    oldStatus: OrderStatus,
+    cancelReasonCode: OrderReasonCode,
+    cancelReason: string,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELED', cancelReasonCode, cancelReason },
+        include: {
+          orderItems: {
+            select: {
+              id: true,
+              quantity: true,
+            },
+          },
+        },
+      });
 
-  //     await tx.orderStatusHistory.create({
-  //       data: {
-  //         orderId,
-  //         oldStatus: oldStatus,
-  //         newStatus: 'CANCELED',
-  //         changedBy: userId,
-  //         note,
-  //       },
-  //     });
+      const orderReturnItems = order.orderItems.map((item) => ({
+        returnRequestId: orderId,
+        orderItemId: item.id,
+        quantity: item.quantity,
+      }));
 
-  //     await tx.orderReturnRequest.create({
-  //       data: {
-  //         orderId,
-  //         oldStatus: oldStatus,
-  //         newStatus: 'CANCELED',
-  //         changedBy: userId,
-  //         note,
-  //       },
-  //     });
-  //   });
-  // }
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId,
+          oldStatus: oldStatus,
+          newStatus: 'CANCELED',
+          changedBy: userId,
+          note: cancelReason,
+        },
+      });
+
+      await tx.orderReturnRequest.create({
+        data: {
+          orderId,
+          type: 'CANCEL',
+          status: 'PENDING',
+          reasonCode: cancelReasonCode,
+          reasonNote: cancelReason,
+          orderReturnItems: {
+            create: orderReturnItems,
+          },
+          createdById: userId,
+        },
+      });
+    });
+  }
 }

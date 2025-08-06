@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CancelReasonCode, Order, OrderStatus } from '@prisma/client';
+import { Order, OrderReasonCode, OrderStatus } from '@prisma/client';
 import { Decimal, JsonObject } from '@prisma/client/runtime/library';
 
 export class OrderEntity implements Order {
@@ -43,7 +43,7 @@ export class OrderEntity implements Order {
   cancelReason: string;
 
   @ApiProperty()
-  cancelReasonCode: CancelReasonCode;
+  cancelReasonCode: OrderReasonCode;
 
   @ApiProperty()
   isDeleted: boolean;

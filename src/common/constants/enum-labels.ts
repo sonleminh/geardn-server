@@ -1,4 +1,4 @@
-import { AdjustmentType, CancelReasonCode, ProductStatus } from '@prisma/client';
+import { AdjustmentType, OrderReasonCode, ProductStatus } from '@prisma/client';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
 import { OrderStatus } from '../enums/order-status.enum';
@@ -52,12 +52,15 @@ export const ENUM_LABELS = {
     { value: ProductStatus.OUT_OF_STOCK, label: 'Hết hàng' },
     { value: ProductStatus.DISCONTINUED, label: 'Ngừng bán' },
   ],
-  'cancel-reason-code': [
-    { value: CancelReasonCode.CUSTOMER_CHANGED_MIND, label: 'Khách hàng đổi ý' },
-    { value: CancelReasonCode.OUT_OF_STOCK, label: 'Hết hàng' },
-    { value: CancelReasonCode.DUPLICATE_ORDER, label: 'Trùng đơn' },
-    { value: CancelReasonCode.PAYMENT_FAILED, label: 'Thanh toán lỗi' },
-    { value: CancelReasonCode.REFUSED_ON_DELIVERY, label: 'Từ chối nhận hàng' },
-    { value: CancelReasonCode.OTHER, label: 'Khác' },
+  'order-reason-code': [
+    { value: OrderReasonCode.CUSTOMER_CHANGED_MIND, label: 'Khách hàng đổi ý' },
+    { value: OrderReasonCode.OUT_OF_STOCK, label: 'Hết hàng' },
+    { value: OrderReasonCode.DUPLICATE_ORDER, label: 'Trùng đơn' },
+    { value: OrderReasonCode.PAYMENT_FAILED, label: 'Thanh toán lỗi' },
+    { value: OrderReasonCode.REFUSED_ON_DELIVERY, label: 'Từ chối nhận hàng' },
+    { value: OrderReasonCode.DEFECTIVE, label: 'Hàng lỗi' },
+    { value: OrderReasonCode.WRONG_ITEM, label: 'Giao sai sản phẩm' },
+    { value: OrderReasonCode.BETTER_PRICE_FOUND, label: 'Tìm được chỗ khác rẻ hơn' },
+    { value: OrderReasonCode.OTHER, label: 'Khác' },
   ],
 };
