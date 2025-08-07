@@ -12,7 +12,7 @@ export const ENUM_LABELS = {
     { value: OrderStatus.PROCESSING, label: 'Đang xử lý' },
     { value: OrderStatus.SHIPPED, label: 'Đang giao' },
     { value: OrderStatus.DELIVERED, label: 'Đã giao' },
-    { value: OrderStatus.DELIVERY_FAILED, label: 'Giao hàng thất bại' },
+    { value: OrderStatus.DELIVERY_FAILED, label: 'Giao thất bại' },
     { value: OrderStatus.CANCELED, label: 'Đã huỷ' },
   ],
   'import-type': [

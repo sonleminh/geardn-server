@@ -15,6 +15,7 @@ import {
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class OrderService {
@@ -131,6 +132,9 @@ export class OrderService {
       sort = 'desc',
     } = query || {};
     const skip = (page - 1) * limit;
+    console.log('date:', fromDate, toDate);
+
+    console.log('date:', createDateRangeFilter(fromDate, toDate));
 
     // Build where clause
     const where: any = {
@@ -150,7 +154,11 @@ export class OrderService {
         ...(fromDate && toDate
           ? [
               {
-                createdAt: createDateRangeFilter(fromDate, toDate),
+                // createdAt: createDateRangeFilter(fromDate, toDate),
+                createdAt: {
+                  gte: dayjs(fromDate).startOf('day').toDate(),
+                  lte: dayjs(toDate).endOf('day').toDate(),
+                },
               },
             ]
           : []),
@@ -729,19 +737,21 @@ export class OrderService {
         },
       });
 
-      await tx.orderReturnRequest.create({
-        data: {
-          orderId,
-          type: 'CANCEL',
-          status: 'PENDING',
-          reasonCode: cancelReasonCode,
-          reasonNote: cancelReason,
-          orderReturnItems: {
-            create: orderReturnItems,
+      if (oldStatus !== 'PENDING' && oldStatus !== 'DELIVERY_FAILED') {
+        await tx.orderReturnRequest.create({
+          data: {
+            orderId,
+            type: 'CANCEL',
+            status: 'PENDING',
+            reasonCode: cancelReasonCode,
+            reasonNote: cancelReason,
+            orderReturnItems: {
+              create: orderReturnItems,
+            },
+            createdById: userId,
           },
-          createdById: userId,
-        },
-      });
+        });
+      }
     });
   }
 
@@ -784,7 +794,7 @@ export class OrderService {
       await tx.orderReturnRequest.create({
         data: {
           orderId,
-          type: 'CANCEL',
+          type: 'DELIVERY_FAIL',
           status: 'PENDING',
           reasonCode: reasonCode,
           reasonNote: reasonNote,
