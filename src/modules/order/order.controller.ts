@@ -16,10 +16,12 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
-import { OrderReasonCode, OrderStatus } from '@prisma/client';
+import { OrderReasonCode } from 'src/common/enums/order-reason-code';
+import { ReturnStatus } from 'src/common/enums/return-status.enum';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
+import { OrderStatus } from 'src/common/enums/order-status.enum';
 
 @Controller('orders')
 export class OrderController {
@@ -106,6 +108,46 @@ export class OrderController {
   ) {
     const userId = req.user?.id;
     return this.orderService.confirmShipment(
+      +id,
+      confirmShipmentDto.skuWarehouseMapping,
+      userId,
+    );
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch('return-requests/:id/status')
+  updateReturnStatus(
+    @Param('id') id: string,
+    @Body()
+    {
+      oldStatus,
+      newStatus,
+      // note,
+    }: {
+      oldStatus: ReturnStatus;
+      newStatus: ReturnStatus;
+      // note: string;
+    },
+    // @Req() req: Request,
+  ) {
+    // const userId = req.user?.id;
+    return this.orderService.updateReturnStatus(
+      +id,
+      { oldStatus, newStatus },
+      // userId,
+      // note,
+    );
+  }
+
+  @UseGuards(JwtAdminAuthGuard)
+  @Patch(':id/confirm-return')
+  completeReturnRequest(
+    @Param('id') id: string,
+    @Body() confirmShipmentDto: ConfirmShipmentDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+    return this.orderService.completeReturnRequest(
       +id,
       confirmShipmentDto.skuWarehouseMapping,
       userId,

@@ -1,4 +1,4 @@
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus } from 'src/common/enums/order-status.enum';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
