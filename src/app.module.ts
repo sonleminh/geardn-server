@@ -24,6 +24,7 @@ import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.mod
 import { ProvinceModule } from './modules/province/province.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
 import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
+import { OrderReturnRequestModule } from './modules/order-return-request/order-return-request.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { GoogleAnalyticsModule } from './modules/google-analytics/google-analyti
     ImportLogModule,
     ExportLogModule,
     OrdersModule,
+    OrderReturnRequestModule,
     PaymentMethodModule,
     PrismaModule,
     ProductModule,
