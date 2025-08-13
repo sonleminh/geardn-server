@@ -9,11 +9,11 @@ import {
   UseGuards
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ReturnStatus } from 'src/common/enums/return-status.enum';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
 import { OrderReturnRequestService } from './order-return-request.service';
 import { CompleteReturnRequestDto } from './dto/confirm-complete.dto';
+import { ReturnStatus } from '@prisma/client';
 
 @Controller('order-return-requests')
 export class OrderReturnRequestController {

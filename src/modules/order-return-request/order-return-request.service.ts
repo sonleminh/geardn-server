@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-import * as dayjs from 'dayjs';
-import { ReturnStatus } from 'src/common/enums/return-status.enum';
-
 import { ImportLogService } from '../import-log/import-log.service';
 import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
+import { ReturnStatus } from '@prisma/client';
+import {
+  createDateRangeFilter,
+  createSearchFilter,
+} from 'src/common/helpers/query.helper';
 
 @Injectable()
 export class OrderReturnRequestService {
@@ -16,61 +18,68 @@ export class OrderReturnRequestService {
 
   async findAll(query: FindOrdersReturnRequestDto) {
     const {
-      productIds,
-      fromDate,
-      toDate,
-      search,
       page = 1,
       limit = 10,
       sort = 'desc',
+      types,
+      productIds,
+      statuses,
+      fromDate,
+      toDate,
+      search,
     } = query || {};
     const skip = (page - 1) * limit;
 
     // Build where clause
-    // const where: any = {
-    //   AND: [
-    //     ...(productIds?.length
-    //       ? [
-    //           {
-    //             orderItems: {
-    //               some: {
-    //                 productId: { in: productIds },
-    //               },
-    //             },
-    //           },
-    //         ]
-    //       : []),
-    //     ...(fromDate && toDate
-    //       ? [
-    //           {
-    //             createdAt: createDateRangeFilter(fromDate, toDate),
-    //           },
-    //         ]
-    //       : []),
-    //     ...(search
-    //       ? [
-    //           {
-    //             OR: [
-    //               { orderCode: createSearchFilter(search) },
-    //               { fullName: createSearchFilter(search) },
-    //               { phoneNumber: createSearchFilter(search) },
-    //               { email: createSearchFilter(search) },
-    //             ],
-    //           },
-    //         ]
-    //       : []),
-    //   ],
-    // };
+    const where: any = {
+      AND: [
+        ...(types?.length ? [{ type: { in: types } }] : []),
+        ...(productIds?.length
+          ? [
+              {
+                order: {
+                  orderItems: {
+                    some: {
+                      productId: { in: productIds },
+                    },
+                  },
+                }
+              },
+            ]
+          : []),
+        ...(statuses?.length ? [{ status: { in: statuses } }] : []),
+        ...(fromDate && toDate
+          ? [
+              {
+                createdAt: createDateRangeFilter(fromDate, toDate),
+              },
+            ]
+          : []),
+        ...(search
+          ? [
+              {
+                OR: [
+                  { order: { orderCode: createSearchFilter(search) } },
+                  { order: { fullName: createSearchFilter(search) } },
+                  { order: { phoneNumber: createSearchFilter(search) } },
+                  { order: { email: createSearchFilter(search) } },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
 
     const [orderReturnRequests, total] = await Promise.all([
       this.prisma.orderReturnRequest.findMany({
-        // where,
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: sort },
         include: {
           order: {
             select: {
+              orderCode: true,
               fullName: true,
               phoneNumber: true,
               email: true,
@@ -81,7 +90,7 @@ export class OrderReturnRequestService {
           orderReturnItems: true,
         },
       }),
-      this.prisma.orderReturnRequest.count({}),
+      this.prisma.orderReturnRequest.count({ where }),
     ]);
 
     return {
@@ -110,6 +119,16 @@ export class OrderReturnRequestService {
             totalPrice: true,
             orderItems: true,
             paymentMethod: true,
+          },
+        },
+        approvedBy: {
+          select: {
+            name: true,
+          },
+        },
+        createdBy: {
+          select: {
+            name: true,
           },
         },
       },
@@ -301,7 +320,11 @@ export class OrderReturnRequestService {
         // Update order status
         await tx.orderReturnRequest.update({
           where: { id: returnId },
-          data: { status: 'COMPLETED' },
+          data: {
+            status: 'COMPLETED',
+            approvedById: userId,
+            completedAt: new Date(),
+          },
         });
       },
       {

@@ -17,11 +17,11 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { ConfirmShipmentDto } from './dto/confirm-shipment.dto';
 import { OrderService } from './order.service';
 import { OrderReasonCode } from 'src/common/enums/order-reason-code';
-import { ReturnStatus } from 'src/common/enums/return-status.enum';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
 import { OrderStatus } from 'src/common/enums/order-status.enum';
+import { ReturnStatus } from '@prisma/client';
 
 @Controller('orders')
 export class OrderController {
@@ -36,12 +36,6 @@ export class OrderController {
   @Get()
   findAll(@Query() query: FindOrdersDto) {
     return this.orderService.findAll(query);
-  }
-
-  @UseGuards(JwtAdminAuthGuard)
-  @Get('return-requests')
-  findAllReturnRequest(@Query() query: FindOrdersReturnRequestDto) {
-    return this.orderService.findAllReturnRequest(query);
   }
 
   // @UseGuards(JwtAuthGuard)

@@ -12,11 +12,10 @@ import {
   createSearchFilter,
 } from '../../common/helpers/query.helper';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
-import { FindOrdersReturnRequestDto } from './dto/find-orders-return-request.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import * as dayjs from 'dayjs';
-import { ReturnStatus } from 'src/common/enums/return-status.enum';
 import { OrderStatus } from 'src/common/enums/order-status.enum';
+import { ReturnStatus } from '@prisma/client';
 
 @Injectable()
 export class OrderService {
@@ -195,88 +194,6 @@ export class OrderService {
         totalPages: Math.ceil(total / limit),
       },
       message: 'Order list retrieved successfully',
-    };
-  }
-
-  async findAllReturnRequest(query: FindOrdersReturnRequestDto) {
-    const {
-      productIds,
-      fromDate,
-      toDate,
-      search,
-      page = 1,
-      limit = 10,
-      sort = 'desc',
-    } = query || {};
-    const skip = (page - 1) * limit;
-
-    // Build where clause
-    // const where: any = {
-    //   AND: [
-    //     ...(productIds?.length
-    //       ? [
-    //           {
-    //             orderItems: {
-    //               some: {
-    //                 productId: { in: productIds },
-    //               },
-    //             },
-    //           },
-    //         ]
-    //       : []),
-    //     ...(fromDate && toDate
-    //       ? [
-    //           {
-    //             createdAt: createDateRangeFilter(fromDate, toDate),
-    //           },
-    //         ]
-    //       : []),
-    //     ...(search
-    //       ? [
-    //           {
-    //             OR: [
-    //               { orderCode: createSearchFilter(search) },
-    //               { fullName: createSearchFilter(search) },
-    //               { phoneNumber: createSearchFilter(search) },
-    //               { email: createSearchFilter(search) },
-    //             ],
-    //           },
-    //         ]
-    //       : []),
-    //   ],
-    // };
-
-    const [orderReturnRequests, total] = await Promise.all([
-      this.prisma.orderReturnRequest.findMany({
-        // where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: sort },
-        include: {
-          order: {
-            select: {
-              fullName: true,
-              phoneNumber: true,
-              email: true,
-              totalPrice: true,
-              orderItems: true,
-            },
-          },
-          orderReturnItems: true,
-        },
-      }),
-      this.prisma.orderReturnRequest.count({}),
-    ]);
-
-    return {
-      data: orderReturnRequests,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      message: 'Order return request list retrieved successfully',
     };
   }
 

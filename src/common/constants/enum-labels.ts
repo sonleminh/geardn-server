@@ -4,6 +4,7 @@ import { ImportType } from '../enums/import-type.enum';
 import { AdjustmentReason } from '../enums/adjustment-type.enum';
 import { ProductTag } from '../enums/product-tag.enum';
 import { OrderStatus } from '../enums/order-status.enum';
+import { ReturnType } from '../enums/return-type.enum';
 import { ReturnStatus } from '../enums/return-status.enum';
 
 export const ENUM_LABELS = {
@@ -66,6 +67,11 @@ export const ENUM_LABELS = {
       label: 'Tìm được chỗ khác rẻ hơn',
     },
     { value: OrderReasonCode.OTHER, label: 'Khác' },
+  ],
+  'return-type': [
+    { value: ReturnType.CANCEL, label: 'Đơn huỷ' },
+    { value: ReturnType.RETURN, label: 'Đơn hoàn' },
+    { value: ReturnType.DELIVERY_FAIL, label: 'Giao thất bại' },
   ],
   'return-status': [
     { value: ReturnStatus.PENDING, label: 'Chờ xử lý' },

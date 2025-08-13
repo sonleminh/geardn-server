@@ -1,3 +1,4 @@
+import { ReturnRequestType, ReturnStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
@@ -5,9 +6,23 @@ export class FindOrdersReturnRequestDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (!value) return undefined;
+    return value.split(',').map((type: string) => type as ReturnStatus);
+  })
+  types?: ReturnRequestType[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
     return value.split(',').map(Number);
   })
   productIds?: number[];
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    return value.split(',').map((type: string) => type as ReturnStatus);
+  })
+  statuses?: ReturnStatus[];
 
   @IsOptional()
   @IsString()
