@@ -45,8 +45,4 @@ export class CreateAdjustmentLogItemDto {
   @IsNotEmpty()
   @IsInt()
   quantityChange: number;
-
-  @IsOptional()
-  @IsInt()
-  costPriceBefore: Decimal;
 }

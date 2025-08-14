@@ -263,7 +263,35 @@ export class ExportLogService {
         warehouse: true,
         items: {
           include: {
-            sku: true,
+            sku: {
+              select: {
+                product: {
+                  select: {
+                    name: true,
+                  },
+                },
+                imageUrl: true,
+                productSkuAttributes: {
+                  include: {
+                    attributeValue: {
+                      select: {
+                        value: true,
+                        attribute: {
+                          select: {
+                            label: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            name: true,
           },
         },
       },

@@ -371,7 +371,7 @@ model AdjustmentLogItem {
 
   quantityBefore Int
   quantityChange Int
-  unitCostBefore Decimal?
+  // unitCostBefore Decimal?
 
   adjustmentLog AdjustmentLog @relation(fields: [adjustmentLogId], references: [id])
   sku           ProductSKU    @relation(fields: [skuId], references: [id])

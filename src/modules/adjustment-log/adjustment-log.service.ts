@@ -41,7 +41,6 @@ export class AdjustmentLogService {
       {
         quantityBefore: number;
         quantityChange: number;
-        costPriceBefore: Decimal;
       }
     >();
     for (const item of items) {
@@ -54,12 +53,10 @@ export class AdjustmentLogService {
         const existing = mergedItemsMap.get(item.skuId)!;
         existing.quantityBefore += item.quantityBefore;
         existing.quantityChange += item.quantityChange;
-        existing.costPriceBefore = item.costPriceBefore;
       } else {
         mergedItemsMap.set(item.skuId, {
           quantityBefore: item.quantityBefore,
           quantityChange: item.quantityChange,
-          costPriceBefore: item.costPriceBefore,
         });
       }
     }
@@ -115,7 +112,6 @@ export class AdjustmentLogService {
           warehouseId: warehouseId,
           quantityBefore: item.quantityBefore,
           quantityChange: item.quantityChange,
-          costPriceBefore: item.costPriceBefore,
         }));
 
         await tx.adjustmentLogItem.createMany({
@@ -260,7 +256,35 @@ export class AdjustmentLogService {
         warehouse: true,
         items: {
           include: {
-            sku: true,
+            sku: {
+              select: {
+                product: {
+                  select: {
+                    name: true,
+                  },
+                },
+                imageUrl: true,
+                productSkuAttributes: {
+                  include: {
+                    attributeValue: {
+                      select: {
+                        value: true,
+                        attribute: {
+                          select: {
+                            label: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            name: true,
           },
         },
       },
