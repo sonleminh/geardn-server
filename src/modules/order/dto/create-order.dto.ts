@@ -62,9 +62,5 @@ export class CreateOrderDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  confirmedAt?: Date;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
   completedAt?: Date;
 }

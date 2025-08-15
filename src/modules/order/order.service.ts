@@ -36,7 +36,6 @@ export class OrderService {
       note,
       shipment,
       flag,
-      confirmedAt,
       completedAt,
     } = createOrderDto;
 
@@ -83,7 +82,6 @@ export class OrderService {
           orderItems: {
             create: orderItemsData,
           },
-          confirmedAt,
           completedAt,
         },
         include: {
@@ -258,15 +256,6 @@ export class OrderService {
     return { data: res };
   }
 
-  // async getUserPurchases(userId: number, type: number) {
-  //   const status = typeToStatusMap[type];
-  //   const orders = await this.prisma.order.findMany({
-  //     where: { userId, status: status },
-  //     include: { orderItems: { include: { product: true, sku: true } } },
-  //   });
-  //   return { data: orders };
-  // }
-
   async findOrderStatusHistory(query: FindOrderStatusHistoryDto) {
     const {
       fromDate,
@@ -420,6 +409,18 @@ export class OrderService {
     note: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
+      if (status.newStatus === 'DELIVERED') {
+        const order = await tx.order.findUnique({
+          where: { id: orderId },
+        });
+
+        if (!order?.completedAt) {
+          await tx.order.update({
+            where: { id: orderId },
+            data: { completedAt: new Date() },
+          });
+        }
+      }
       await tx.order.update({
         where: { id: orderId },
         data: {
@@ -605,7 +606,7 @@ export class OrderService {
         // Update order status
         await tx.order.update({
           where: { id: orderId },
-          data: { status: 'PROCESSING' },
+          data: { status: 'PROCESSING', confirmedAt: new Date() },
         });
       },
       {
@@ -685,7 +686,7 @@ export class OrderService {
         // Group order items by warehouse for optimized export logs
         const warehouseGroups = new Map<
           number,
-          Array<{ 
+          Array<{
             skuId: number;
             quantity: number;
             unitCost: any;

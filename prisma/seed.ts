@@ -6,16 +6,16 @@ import { PrismaClient, ProductStatus, UserRole } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const categorySeedList = [
-  { id: 1, name: 'Bàn phím', icon: 'https://...keyboard-icon.png', slug: 'ban-phim' },
-  { id: 2, name: 'Chuột', icon: 'https://...mouse-icon.png', slug: 'chuot' },
+  { id: 1, name: 'Bàn phím', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230275956-keyboard-icon.png', slug: 'ban-phim' },
+  { id: 2, name: 'Chuột', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230300189-mouse-icon.png', slug: 'chuot' },
   {
     id: 3,
     name: 'Giá treo màn hình',
-    icon: 'https://...arm-icon.jpg',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230308503-arm-icon.jpg',
     slug: 'gia-treo-man-hinh',
   },
-  { id: 4, name: 'Màn hình', icon: 'https://...monitor-icon.png', slug: 'man-hinh' },
-  { id: 5, name: 'Phụ kiện', icon: 'https://...acces-icon.png', slug: 'phu-kien' },
+  { id: 4, name: 'Màn hình', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230318576-monitor-icon.png', slug: 'man-hinh' },
+  { id: 5, name: 'Phụ kiện', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230291682-assessories-icon.png', slug: 'phu-kien' },
 ];
 
 const warehouseSeedList = [

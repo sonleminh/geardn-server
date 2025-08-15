@@ -306,7 +306,7 @@ export class StatisticsService {
       select: {
         id: true,
         totalPrice: true,
-        createdAt: true,
+        completedAt: true,
         orderItems: {
           select: {
             quantity: true,
@@ -316,10 +316,12 @@ export class StatisticsService {
       },
     });
 
+    console.log('orders', orders);
+
     const dailyStatsMap = new Map<string, RevenueProfitTimeRangeStats>();
 
     for (const order of orders) {
-      const dateKey = order.createdAt.toISOString().split('T')[0];
+      const dateKey = order.completedAt.toISOString().split('T')[0];
       const revenue = Number(order.totalPrice);
       const cost = order.orderItems.reduce((sum, item) => {
         return sum + Number(item.unitCost || 0) * item.quantity;
