@@ -33,7 +33,7 @@ export class OrderReturnRequestController {
   }
 
   @UseGuards(JwtAdminAuthGuard)
-  @Patch('return-requests/:id/status')
+  @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
     @Body()
@@ -46,13 +46,13 @@ export class OrderReturnRequestController {
       newStatus: ReturnStatus;
       // note: string;
     },
-    // @Req() req: Request,
+    @Req() req: Request,
   ) {
-    // const userId = req.user?.id;
+    const userId = req.user?.id;
     return this.orderReturnRequestService.updateStatus(
       +id,
       { oldStatus, newStatus },
-      // userId,
+      userId,
       // note,
     );
   }

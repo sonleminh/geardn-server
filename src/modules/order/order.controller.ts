@@ -107,47 +107,7 @@ export class OrderController {
       userId,
     );
   }
-
-  @UseGuards(JwtAdminAuthGuard)
-  @Patch('return-requests/:id/status')
-  updateReturnStatus(
-    @Param('id') id: string,
-    @Body()
-    {
-      oldStatus,
-      newStatus,
-      // note,
-    }: {
-      oldStatus: ReturnStatus;
-      newStatus: ReturnStatus;
-      // note: string;
-    },
-    // @Req() req: Request,
-  ) {
-    // const userId = req.user?.id;
-    return this.orderService.updateReturnStatus(
-      +id,
-      { oldStatus, newStatus },
-      // userId,
-      // note,
-    );
-  }
-
-  @UseGuards(JwtAdminAuthGuard)
-  @Patch(':id/confirm-return')
-  completeReturnRequest(
-    @Param('id') id: string,
-    @Body() confirmShipmentDto: ConfirmShipmentDto,
-    @Req() req: Request,
-  ) {
-    const userId = req.user?.id;
-    return this.orderService.completeReturnRequest(
-      +id,
-      confirmShipmentDto.skuWarehouseMapping,
-      userId,
-    );
-  }
-
+ 
   @UseGuards(JwtAdminAuthGuard)
   @Patch(':id/cancel')
   cancelOrder(

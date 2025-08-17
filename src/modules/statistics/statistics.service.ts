@@ -504,8 +504,16 @@ export class StatisticsService {
     const [deliveredCount, pendingCount, canceledCount, current, previous] =
       await Promise.all([
         this.prisma.order.count({ where: { status: 'DELIVERED' } }),
-        this.prisma.order.count({ where: { status: { not: 'DELIVERED' } } }),
-        this.prisma.order.count({ where: { status: 'CANCELED' } }),
+        this.prisma.order.count({
+          where: {
+            status: {
+              in: ['PENDING', 'PROCESSING', 'SHIPPED']
+            }
+          }
+        }),
+        this.prisma.order.count({
+          where: { status: { in: ['CANCELED', 'DELIVERY_FAILED'] } },
+        }),
         this.prisma.order.count({
           where: {
             status: 'DELIVERED',

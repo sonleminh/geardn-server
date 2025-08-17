@@ -74,7 +74,7 @@ export const ENUM_LABELS = {
     { value: ReturnType.DELIVERY_FAIL, label: 'Giao thất bại' },
   ],
   'return-status': [
-    { value: ReturnStatus.PENDING, label: 'Chờ xử lý' },
+    { value: ReturnStatus.AWAITING_APPROVAL, label: 'Chờ duyệt' },
     { value: ReturnStatus.APPROVED, label: 'Đã duyệt' },
     { value: ReturnStatus.REJECTED, label: 'Từ chối' },
     { value: ReturnStatus.COMPLETED, label: 'Hoàn thành' },

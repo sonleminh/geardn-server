@@ -139,7 +139,7 @@ export class OrderReturnRequestService {
   async updateStatus(
     returnId: number,
     status: { oldStatus: ReturnStatus; newStatus: ReturnStatus },
-    // userId: number,
+    userId: number,
     // note: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
@@ -147,6 +147,10 @@ export class OrderReturnRequestService {
         where: { id: returnId },
         data: {
           status: status.newStatus,
+          approvedById:
+            status.newStatus === 'APPROVED' || status.newStatus === 'REJECTED'
+              ? userId
+              : null,
         },
       });
     });
