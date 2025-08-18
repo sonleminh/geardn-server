@@ -4,7 +4,6 @@ import { OrderStatus } from '@prisma/client';
 
 export interface RevenueStats {
   totalRevenue: number;
-  totalOrders: number;
   averageOrderValue: number;
   revenueByStatus: Record<OrderStatus, number>;
 }
@@ -229,7 +228,6 @@ export class StatisticsService {
 
     return {
       totalRevenue,
-      totalOrders,
       averageOrderValue,
       revenueByStatus,
     };
@@ -316,8 +314,6 @@ export class StatisticsService {
       },
     });
 
-    console.log('orders', orders);
-
     const dailyStatsMap = new Map<string, RevenueProfitTimeRangeStats>();
 
     for (const order of orders) {
@@ -358,7 +354,11 @@ export class StatisticsService {
   }
 
   async getRevenueProfitSummary(): Promise<{
-    totals: { totalRevenue: number; totalProfit: number };
+    totals: {
+      totalRevenue: number;
+      totalProfit: number;
+      totalCurrentMonthRevenue: number;
+    };
     growth: { revenuePercent: number; profitPercent: number };
   }> {
     const { currentFrom, currentTo, prevFrom, prevTo } =
@@ -367,12 +367,27 @@ export class StatisticsService {
     const [
       currentStats,
       previousStats,
+      currentMonthDeliveredOrders,
       { revenue: totalRevenue, profit: totalProfit },
     ] = await Promise.all([
       this.getRevenueProfitStats({ fromDate: currentFrom, toDate: currentTo }),
       this.getRevenueProfitStats({ fromDate: prevFrom, toDate: prevTo }),
+      this.prisma.order.findMany({
+        where: {
+          status: 'DELIVERED',
+          completedAt: {
+            gte: new Date(currentFrom),
+            lte: new Date(currentTo),
+          },
+        },
+      }),
       this.getTotalRevenueAndProfit(),
     ]);
+
+    const totalCurrentMonthRevenue = currentMonthDeliveredOrders.reduce(
+      (sum, order) => sum + Number(order.totalPrice),
+      0,
+    );
 
     const revenueGrowthPercent = this.calculateGrowthPercent(
       currentStats.totals.totalRevenue,
@@ -384,7 +399,7 @@ export class StatisticsService {
     );
 
     return {
-      totals: { totalRevenue, totalProfit },
+      totals: { totalRevenue, totalProfit, totalCurrentMonthRevenue },
       growth: {
         revenuePercent: revenueGrowthPercent,
         profitPercent: profitGrowthPercent,
@@ -495,42 +510,54 @@ export class StatisticsService {
       delivered: number;
       pending: number;
       canceled: number;
+      canceledThisMonthCount: number;
+      deliveredThisMonthCount: number;
+      deliveredLastMonthCount: number;
+    };
+    rates: {
+      cancellationRate: number;
+      cancellationRateThisMonth: number;
     };
     growth: { delivered: number };
   }> {
     const { currentFrom, currentTo, prevFrom, prevTo } =
       this.getMonthlyRanges();
 
-    const [deliveredCount, pendingCount, canceledCount, current, previous] =
+    const [deliveredCount, pendingCount, canceledCount, currentMonthCanceledCount, currentMonthDeliveredCount, previousMonthDeliveredCount] =
       await Promise.all([
         this.prisma.order.count({ where: { status: 'DELIVERED' } }),
         this.prisma.order.count({
           where: {
             status: {
-              in: ['PENDING', 'PROCESSING', 'SHIPPED']
-            }
-          }
+              in: ['PENDING', 'PROCESSING', 'SHIPPED'] ,
+            },
+          },
         }),
-        this.prisma.order.count({
-          where: { status: { in: ['CANCELED', 'DELIVERY_FAILED'] } },
-        }),
+        this.prisma.order.count({ where: { status: { in: ['CANCELED', 'DELIVERY_FAILED'] } } }),
         this.prisma.order.count({
           where: {
-            status: 'DELIVERED',
+            status: { in: ['CANCELED', 'DELIVERY_FAILED'] },
             createdAt: { gte: new Date(currentFrom), lte: new Date(currentTo) },
           },
         }),
         this.prisma.order.count({
           where: {
             status: 'DELIVERED',
-            createdAt: { gte: new Date(prevFrom), lte: new Date(prevTo) },
+            completedAt: { gte: new Date(currentFrom), lte: new Date(currentTo) },
           },
         }),
+        this.prisma.order.count({
+          where: {
+            status: 'DELIVERED',
+            completedAt: { gte: new Date(prevFrom), lte: new Date(prevTo) },
+          },
+        }),
+       
       ]);
 
     const deliveredGrowthPercent = this.calculateGrowthPercent(
-      current,
-      previous,
+      currentMonthDeliveredCount,
+      previousMonthDeliveredCount,
     );
 
     return {
@@ -538,8 +565,18 @@ export class StatisticsService {
         delivered: deliveredCount,
         pending: pendingCount,
         canceled: canceledCount,
+        canceledThisMonthCount: currentMonthCanceledCount,
+        deliveredThisMonthCount: currentMonthDeliveredCount,
+        deliveredLastMonthCount: previousMonthDeliveredCount,
       },
-      growth: { delivered: deliveredGrowthPercent },
+      rates: {
+        cancellationRate: (canceledCount / (deliveredCount+ canceledCount)) * 100,
+        cancellationRateThisMonth: (currentMonthCanceledCount / (currentMonthDeliveredCount + currentMonthCanceledCount)) * 100,
+      },
+      growth: {
+        delivered: deliveredGrowthPercent,
+       
+      },
     };
   }
 

@@ -129,25 +129,37 @@ export class StatisticsController {
     const toDate = endDate.toISOString();
 
     const [
-      revenueStats,
-      profitStats,
-      pendingRevenueStats,
+      revenueProfitSummary,
+      orderSummary,
       bestSellingProduct,
       bestSellingCategory,
     ] = await Promise.all([
-      this.statisticsService.getRevenueStats({ fromDate, toDate }),
-      this.statisticsService.getProfitStats({ fromDate, toDate }),
-      this.statisticsService.getRevenueStats({ fromDate, toDate }),
+      this.statisticsService.getRevenueProfitSummary(),
+      this.statisticsService.getOrderSummary(),
       this.statisticsService.getBestSellerProducts({ fromDate, toDate }),
       this.statisticsService.getBestSellerCategories({ fromDate, toDate }),
     ]);
 
     return {
       data: {
-        totalRevenue: revenueStats.totalRevenue,
-        totalProfit: profitStats.totalProfit,
-        totalOrders: revenueStats.totalOrders,
-        pendingOrders: pendingRevenueStats.totalOrders,
+        total: {
+          revenue: revenueProfitSummary.totals.totalRevenue,
+          profit: revenueProfitSummary.totals.totalProfit,
+          totalCurrentMonthRevenue: revenueProfitSummary.totals.totalCurrentMonthRevenue,
+          orders: orderSummary.totals.delivered,
+          pendingOrders: orderSummary.totals.pending,
+          canceledOrders: orderSummary.totals.canceled,
+          deliveredOrders: orderSummary.totals.delivered,
+          // canceledThisMonthCount: orderSummary.totals.canceledThisMonthCount,
+          deliveredThisMonthCount: orderSummary.totals.deliveredThisMonthCount,
+          // deliveredLastMonthCount: orderSummary.totals.deliveredLastMonthCount,
+          // cancellationRate: orderSummary.rates.cancellationRate,
+        },
+        growth: {
+          revenue: revenueProfitSummary.growth.revenuePercent,
+          profit: revenueProfitSummary.growth.profitPercent,
+          delivered: orderSummary.growth.delivered,
+        },
         bestSellingProduct: bestSellingProduct,
         bestSellingCategory: bestSellingCategory,
       },
