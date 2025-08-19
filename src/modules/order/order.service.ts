@@ -17,9 +17,15 @@ import * as dayjs from 'dayjs';
 import { OrderStatus } from 'src/common/enums/order-status.enum';
 import { ReturnStatus } from '@prisma/client';
 
-const ALLOWED_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
+const ALLOWED_STATUS_TRANSITIONS: Readonly<
+  Record<OrderStatus, readonly OrderStatus[]>
+> = {
   [OrderStatus.PENDING]: [OrderStatus.PROCESSING, OrderStatus.CANCELED],
-  [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELED],
+  [OrderStatus.PROCESSING]: [
+    OrderStatus.SHIPPED,
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELED,
+  ],
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.DELIVERY_FAILED],
   [OrderStatus.DELIVERED]: [],
   [OrderStatus.DELIVERY_FAILED]: [OrderStatus.CANCELED],
@@ -434,15 +440,21 @@ export class OrderService {
       }
 
       if (status.newStatus === existingOrder.status) {
-        throw new BadRequestException('New status must be different from current status');
+        throw new BadRequestException(
+          'New status must be different from current status',
+        );
       }
 
-      const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[existingOrder.status];
+      const allowedNextStatuses =
+        ALLOWED_STATUS_TRANSITIONS[existingOrder.status];
       if (!allowedNextStatuses.includes(status.newStatus)) {
         throw new BadRequestException('Invalid status transition');
       }
 
-      if (status.newStatus === OrderStatus.DELIVERED && !existingOrder.completedAt) {
+      if (
+        status.newStatus === OrderStatus.DELIVERED &&
+        !existingOrder.completedAt
+      ) {
         await tx.order.update({
           where: { id: orderId },
           data: { completedAt: new Date() },
@@ -501,6 +513,10 @@ export class OrderService {
             orderItems: true,
           },
         });
+
+        if (order?.status !== 'PENDING') {
+          throw new BadRequestException('Invalid status transition');
+        }
 
         if (!order) {
           throw new BadRequestException('Order not found');
