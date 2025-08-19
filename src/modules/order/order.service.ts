@@ -17,6 +17,15 @@ import * as dayjs from 'dayjs';
 import { OrderStatus } from 'src/common/enums/order-status.enum';
 import { ReturnStatus } from '@prisma/client';
 
+const ALLOWED_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
+  [OrderStatus.PENDING]: [OrderStatus.PROCESSING, OrderStatus.CANCELED],
+  [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELED],
+  [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.DELIVERY_FAILED],
+  [OrderStatus.DELIVERED]: [],
+  [OrderStatus.DELIVERY_FAILED]: [OrderStatus.CANCELED],
+  [OrderStatus.CANCELED]: [],
+} as const;
+
 @Injectable()
 export class OrderService {
   constructor(
@@ -409,17 +418,35 @@ export class OrderService {
     note: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      if (status.newStatus === 'DELIVERED') {
-        const order = await tx.order.findUnique({
-          where: { id: orderId },
-        });
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
+        select: { status: true, completedAt: true },
+      });
 
-        if (!order?.completedAt) {
-          await tx.order.update({
-            where: { id: orderId },
-            data: { completedAt: new Date() },
-          });
-        }
+      if (!existingOrder) {
+        throw new BadRequestException('Order not found');
+      }
+
+      if (existingOrder.status !== status.oldStatus) {
+        throw new BadRequestException(
+          'Order status is outdated. Please refresh and try again.',
+        );
+      }
+
+      if (status.newStatus === existingOrder.status) {
+        throw new BadRequestException('New status must be different from current status');
+      }
+
+      const allowedNextStatuses = ALLOWED_STATUS_TRANSITIONS[existingOrder.status];
+      if (!allowedNextStatuses.includes(status.newStatus)) {
+        throw new BadRequestException('Invalid status transition');
+      }
+
+      if (status.newStatus === OrderStatus.DELIVERED && !existingOrder.completedAt) {
+        await tx.order.update({
+          where: { id: orderId },
+          data: { completedAt: new Date() },
+        });
       }
       await tx.order.update({
         where: { id: orderId },
