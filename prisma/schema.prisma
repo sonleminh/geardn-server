@@ -414,6 +414,57 @@ model PaymentMethod {
 }
 
 //
+// ==== NOTIFICATION ====
+//
+
+model Outbox {
+  id          String       @id @default(cuid())
+  eventType   String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  processedAt DateTime?
+
+  @@index([status, createdAt])
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model Notification {
+  id         String                  @id @default(cuid())
+  type       NotificationType
+  title      String
+  body       String?
+  data       Json?
+  createdAt  DateTime                @default(now())
+  recipients NotificationRecipient[]
+
+  @@index([type, createdAt])
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  RETURN_REQUEST_CREATED
+  STOCK_LOW
+  PAYMENT_FAILED
+}
+
+model NotificationRecipient {
+  id             String       @id @default(cuid())
+  notificationId String
+  userId         Int
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  notification   Notification @relation(fields: [notificationId], references: [id])
+
+  @@index([userId, isRead, notificationId])
+}
+
+//
 // ==== ENUMS ====
 //
 

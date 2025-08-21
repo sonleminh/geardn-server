@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { StatisticsService } from './statistics.service';
+import { StatisticsService } from './statistic.service';
 import { GetRevenueStatsDto } from './dto/get-revenue-stats.dto';
 import { GetProfitStatsDto } from './dto/get-profit-stats.dto';
 import { GetTimeRangeStatsDto } from './dto/get-time-range-stats.dto';

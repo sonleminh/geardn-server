@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
+
 import { AppController } from './app.controller';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { ProductModule } from './modules/product/product.module';
 import { CategoryModule } from './modules/category/category.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
@@ -22,7 +24,7 @@ import { EnumModule } from './common/modules/enum.module';
 import { ExportLogModule } from './modules/export-log/export-log.module';
 import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.module';
 import { ProvinceModule } from './modules/province/province.module';
-import { StatisticsModule } from './modules/statistics/statistics.module';
+import { StatisticsModule } from './modules/statistics/statistic.module';
 import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
 import { OrderReturnRequestModule } from './modules/order-return-request/order-return-request.module';
 
@@ -32,6 +34,19 @@ import { OrderReturnRequestModule } from './modules/order-return-request/order-r
       isGlobal: true,
       load: [configuration],
       envFilePath: ['.env.production', '.env.local'],
+    }),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => {
+        return {
+          connection: {
+            host: cfg.get<string>('REDIS_HOST', '127.0.0.1'),
+            port: parseInt(cfg.get<string>('REDIS_PORT', '6379'), 10),
+            password: cfg.get<string>('REDIS_PASSWORD') || undefined,
+            ...(cfg.get('REDIS_TLS') === 'true' ? { tls: {} } : {}),
+          },
+        };
+      },
     }),
     AuthModule,
     AdminAuthModule,

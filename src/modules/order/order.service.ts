@@ -110,6 +110,17 @@ export class OrderService {
         where: { id: tempOrder.id },
         data: { orderCode },
       });
+
+      await tx.outbox.create({
+        data: {
+          eventType: 'ORDER_CREATED',
+          payload: {
+            orderId: orderCode,
+            total: totalPrice,
+            createdBy: userId,
+          },
+        },
+      });
     });
 
     if (userId) {
