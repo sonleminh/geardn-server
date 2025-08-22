@@ -8,17 +8,16 @@ export class AttributeService {
   constructor(private prisma: PrismaService) {}
 
   async create(createAttributeDto: CreateAttributeDto) {
-    const res = await this.prisma.attribute.create({
-      // return this.prisma.attribute.create({
-      data: createAttributeDto,
+    return this.prisma.$transaction(async (tx) => {
+      const attr = await tx.attribute.create({ data: createAttributeDto });
+      await tx.outbox.create({
+        data: {
+          eventType: 'ATTRIBUTE_CREATED',
+          payload: { attributeId: attr.id },
+        },
+      });
+      return attr;
     });
-    await this.prisma.outbox.create({
-      data: {
-        eventType: 'ATTRIBUTE_CREATED',
-        payload: { attributeId: res.id },
-      },
-    });
-    return res;
   }
 
   async findAll() {

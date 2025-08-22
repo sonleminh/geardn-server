@@ -27,6 +27,10 @@ import { ProvinceModule } from './modules/province/province.module';
 import { StatisticsModule } from './modules/statistics/statistic.module';
 import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
 import { OrderReturnRequestModule } from './modules/order-return-request/order-return-request.module';
+import { DiagModule } from './modules/diag/diag.module';
+import { RealtimegModule } from './modules/realtime/realtime.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { OutboxModule } from './modules/outbox/outbox.module';
 
 @Module({
   imports: [
@@ -48,6 +52,7 @@ import { OrderReturnRequestModule } from './modules/order-return-request/order-r
         };
       },
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     AdminAuthModule,
     AttributeValueModule,
@@ -60,6 +65,7 @@ import { OrderReturnRequestModule } from './modules/order-return-request/order-r
     ImportLogModule,
     ExportLogModule,
     OrdersModule,
+    OutboxModule,
     OrderReturnRequestModule,
     PaymentMethodModule,
     PrismaModule,
@@ -71,6 +77,8 @@ import { OrderReturnRequestModule } from './modules/order-return-request/order-r
     ProvinceModule,
     StatisticsModule,
     GoogleAnalyticsModule,
+    DiagModule,
+    RealtimegModule
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

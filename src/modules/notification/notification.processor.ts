@@ -16,7 +16,7 @@ export class NotificationsProcessor extends WorkerHost {
   async process(job: Job<Outbox>): Promise<void> {
     const evt = job.data; // {eventType, payload}
     const { eventType, payload } = evt;
-
+    console.log('eventType', eventType)
     // map audience: tất cả admin
     const admins = await this.prisma.user.findMany({
       where: { role: 'ADMIN' },
