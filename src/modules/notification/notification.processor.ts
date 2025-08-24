@@ -17,6 +17,7 @@ export class NotificationsProcessor extends WorkerHost {
     const evt = job.data; // {eventType, payload}
     const { eventType, payload } = evt;
     console.log('eventType', eventType)
+    console.log('payload', payload)
     // map audience: tất cả admin
     const admins = await this.prisma.user.findMany({
       where: { role: 'ADMIN' },
@@ -35,6 +36,9 @@ export class NotificationsProcessor extends WorkerHost {
       include: { recipients: true },
     });
 
+    console.log('notification', notification);
+
+
     // realtime
     await this.rt.publish(notification);
 
@@ -48,6 +52,7 @@ export class NotificationsProcessor extends WorkerHost {
   private buildTitle(t: string, p: any): string {
     if (t === 'ORDER_CREATED') return `Đơn mới #${p.orderId}`;
     if (t === 'RETURN_REQUEST_CREATED') return `Yêu cầu hoàn đơn #${p.orderId}`;
+    if (t === 'STOCK_LOW') return `Tạo att mới ${p.name}`;
     return t;
   }
 }
