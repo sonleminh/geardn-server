@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { NotificationType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ListNotificationsDto } from './dto/list-notifications.dto';
@@ -25,57 +25,57 @@ export class NotificationsService {
   /**
    * List notifications for a specific user with optional filters and cursor pagination.
    */
-  async listForUser(userId: number, query: ListNotificationsDto): Promise<{ items: UserNotification[]; nextCursor: string | null }> {
-    const where: Prisma.NotificationRecipientWhereInput = {
-      userId,
-      ...(query.isRead !== undefined ? { isRead: query.isRead } : {}),
-      ...(query.type ? { notification: { type: query.type } } : {}),
-    };
+  async listForUser(userId: number, query: ListNotificationsDto) {
+    // : Promise<{ items: UserNotification[]; nextCursor: string | null }>
+    const cutoff = new Date(); // t0
+    const limit = Math.min(Number(query.limit ?? 20), 50);
+    const cursorId = query.cursor ? Number(query.cursor) : undefined;
 
-    const take: number = query.limit ?? 20;
-    const recipients = await this.prisma.notificationRecipient.findMany({
-      where,
-      include: { notification: true },
-      orderBy: { notification: { createdAt: 'desc' } },
-      take,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+    const rows = await this.prisma.notification.findMany({
+      orderBy: { id: 'desc' },
+      take: limit + 1,
+      ...(cursorId ? { cursor: { id: String(cursorId) }, skip: 1 } : {}),
     });
 
-    const items: UserNotification[] = recipients.map((r) => ({
-      id: r.id,
-      notificationId: r.notificationId,
-      isRead: r.isRead,
-      readAt: r.readAt,
-      type: r.notification.type,
-      title: r.notification.title,
-      body: r.notification.body ?? null,
-      data: (r.notification.data as Prisma.JsonValue) ?? null,
-      createdAt: r.notification.createdAt,
-    }));
+    const items = rows.slice(0, limit);
+    const nextCursor = rows.length > limit ? items[items.length - 1].id : null;
 
-    const nextCursor: string | null = recipients.length === take ? recipients[recipients.length - 1].id : null;
-    return { items, nextCursor };
+    return { items, nextCursor, cutoff };
   }
 
   /**
    * Get unread notifications count for a user.
    */
-  async unreadCount(userId: number): Promise<{ unread: number }> {
-    const unread: number = await this.prisma.notificationRecipient.count({
-      where: { userId, isRead: false },
+  async unreadCount(userId: number): Promise<{ count: number }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
     });
-    return { unread };
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const unread: number = await this.prisma.notification.count({
+      where: { createdAt: { gt: user.lastReadNotificationsAt ?? new Date(0) } },
+    });
+    return { count: unread };
   }
 
   /**
    * Mark a notification recipient as read for the given user.
    */
-  async markRead(recipientId: string, userId: number): Promise<{ success: boolean }> {
-    const result = await this.prisma.notificationRecipient.updateMany({
-      where: { id: recipientId, userId, isRead: false },
-      data: { isRead: true, readAt: new Date() },
+  async markAllRead(userId: number, before: string) {
+    const cutoff = new Date(before);
+    console.log('co:', cutoff);
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        OR: [
+          { lastReadNotificationsAt: null },
+          { lastReadNotificationsAt: { lt: cutoff } },
+        ],
+      },
+      data: { lastReadNotificationsAt: cutoff },
     });
-    return { success: result.count > 0 };
+    return { success: true };
   }
 }
-

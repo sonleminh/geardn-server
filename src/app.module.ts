@@ -31,6 +31,7 @@ import { DiagModule } from './modules/diag/diag.module';
 import { RealtimegModule } from './modules/realtime/realtime.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OutboxModule } from './modules/outbox/outbox.module';
+import { NotificationsModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -78,7 +79,8 @@ import { OutboxModule } from './modules/outbox/outbox.module';
     StatisticsModule,
     GoogleAnalyticsModule,
     DiagModule,
-    RealtimegModule
+    RealtimegModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],

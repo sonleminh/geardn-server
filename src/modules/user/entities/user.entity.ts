@@ -23,5 +23,8 @@ export class UserEntity implements User {
 
   @ApiProperty()
   updatedAt: Date;
+
+  @ApiProperty()
+  lastReadNotificationsAt: Date | null;
 }
 

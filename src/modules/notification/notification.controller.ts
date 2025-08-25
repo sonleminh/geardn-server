@@ -7,6 +7,7 @@ import {
   UseGuards,
   Controller,
   Query,
+  Body,
 } from '@nestjs/common';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { NotificationsService } from './notification.service';
@@ -29,8 +30,8 @@ export class AdminNotificationsController {
     return this.svc.unreadCount(req.user.id);
   }
 
-  @Patch(':recipientId/read')
-  markRead(@Param('recipientId') id: string, @Req() req) {
-    return this.svc.markRead(id, req.user.id);
+  @Patch('mark-all-read')
+  markAllRead(@Req() req, @Body() body: { before: string }) {
+    return this.svc.markAllRead(req.user.id, body.before);
   }
 }

@@ -12,7 +12,7 @@ export class AttributeService {
       const attr = await tx.attribute.create({ data: createAttributeDto });
       await tx.outbox.create({
         data: {
-          eventType: 'ATTRIBUTE_CREATED',
+          eventType: 'ORDER_CREATED',
           payload: { attributeId: attr.id },
         },
       });
