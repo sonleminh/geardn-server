@@ -40,9 +40,10 @@ export class RealtimeController implements OnModuleInit, OnModuleDestroy {
     const handler = (_: string, msg: string) => {
       try {
         const n = JSON.parse(msg);
-        if (n?.recipients?.some((r: any) => r.userId === userId)) {
-          source.next({ type: 'NEW_NOTIFICATION', data: n });
-        }
+        console.log('n', n)
+        // if (n?.recipients?.some((r: any) => r.userId === userId)) {
+        source.next({ type: 'NEW_NOTIFICATION', data: n });
+        // }
       } catch {}
     };
 

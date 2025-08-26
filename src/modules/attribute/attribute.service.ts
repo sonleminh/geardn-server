@@ -12,11 +12,7 @@ export class AttributeService {
       const attr = await tx.attribute.create({ data: createAttributeDto });
       await tx.outbox.create({
         data: {
-<<<<<<< HEAD
           eventType: 'ORDER_CREATED',
-=======
-          eventType: 'STOCK_LOW',
->>>>>>> 20529b109b1d81325407c2997181818efc70a02a
           payload: { attributeId: attr.id },
         },
       });
