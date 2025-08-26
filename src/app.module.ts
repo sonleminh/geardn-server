@@ -80,7 +80,11 @@ import { NotificationsModule } from './modules/notification/notification.module'
     GoogleAnalyticsModule,
     DiagModule,
     RealtimegModule,
+<<<<<<< HEAD
     NotificationsModule,
+=======
+    NotificationsModule
+>>>>>>> 20529b109b1d81325407c2997181818efc70a02a
   ],
   controllers: [AppController],
   // providers: [{ provide: APP_FILTER, useClass: AllExceptionFilter }],
