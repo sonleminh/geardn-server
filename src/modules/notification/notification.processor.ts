@@ -33,7 +33,6 @@ export class NotificationsProcessor extends WorkerHost {
         //   createMany: { data: admins.map((a) => ({ userId: a.id })) },
         // },
       },
-      include: { recipients: true },
     });
 
     console.log('notification', notification);

@@ -25,22 +25,53 @@ export class NotificationsService {
   /**
    * List notifications for a specific user with optional filters and cursor pagination.
    */
-  async listForUser(userId: number, query: ListNotificationsDto) {
+  async openNotifications(userId: number, query: ListNotificationsDto) {
     // : Promise<{ items: UserNotification[]; nextCursor: string | null }>
-    const cutoff = new Date(); // t0
     const limit = Math.min(Number(query.limit ?? 20), 50);
-    const cursorId = query.cursor ? Number(query.cursor) : undefined;
+    const result = await this.prisma.$transaction(async (tx) => {
+      const t0 = new Date();
 
-    const rows = await this.prisma.notification.findMany({
-      orderBy: { id: 'desc' },
-      take: limit + 1,
-      ...(cursorId ? { cursor: { id: String(cursorId) }, skip: 1 } : {}),
+      await tx.notificationUser.updateMany({
+        where: {
+          userId,
+          readAt: null,
+          notification: { createdAt: { lte: t0 } },
+        },
+        data: { readAt: t0 },
+      });
+
+      const rows = await tx.notificationUser.findMany({
+        where: { userId },
+        include: { notification: true },
+        orderBy: { notificationId: 'desc' },
+        take: limit + 1,
+        ...(query.cursor
+          ? {
+              cursor: {
+                notificationId_userId: { notificationId: query.cursor, userId },
+              },
+              skip: 1,
+            }
+          : {}),
+      });
+
+      const items = rows.slice(0, limit).map((r) => ({
+        id: r.notificationId,
+        title: r.notification.title,
+        body: r.notification.body,
+        createdAt: r.notification.createdAt,
+        read: !!r.readAt,
+      }));
+      const nextCursor =
+        rows.length > limit ? items[items.length - 1].id : null;
+
+      const unread = await tx.notificationUser.count({
+        where: { userId, readAt: null },
+      });
+
+      return { items, nextCursor, unread, lastReadAt: t0.toISOString() };
     });
-
-    const items = rows.slice(0, limit);
-    const nextCursor = rows.length > limit ? items[items.length - 1].id : null;
-
-    return { items, nextCursor, cutoff };
+    return { data: result };
   }
 
   /**

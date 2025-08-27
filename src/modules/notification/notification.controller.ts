@@ -20,9 +20,9 @@ import { ListNotificationsDto } from './dto/list-notifications.dto';
 export class AdminNotificationsController {
   constructor(private readonly svc: NotificationsService) {}
 
-  @Get()
-  list(@Query() q: ListNotificationsDto, @Req() req) {
-    return this.svc.listForUser(req.user.id, q);
+  @Get('open')
+  openNotifications(@Query() q: ListNotificationsDto, @Req() req) {
+    return this.svc.openNotifications(req.user.id, q);
   }
 
   @Get('unread-count')

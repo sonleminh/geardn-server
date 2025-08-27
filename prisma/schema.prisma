@@ -400,6 +400,7 @@ model User {
 
   returnRequestsCreated  OrderReturnRequest[] @relation("ReturnRequestCreatedBy")
   returnRequestsApproved OrderReturnRequest[] @relation("ReturnRequestApprovedBy")
+  NotificationUser       NotificationUser[]
 }
 
 model PaymentMethod {
@@ -435,16 +436,18 @@ enum OutboxStatus {
   FAILED
 }
 
+// ==== NOTIFICATION CORE ====
 model Notification {
-  id         String                  @id @default(cuid())
-  type       NotificationType
-  title      String
-  body       String?
-  data       Json?
-  createdAt  DateTime                @default(now())
-  recipients NotificationRecipient[]
+  id        Int              @id @default(autoincrement())
+  type      NotificationType
+  title     String
+  body      String?
+  data      Json?
+  createdAt DateTime         @default(now())
 
-  @@index([type, createdAt])
+  users NotificationUser[]
+
+  @@index([createdAt])
 }
 
 enum NotificationType {
@@ -454,15 +457,16 @@ enum NotificationType {
   PAYMENT_FAILED
 }
 
-model NotificationRecipient {
-  id             String       @id @default(cuid())
-  notificationId String
+model NotificationUser {
   userId         Int
-  isRead         Boolean      @default(false)
+  notificationId Int
   readAt         DateTime?
-  notification   Notification @relation(fields: [notificationId], references: [id])
 
-  @@index([userId, isRead, notificationId])
+  user         User         @relation(fields: [userId], references: [id])
+  notification Notification @relation(fields: [notificationId], references: [id])
+
+  @@id([notificationId, userId])
+  @@index([userId, readAt])
 }
 
 //

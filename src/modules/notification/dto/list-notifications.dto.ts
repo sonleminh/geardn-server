@@ -26,7 +26,7 @@ export class ListNotificationsDto {
   @ApiPropertyOptional({ description: 'Pagination cursor (notification id)' })
   @IsOptional()
   @IsString()
-  cursor?: string;
+  cursor?: number;
 
   @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
   @IsOptional()
