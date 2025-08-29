@@ -12,7 +12,7 @@ import {
   Min,
 } from 'class-validator';
 
-export class ListNotificationsDto {
+export class GetNotificationsDto {
   @ApiPropertyOptional({ enum: NotificationType })
   @IsOptional()
   @IsEnum(NotificationType)
@@ -21,12 +21,12 @@ export class ListNotificationsDto {
   @ApiPropertyOptional({ description: 'Filter by read state' })
   @IsOptional()
   @IsBoolean()
-  isRead?: boolean;
+  unreadOnly?: boolean;
 
   @ApiPropertyOptional({ description: 'Pagination cursor (notification id)' })
   @IsOptional()
   @IsString()
-  cursor?: number;
+  cursor?: string;
 
   @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
   @IsOptional()

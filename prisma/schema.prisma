@@ -382,14 +382,16 @@ model AdjustmentLogItem {
 //
 
 model User {
-  id                      Int       @id @default(autoincrement())
-  email                   String    @unique
-  name                    String
-  password                String
-  role                    UserRole  @default(USER)
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  lastReadNotificationsAt DateTime?
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lastSeenNotificationsAt DateTime? // để tính badge
+  lastReadNotificationsAt DateTime? // optional, tối ưu query
 
   Cart               Cart?
   Order              Order[]
@@ -398,9 +400,9 @@ model User {
   AdjustmentLog      AdjustmentLog[]
   OrderStatusHistory OrderStatusHistory[]
 
-  returnRequestsCreated  OrderReturnRequest[] @relation("ReturnRequestCreatedBy")
-  returnRequestsApproved OrderReturnRequest[] @relation("ReturnRequestApprovedBy")
-  NotificationUser       NotificationUser[]
+  returnRequestsCreated  OrderReturnRequest[]    @relation("ReturnRequestCreatedBy")
+  returnRequestsApproved OrderReturnRequest[]    @relation("ReturnRequestApprovedBy")
+  NotificationRecipient  NotificationRecipient[]
 }
 
 model PaymentMethod {
@@ -438,16 +440,15 @@ enum OutboxStatus {
 
 // ==== NOTIFICATION CORE ====
 model Notification {
-  id        Int              @id @default(autoincrement())
-  type      NotificationType
-  title     String
-  body      String?
-  data      Json?
-  createdAt DateTime         @default(now())
+  id         String                  @id @default(cuid())
+  type       NotificationType
+  title      String
+  body       String?
+  data       Json?
+  createdAt  DateTime                @default(now())
+  recipients NotificationRecipient[]
 
-  users NotificationUser[]
-
-  @@index([createdAt])
+  @@index([type, createdAt])
 }
 
 enum NotificationType {
@@ -457,16 +458,18 @@ enum NotificationType {
   PAYMENT_FAILED
 }
 
-model NotificationUser {
+model NotificationRecipient {
+  id             String       @id @default(cuid())
+  notificationId String
   userId         Int
-  notificationId Int
+  isRead         Boolean      @default(false)
   readAt         DateTime?
+  createdAt      DateTime     @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id])
+  User           User         @relation(fields: [userId], references: [id])
 
-  user         User         @relation(fields: [userId], references: [id])
-  notification Notification @relation(fields: [notificationId], references: [id])
-
-  @@id([notificationId, userId])
-  @@index([userId, readAt])
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
 }
 
 //

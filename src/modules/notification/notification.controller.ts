@@ -8,6 +8,7 @@ import {
   Controller,
   Query,
   Body,
+  Post,
 } from '@nestjs/common';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { NotificationsService } from './notification.service';
@@ -20,9 +21,9 @@ import { ListNotificationsDto } from './dto/list-notifications.dto';
 export class AdminNotificationsController {
   constructor(private readonly svc: NotificationsService) {}
 
-  @Get('open')
-  openNotifications(@Query() q: ListNotificationsDto, @Req() req) {
-    return this.svc.openNotifications(req.user.id, q);
+  @Get('')
+  getNotifications(@Query() q: ListNotificationsDto, @Req() req) {
+    return this.svc.getNotifications(req.user.id, q);
   }
 
   @Get('unread-count')

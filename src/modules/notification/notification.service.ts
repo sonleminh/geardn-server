@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { NotificationType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ListNotificationsDto } from './dto/list-notifications.dto';
@@ -25,53 +29,60 @@ export class NotificationsService {
   /**
    * List notifications for a specific user with optional filters and cursor pagination.
    */
-  async openNotifications(userId: number, query: ListNotificationsDto) {
-    // : Promise<{ items: UserNotification[]; nextCursor: string | null }>
-    const limit = Math.min(Number(query.limit ?? 20), 50);
-    const result = await this.prisma.$transaction(async (tx) => {
-      const t0 = new Date();
+  async getNotifications(userId: number, dto: ListNotificationsDto) {
+    const limit = dto.limit ?? 20;
+    let createdAtCursor: Date | null = null;
+    let idCursor: string | null = null;
+    if (dto.cursorId && dto.cursorCreatedAt) {
+      createdAtCursor = new Date(dto.cursorCreatedAt);
+      idCursor = dto.cursorId;
+      if (isNaN(createdAtCursor.getTime())) {
+        throw new BadRequestException('Invalid cursorCreatedAt');
+      }
+    }
 
-      await tx.notificationUser.updateMany({
-        where: {
-          userId,
-          readAt: null,
-          notification: { createdAt: { lte: t0 } },
-        },
-        data: { readAt: t0 },
-      });
+    const where: Prisma.NotificationRecipientWhereInput = {
+      userId,
+      ...(dto.unreadOnly === 'true' ? { isRead: false } : {}),
+      ...(dto.type ? { notification: { type: dto.type } } : {}),
+      ...(createdAtCursor && idCursor
+        ? {
+            OR: [
+              { createdAt: { lt: createdAtCursor } },
+              { createdAt: createdAtCursor, id: { lt: idCursor } },
+            ],
+          }
+        : {}),
+    };
 
-      const rows = await tx.notificationUser.findMany({
-        where: { userId },
-        include: { notification: true },
-        orderBy: { notificationId: 'desc' },
-        take: limit + 1,
-        ...(query.cursor
-          ? {
-              cursor: {
-                notificationId_userId: { notificationId: query.cursor, userId },
-              },
-              skip: 1,
-            }
-          : {}),
-      });
-
-      const items = rows.slice(0, limit).map((r) => ({
-        id: r.notificationId,
-        title: r.notification.title,
-        body: r.notification.body,
-        createdAt: r.notification.createdAt,
-        read: !!r.readAt,
-      }));
-      const nextCursor =
-        rows.length > limit ? items[items.length - 1].id : null;
-
-      const unread = await tx.notificationUser.count({
-        where: { userId, readAt: null },
-      });
-
-      return { items, nextCursor, unread, lastReadAt: t0.toISOString() };
+    const rows = await this.prisma.notificationRecipient.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+      include: {
+        notification: true,
+      },
     });
-    return { data: result };
+
+    const hasMore = rows.length > limit;
+    const slice = rows.slice(0, limit);
+
+    const items = rows.slice(0, limit).map((r) => ({
+      id: r.id,
+      type: r.notification.type,
+      title: r.notification.title,
+      body: r.notification.body,
+      data: r.notification.data,
+      createdAt: r.createdAt.toISOString(),
+      isRead: r.isRead,
+    }));
+
+    const last = slice.at(-1);
+    return {
+      items,
+      nextCursorId: hasMore ? last!.id : null,
+      nextCursorCreatedAt: hasMore ? last!.createdAt.toISOString() : null,
+    };
   }
 
   /**
