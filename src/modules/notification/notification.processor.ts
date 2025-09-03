@@ -29,9 +29,9 @@ export class NotificationsProcessor extends WorkerHost {
         type: eventType as any,
         title: this.buildTitle(eventType, payload),
         data: payload as any,
-        // recipients: {
-        //   createMany: { data: admins.map((a) => ({ userId: a.id })) },
-        // },
+        recipients: {
+          createMany: { data: admins.map((a) => ({ userId: a.id })) },
+        },
       },
     });
 

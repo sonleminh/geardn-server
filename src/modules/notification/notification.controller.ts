@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { NotificationsService } from './notification.service';
-import { ListNotificationsDto } from './dto/list-notifications.dto';
+import { GetNotificationsDto } from './dto/get-notifications.dto';
 
 // admin-notifications.controller.ts
 @UseGuards(JwtAdminAuthGuard)
@@ -22,17 +22,17 @@ export class AdminNotificationsController {
   constructor(private readonly svc: NotificationsService) {}
 
   @Get('')
-  getNotifications(@Query() q: ListNotificationsDto, @Req() req) {
+  getNotifications(@Query() q: GetNotificationsDto, @Req() req) {
     return this.svc.getNotifications(req.user.id, q);
   }
 
-  @Get('unread-count')
-  unread(@Req() req) {
-    return this.svc.unreadCount(req.user.id);
+  @Get('stats')
+  getStats(@Req() req) {
+    return this.svc.getStats(req.user.id);
   }
 
-  @Patch('mark-all-read')
-  markAllRead(@Req() req, @Body() body: { before: string }) {
-    return this.svc.markAllRead(req.user.id, body.before);
+  @Patch('seen')
+  seen(@Req() req) {
+    return this.svc.markSeen(req.user.id);
   }
 }

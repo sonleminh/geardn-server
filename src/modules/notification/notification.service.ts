@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { NotificationType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { ListNotificationsDto } from './dto/list-notifications.dto';
+import { GetNotificationsDto } from './dto/get-notifications.dto';
 
 type UserNotification = {
   id: string;
@@ -29,7 +29,7 @@ export class NotificationsService {
   /**
    * List notifications for a specific user with optional filters and cursor pagination.
    */
-  async getNotifications(userId: number, dto: ListNotificationsDto) {
+  async getNotifications(userId: number, dto: GetNotificationsDto) {
     const limit = dto.limit ?? 20;
     let createdAtCursor: Date | null = null;
     let idCursor: string | null = null;
@@ -88,9 +88,9 @@ export class NotificationsService {
   /**
    * Get unread notifications count for a user.
    */
-  async unreadCount(
+  async getStats(
     userId: number,
-  ): Promise<{ count: number; lastReadNotificationsAt: Date | null }> {
+  ): Promise<{ count: number; unreadCount: number }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -98,30 +98,30 @@ export class NotificationsService {
       throw new NotFoundException('User not found');
     }
 
-    const unread: number = await this.prisma.notification.count({
-      where: { createdAt: { gt: user.lastReadNotificationsAt ?? new Date(0) } },
+    const badgeCount = await this.prisma.notificationRecipient.count({
+      where: {
+        userId: userId,
+        createdAt: { gt: user.lastSeenNotificationsAt ?? new Date(0) },
+      },
+    });
+    const unreadCount = await this.prisma.notificationRecipient.count({
+      where: { userId: userId, isRead: false },
     });
     return {
-      count: unread,
-      lastReadNotificationsAt: user.lastReadNotificationsAt,
+      count: badgeCount,
+      unreadCount: unreadCount,
     };
   }
 
   /**
    * Mark a notification recipient as read for the given user.
    */
-  async markAllRead(userId: number, before: string) {
-    const cutoff = new Date(before);
-    console.log('co:', cutoff);
+  async markSeen(userId: number) {
     await this.prisma.user.updateMany({
       where: {
         id: userId,
-        OR: [
-          { lastReadNotificationsAt: null },
-          { lastReadNotificationsAt: { lt: cutoff } },
-        ],
       },
-      data: { lastReadNotificationsAt: cutoff },
+      data: { lastSeenNotificationsAt: new Date()  },
     });
     return { success: true };
   }

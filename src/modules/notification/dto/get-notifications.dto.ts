@@ -4,6 +4,7 @@ import { NotificationType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsBooleanString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -20,13 +21,18 @@ export class GetNotificationsDto {
 
   @ApiPropertyOptional({ description: 'Filter by read state' })
   @IsOptional()
-  @IsBoolean()
-  unreadOnly?: boolean;
+  @IsBooleanString()
+  unreadOnly?: string;
 
   @ApiPropertyOptional({ description: 'Pagination cursor (notification id)' })
   @IsOptional()
   @IsString()
-  cursor?: string;
+  cursorId?: string;
+
+  @ApiPropertyOptional({ description: 'Pagination cursor (notification createdAt)' })
+  @IsOptional()
+  @IsString()
+  cursorCreatedAt?: string;
 
   @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
   @IsOptional()
