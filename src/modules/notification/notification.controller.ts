@@ -35,4 +35,14 @@ export class AdminNotificationsController {
   seen(@Req() req) {
     return this.svc.markSeen(req.user.id);
   }
+
+  @Post('read')
+  read(@Req() req, @Body() body: { ids: string[] }) {
+    return this.svc.markRead(req.user.id, body.ids);
+  }
+
+  @Post('read-all')
+  readAll(@Req() req) {
+    return this.svc.markAllRead(req.user.id);
+  }
 }

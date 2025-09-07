@@ -68,7 +68,7 @@ export class NotificationsService {
     const slice = rows.slice(0, limit);
 
     const items = rows.slice(0, limit).map((r) => ({
-      id: r.id,
+      id: r.notificationId,
       type: r.notification.type,
       title: r.notification.title,
       body: r.notification.body,
@@ -123,6 +123,32 @@ export class NotificationsService {
       },
       data: { lastSeenNotificationsAt: new Date()  },
     });
+    return { success: true };
+  }
+
+  async markRead(userId: number, ids: string[]) {
+    console.log('ids:', ids);
+    const res = await this.prisma.notificationRecipient.updateMany({
+      where: {
+        userId: userId,
+        notificationId: { in: ids },
+        isRead: false,
+      },
+      data: { isRead: true, readAt: new Date() },
+    });
+    console.log('res:', res);
+    return { success: true };
+  }
+
+  async markAllRead(userId: number) {
+    const res = await this.prisma.notificationRecipient.updateMany({
+      where: {
+        userId: userId,
+        createdAt: { lte: new Date() },
+      },
+      data: { isRead: true, readAt: new Date() },
+    });
+    console.log('res:', res);
     return { success: true };
   }
 }
