@@ -90,7 +90,7 @@ export class NotificationsService {
    */
   async getStats(
     userId: number,
-  ): Promise<{ count: number; unreadCount: number }> {
+  ): Promise<{ unseenCount: number; unreadCount: number }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -98,18 +98,22 @@ export class NotificationsService {
       throw new NotFoundException('User not found');
     }
 
-    const badgeCount = await this.prisma.notificationRecipient.count({
-      where: {
-        userId: userId,
-        createdAt: { gt: user.lastSeenNotificationsAt ?? new Date(0) },
-      },
-    });
-    const unreadCount = await this.prisma.notificationRecipient.count({
-      where: { userId: userId, isRead: false },
-    });
+    const lastSeen = user.lastSeenNotificationsAt ?? new Date(0);
+
+    const [unseenCount, unreadCount] = await Promise.all([
+      this.prisma.notificationRecipient.count({
+        where: {
+          userId,
+          notification: { createdAt: { gt: lastSeen } }, // ← dùng createdAt của Notification
+        },
+      }),
+      this.prisma.notificationRecipient.count({
+        where: { userId, isRead: false },
+      }),
+    ]);
     return {
-      count: badgeCount,
-      unreadCount: unreadCount,
+      unseenCount,
+      unreadCount,
     };
   }
 
