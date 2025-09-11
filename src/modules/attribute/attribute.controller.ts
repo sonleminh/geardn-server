@@ -38,12 +38,7 @@ export class AttributeController {
   findOne(@Param('id') id: string) {
     return this.attributeService.findOne(+id);
   }
-
-  // @Get('type/:id')
-  // findByType(@Param('id') type: string) {
-  //   return this.attributeService.findByType(type);
-  // }
-
+  
   @Patch(':id')
   update(
     @Param('id') id: string,

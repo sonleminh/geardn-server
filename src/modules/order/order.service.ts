@@ -37,7 +37,6 @@ export class OrderService {
   constructor(
     private prisma: PrismaService,
     private readonly cartService: CartService,
-    private readonly exportLogService: ExportLogService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -106,7 +105,7 @@ export class OrderService {
 
       const paddedId = String(tempOrder.id).padStart(6, '0');
       const orderCode = `GDN-${paddedId}`;
-      return tx.order.update({
+      await tx.order.update({
         where: { id: tempOrder.id },
         data: { orderCode },
       });
@@ -115,7 +114,8 @@ export class OrderService {
         data: {
           eventType: 'ORDER_CREATED',
           payload: {
-            orderId: orderCode,
+            id: tempOrder.id,
+            orderCode,
             total: totalPrice,
             createdBy: userId,
           },

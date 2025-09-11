@@ -14,11 +14,8 @@ export class NotificationsProcessor extends WorkerHost {
   }
 
   async process(job: Job<Outbox>): Promise<void> {
-    const evt = job.data; // {eventType, payload}
+    const evt = job.data;
     const { eventType, payload } = evt;
-    console.log('eventType', eventType)
-    console.log('payload', payload)
-    // map audience: tất cả admin
     const admins = await this.prisma.user.findMany({
       where: { role: 'ADMIN' },
       select: { id: true },
@@ -49,7 +46,7 @@ export class NotificationsProcessor extends WorkerHost {
   }
 
   private buildTitle(t: string, p: any): string {
-    if (t === 'ORDER_CREATED') return `Đơn mới #${p.attributeId}`;
+    if (t === 'ORDER_CREATED') return `Đơn mới #${p.orderCode}`;
     if (t === 'RETURN_REQUEST_CREATED') return `Yêu cầu hoàn đơn #${p.orderId}`;
     if (t === 'STOCK_LOW') return `Tạo att mới ${p.name}`;
     return t;
