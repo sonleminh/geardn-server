@@ -10,12 +10,6 @@ export class AttributeService {
   async create(createAttributeDto: CreateAttributeDto) {
     return this.prisma.$transaction(async (tx) => {
       const attr = await tx.attribute.create({ data: createAttributeDto });
-      await tx.outbox.create({
-        data: {
-          eventType: 'ORDER_CREATED',
-          payload: { attributeId: attr.id },
-        },
-      });
       return attr;
     });
   }

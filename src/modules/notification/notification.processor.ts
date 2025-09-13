@@ -62,8 +62,8 @@ export class NotificationsProcessor extends WorkerHost {
 
   private buildTitle(t: string, p: any): string {
     if (t === 'ORDER_CREATED') return `Đơn mới #${p.orderCode}`;
-    if (t === 'RETURN_REQUEST_CREATED') return `Yêu cầu hoàn đơn #${p.orderId}`;
-    if (t === 'STOCK_LOW') return `Tạo att mới ${p.name}`;
+    if (t === 'RETURN_REQUEST_CREATED') return `Yêu cầu hoàn đơn #${p.orderCode}`;
+    if (t === 'STOCK_LOW') return `Tồn kho thấp ${p.name}`;
     return t;
   }
 }

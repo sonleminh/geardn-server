@@ -26,7 +26,6 @@ export class RealtimeController implements OnModuleInit, OnModuleDestroy {
 
   @Sse('stream')
   stream(@Req() req): Observable<MessageEvent> {
-    const userId = req.user?.id;
     const channel = 'admin.notifications';
     const source = new Subject<MessageEvent>();
 

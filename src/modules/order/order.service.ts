@@ -110,7 +110,7 @@ export class OrderService {
         data: { orderCode },
       });
 
-      const outbox = await tx.outbox.create({
+      await tx.outbox.create({
         data: {
           eventType: 'ORDER_CREATED',
           payload: {
@@ -122,7 +122,6 @@ export class OrderService {
           },
         },
       });
-      console.log('outbox:', outbox);
     });
 
     if (userId) {
@@ -602,9 +601,9 @@ export class OrderService {
         // Create one export log per warehouse (optimized approach)
         for (const [warehouseId, items] of warehouseGroups) {
           // Create export log within transaction
-          const today = new Date()
-            .toISOString()
-            .split('T')[0]
+          const today = new Date();
+          const localToday = today
+            .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) // YYYY-MM-DD
             .replace(/-/g, '');
           const countToday = await tx.exportLog.count({
             where: {
@@ -614,8 +613,7 @@ export class OrderService {
               },
             },
           });
-
-          const referenceCode = `EXP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+          const referenceCode = `EXP-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
 
           const exportLog = await tx.exportLog.create({
             data: {
@@ -720,7 +718,7 @@ export class OrderService {
       });
 
       if (oldStatus !== 'PENDING' && oldStatus !== 'DELIVERY_FAILED') {
-        await tx.orderReturnRequest.create({
+        const orderReturnRequest = await tx.orderReturnRequest.create({
           data: {
             orderId,
             type: 'CANCEL',
@@ -731,6 +729,17 @@ export class OrderService {
               create: orderReturnItems,
             },
             createdById: userId,
+          },
+        });
+        await tx.outbox.create({
+          data: {
+            eventType: 'RETURN_REQUEST_CREATED',
+            payload: {
+              resourceId: orderReturnRequest.id,
+              resourceType: 'RETURN_REQUEST',
+              orderCode: order.orderCode,
+              createdBy: userId,
+            },
           },
         });
       }
