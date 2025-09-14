@@ -132,7 +132,6 @@ export class NotificationsService {
   }
 
   async markRead(userId: number, ids: string[]) {
-    console.log('ids:', ids);
     const res = await this.prisma.notificationRecipient.updateMany({
       where: {
         userId: userId,
@@ -141,7 +140,6 @@ export class NotificationsService {
       },
       data: { isRead: true, readAt: new Date() },
     });
-    console.log('res:', res);
     return { success: true };
   }
 
@@ -153,7 +151,6 @@ export class NotificationsService {
       },
       data: { isRead: true, readAt: new Date() },
     });
-    console.log('res:', res);
     return { success: true };
   }
 }

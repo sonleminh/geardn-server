@@ -264,11 +264,11 @@ export class OrderReturnRequestService {
         // Create one import log per warehouse (optimized approach)
         for (const [warehouseId, items] of warehouseGroups) {
           // Create import log within transaction
-          const today = new Date()
-            .toISOString()
-            .split('T')[0]
+          const today = new Date();
+          const localToday = today
+            .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) // YYYY-MM-DD
             .replace(/-/g, '');
-          const countToday = await tx.importLog.count({
+          const countToday = await tx.exportLog.count({
             where: {
               createdAt: {
                 gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -277,7 +277,7 @@ export class OrderReturnRequestService {
             },
           });
 
-          const referenceCode = `IMP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+          const referenceCode = `IMP-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
 
           const importLog = await tx.importLog.create({
             data: {

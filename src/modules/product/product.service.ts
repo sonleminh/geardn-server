@@ -367,7 +367,6 @@ export class ProductService {
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
-    console.log('updateProductDto', updateProductDto);
     const data: Prisma.ProductUpdateInput = {
       ...updateProductDto,
       tags: updateProductDto.tags

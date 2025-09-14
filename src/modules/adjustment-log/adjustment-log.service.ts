@@ -81,18 +81,20 @@ export class AdjustmentLogService {
           }
         }
 
-        const today = dayjs().format('YYYYMMDD');
-        const countToday = await tx.adjustmentLog.count({
+        const today = new Date();
+        const localToday = today
+          .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) // YYYY-MM-DD
+          .replace(/-/g, '');
+        const countToday = await tx.exportLog.count({
           where: {
             createdAt: {
-              gte: dayjs().startOf('day').toDate(),
-              lte: dayjs().endOf('day').toDate(),
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lte: new Date(new Date().setHours(23, 59, 59, 999)),
             },
           },
         });
 
-        const referenceCode = `ADJ-${today}-${String(countToday + 1).padStart(4, '0')}`;
-        console.log('referenceCode', referenceCode);
+        const referenceCode = `ADJ-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
         // Tạo adjustment log
         const adjustmentLog = await tx.adjustmentLog.create({
           data: {

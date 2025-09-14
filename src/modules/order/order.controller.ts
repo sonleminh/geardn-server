@@ -159,4 +159,11 @@ export class OrderController {
       reasonNote,
     );
   }
+
+  @Get('/cc/getToday')
+  getToday() {
+    const gte = new Date(new Date().setHours(0, 0, 0, 0));
+    const lte = new Date(new Date().setHours(23, 59, 59, 999));
+    return { gte, lte };
+  }
 }

@@ -79,17 +79,19 @@ export class ExportLogService {
           }
         }
 
-        const today = dayjs().format('YYYYMMDD');
+        const today = new Date();
+        const localToday = today
+          .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) // YYYY-MM-DD
+          .replace(/-/g, '');
         const countToday = await tx.exportLog.count({
           where: {
             createdAt: {
-              gte: dayjs().startOf('day').toDate(),
-              lte: dayjs().endOf('day').toDate(),
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lte: new Date(new Date().setHours(23, 59, 59, 999)),
             },
           },
         });
-
-        const referenceCode = `EXP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+        const referenceCode = `EXP-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
 
         const exportLog = await tx.exportLog.create({
           data: {

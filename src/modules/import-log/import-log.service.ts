@@ -58,17 +58,20 @@ export class ImportLogService {
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        const today = dayjs().format('YYYYMMDD');
-        const countToday = await tx.importLog.count({
+        const today = new Date();
+        const localToday = today
+          .toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }) // YYYY-MM-DD
+          .replace(/-/g, '');
+        const countToday = await tx.exportLog.count({
           where: {
             createdAt: {
-              gte: dayjs().startOf('day').toDate(),
-              lte: dayjs().endOf('day').toDate(),
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lte: new Date(new Date().setHours(23, 59, 59, 999)),
             },
           },
         });
 
-        const referenceCode = `IMP-${today}-${String(countToday + 1).padStart(4, '0')}`;
+        const referenceCode = `IMP-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
 
         // 1. Tạo bản ghi import log
         const importLog = await tx.importLog.create({

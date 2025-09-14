@@ -201,7 +201,6 @@ export class CartService {
   }
 
   async syncCartReload(userId: number, syncCartItems: SyncCartItemsDto[]) {
-    console.log('syncCartReload');
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
     });

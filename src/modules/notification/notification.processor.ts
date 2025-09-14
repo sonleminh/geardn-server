@@ -48,8 +48,6 @@ export class NotificationsProcessor extends WorkerHost {
       },
     });
 
-    console.log('notification', notification);
-
     // realtime
     await this.rt.publish(notification);
 
