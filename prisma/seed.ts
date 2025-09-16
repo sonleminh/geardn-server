@@ -212,6 +212,51 @@ const productSeedList = [
     categoryId: 2,
     createdAt: '2025-07-25T02:29:33.187Z',
     updatedAt: '2025-07-25T02:29:33.187Z',
+  }, 
+  {
+    name: 'NB-F160',
+    slug: 'nb-f160',
+    description: '<p>NB-F160</p>',
+    brand: 'North Bayou',
+    images: [
+      'https://storage.googleapis.com/geardn-a6c28.appspot.com/1757997062386-nb-f160.jpg',
+    ],
+    tags: [
+      { label: 'Giảm giá', value: 'sale' },
+      { label: 'Bán chạy', value: 'bestseller' },
+    ],
+    details: {
+      weight: '6kg',
+      material: '',
+      guarantee: '12 tháng',
+    },
+    status: ProductStatus.ACTIVE,
+    isVisible: true,
+    isDeleted: false,
+    categoryId: 3,
+    createdAt: '2025-07-25T02:29:33.187Z',
+    updatedAt: '2025-07-25T02:29:33.187Z',
+  },
+  {
+    name: 'Chuột gaming Delux M800 Pro',
+    slug: 'chuot-gaming-delux-m800-pro',
+    description: '<p>Chuột gaming Delux M800 Pro</p>',
+    brand: 'Delux',
+    images: [
+      'https://storage.googleapis.com/geardn-a6c28.appspot.com/1758006109946-delux-m800-pro.jpg',
+    ],
+    tags: [],
+    details: {
+      weight: '100g',
+      material: '',
+      guarantee: '12 tháng',
+    },
+    status: ProductStatus.ACTIVE,
+    isVisible: true,
+    isDeleted: false,
+    categoryId: 2,
+    createdAt: '2025-07-25T02:29:33.187Z',
+    updatedAt: '2025-07-25T02:29:33.187Z',
   },  
 ];
 
@@ -261,7 +306,7 @@ const productSkuSeedList = [
   {
     productId: 5,
     sku: 'GDN0008',
-    sellingPrice: '369000',
+    sellingPrice: '469000',
     imageUrl: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1753434286481-lymax-l1-plus.webp',
   },
   {
@@ -282,40 +327,56 @@ const productSkuSeedList = [
     sellingPrice: '290000',
     imageUrl: null,
   },
+  {
+    productId: 9,
+    sku: 'GDN00012',
+    sellingPrice: '590000',
+    imageUrl: null,
+  },
+  {
+    productId: 10,
+    sku: 'GDN0013',
+    sellingPrice: '490000',
+    imageUrl: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1758006898837-delux-m800-pro-full-hd.jpg',
+  },
 ];
 
 const productSkuAttributeSeedList = [
   {
-    skuId: 1,             // GDN0006
-    attributeValueId: 1,  // version: L1
+    skuId: 1,             
+    attributeValueId: 1,  
   },
   {
-    skuId: 2,             // GDN0007
-    attributeValueId: 2,  // version: L1 Plus
+    skuId: 2,             
+    attributeValueId: 2, 
   },
   {
-    skuId: 4,             // GDN0008
-    attributeValueId: 3,  // switch: Leopog Reaper
+    skuId: 4,           
+    attributeValueId: 3,  
   },
   {
     skuId: 4,
-    attributeValueId: 4,  // color: Trắng xanh
+    attributeValueId: 4, 
   },
   {
     skuId: 5,             
-    attributeValueId: 8,  // switch: Leopog Reaper
+    attributeValueId: 8, 
   },
   {
     skuId: 5,
-    attributeValueId: 5,  // color: Polar
+    attributeValueId: 5,  
   },
   {
     skuId: 7,            
-    attributeValueId: 6,  // color: Đen
+    attributeValueId: 6,  
   },
   {
     skuId: 8,            
-    attributeValueId: 7,  // color: Trắng
+    attributeValueId: 7,  
+  },
+  {
+    skuId: 13,            
+    attributeValueId: 1,  
   },
 ];
 

@@ -24,6 +24,8 @@ model Product {
   isVisible   Boolean       @default(true)
   isDeleted   Boolean       @default(false)
   categoryId  Int
+  priceMin    Decimal?
+  priceMax    Decimal?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -34,6 +36,8 @@ model Product {
 
   @@index([categoryId])
   @@index([slug])
+  @@index([priceMin])
+  @@index([priceMax])
 }
 
 model ProductSKU {

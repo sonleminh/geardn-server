@@ -140,7 +140,7 @@ export class ProductController {
   @Patch(':id/restore')
   @ApiCreatedResponse({ type: ProductEntity })
   restore(@Param('id') id: string) {
-    return this.productService.restoreProduct(+id);
+    return this.productService.restore(+id);
   }
 
   @UseGuards(JwtAdminAuthGuard)

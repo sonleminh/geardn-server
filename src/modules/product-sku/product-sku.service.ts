@@ -3,6 +3,7 @@ import { FirebaseService } from '../firebase/firebase.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductSkuService {
@@ -28,68 +29,87 @@ export class ProductSkuService {
     return `GDN${nextNumber.toString().padStart(4, '0')}`;
   }
 
+  async recalcProductPriceRange(
+    productId: number,
+    tx: Prisma.TransactionClient,
+  ) {
+    const agg = await tx.productSKU.aggregate({
+      where: {
+        productId,
+        isDeleted: false,
+        status: 'ACTIVE',
+        // Nếu muốn chỉ tính SKU còn hàng:
+        // stocks: { some: { quantity: { gt: 0 } } }
+      },
+      _min: { sellingPrice: true },
+      _max: { sellingPrice: true },
+    });
+
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        priceMin: agg._min.sellingPrice ?? null,
+        priceMax: agg._max.sellingPrice ?? null,
+      },
+    });
+  }
+
   async create(createProductSkusDto: CreateProductSkuDto) {
-    const sku = await this.generateSKU();
     const { productId, imageUrl, sellingPrice, attributeValues } =
       createProductSkusDto;
 
-    const existingSkus = await this.prisma.productSKU.findMany({
-      where: { productId },
-      include: { productSkuAttributes: true },
-    });
-
-    const isDuplicate = existingSkus.some((existingSku) => {
-      const existingAttribute = existingSku.productSkuAttributes
-        .map((attr) => attr.attributeValueId)
-        .sort();
-      const newAttribute = attributeValues
-        .map((attr) => attr.attributeValueId)
-        .sort();
-      return JSON.stringify(existingAttribute) === JSON.stringify(newAttribute);
-    });
-
-    if (isDuplicate) {
-      throw new Error('SKU with the same attribute already exists.');
-    }
-
-    // Tạo SKU trước
-    const newSku = await this.prisma.productSKU.create({
-      data: {
-        productId,
-        sku,
-        imageUrl,
-        sellingPrice,
-        // quantity,
-      },
-    });
-
-    if (attributeValues?.length) {
-      // Tạo danh sách thuộc tính cho SKU
-      await this.prisma.productSKUAttribute.createMany({
-        data: attributeValues.map((attr) => ({
-          skuId: newSku.id,
-          attributeValueId: attr.attributeValueId,
-        })),
+    return this.prisma.$transaction(async (tx) => {
+      const existingSkus = await this.prisma.productSKU.findMany({
+        where: { productId },
+        include: { productSkuAttributes: true },
       });
-    }
 
-    // Trả về SKU đã tạo cùng với danh sách thuộc tính
-    return this.prisma.productSKU.findUnique({
-      where: { id: newSku.id },
-      include: {
-        productSkuAttributes: {
-          include: {
-            attributeValue: true,
-            // {
-            //   select: {
-            //     id: true,
-            //     type: true,
-            //     value: true,
-            //   },
-            // },
+      const isDuplicate = existingSkus.some((existingSku) => {
+        const existingAttribute = existingSku.productSkuAttributes
+          .map((attr) => attr.attributeValueId)
+          .sort();
+        const newAttribute = attributeValues
+          .map((attr) => attr.attributeValueId)
+          .sort();
+        return (
+          JSON.stringify(existingAttribute) === JSON.stringify(newAttribute)
+        );
+      });
+
+      if (isDuplicate) {
+        throw new Error('SKU with the same attribute already exists.');
+      }
+
+      const sku = await this.generateSKU();
+
+      const newSku = await this.prisma.productSKU.create({
+        data: {
+          productId,
+          sku,
+          imageUrl,
+          sellingPrice,
+          // quantity,
+        },
+      });
+      if (attributeValues?.length) {
+        await tx.productSKUAttribute.createMany({
+          data: attributeValues.map((attr) => ({
+            skuId: newSku.id,
+            attributeValueId: attr.attributeValueId,
+          })),
+        });
+      }
+
+      await this.recalcProductPriceRange(productId, tx);
+
+      return tx.productSKU.findUnique({
+        where: { id: newSku.id },
+        include: {
+          productSkuAttributes: {
+            include: { attributeValue: true },
           },
         },
-      },
+      });
     });
   }
 
@@ -228,72 +248,121 @@ export class ProductSkuService {
   async update(id: number, updateProductSkusDto: UpdateProductSkuDto) {
     const { productId, sellingPrice, imageUrl, attributeValues } =
       updateProductSkusDto;
-    const existingSkus = await this.prisma.productSKU.findMany({
-      where: { productId: productId },
-      include: { productSkuAttributes: true },
-    });
 
-    const filteredSkus = existingSkus.filter((sku) => sku.id !== id);
+    return this.prisma.$transaction(async (tx) => {
+      const existingSkus = await this.prisma.productSKU.findMany({
+        where: { productId: productId },
+        include: { productSkuAttributes: true },
+      });
 
-    const isDuplicate = filteredSkus.some((existingSku) => {
-      const existingAttribute = existingSku.productSkuAttributes
-        .map((attr) => attr.attributeValueId)
-        .sort();
-      const newAttribute = attributeValues
-        .map((attr) => attr.attributeValueId)
-        .sort();
-      return JSON.stringify(existingAttribute) === JSON.stringify(newAttribute);
-    });
+      const filteredSkus = existingSkus.filter((sku) => sku.id !== id);
 
-    if (isDuplicate) {
-      throw new Error('SKU with the same attribute already exists.');
-    }
+      const isDuplicate = filteredSkus.some((existingSku) => {
+        const existingAttribute = existingSku.productSkuAttributes
+          .map((attr) => attr.attributeValueId)
+          .sort();
+        const newAttribute = attributeValues
+          .map((attr) => attr.attributeValueId)
+          .sort();
+        return (
+          JSON.stringify(existingAttribute) === JSON.stringify(newAttribute)
+        );
+      });
 
-    const res = await this.prisma.productSKU.update({
-      where: { id },
-      data: {
-        sellingPrice,
-        // quantity,
-        imageUrl,
-        productSkuAttributes: {
-          deleteMany: {}, // Remove all existing attribute
-          create: updateProductSkusDto?.attributeValues.map((attr) => ({
-            attributeValue: { connect: { id: attr.attributeValueId } }, // Reconnect new attribute
-          })),
-        },
-      },
-      include: {
-        productSkuAttributes: {
-          select: {
-            id: true,
-            attributeValue: true,
-            // {
-            //   select: {
-            //     id: true,
-            //     type: true,
-            //     value: true,
-            //   },
-            // },
+      if (isDuplicate) {
+        throw new Error('SKU with the same attribute already exists.');
+      }
+
+      const res = await this.prisma.productSKU.update({
+        where: { id },
+        data: {
+          sellingPrice,
+          // quantity,
+          imageUrl,
+          productSkuAttributes: {
+            deleteMany: {}, // Remove all existing attribute
+            create: updateProductSkusDto?.attributeValues.map((attr) => ({
+              attributeValue: { connect: { id: attr.attributeValueId } }, // Reconnect new attribute
+            })),
           },
         },
-      },
+        include: {
+          productSkuAttributes: {
+            select: {
+              id: true,
+              attributeValue: true,
+              // {
+              //   select: {
+              //     id: true,
+              //     type: true,
+              //     value: true,
+              //   },
+              // },
+            },
+          },
+        },
+      });
+      await this.recalcProductPriceRange(productId, tx);
+      return { data: res };
     });
-    return { data: res };
   }
 
-  async remove(id: number) {
-    await this.prisma.productSKUAttribute.deleteMany({
-      where: { skuId: id },
+  async softDelete(id: number): Promise<{ deleteCount: number }> {
+    return this.prisma.$transaction(async (tx) => {
+      const entity = await this.prisma.productSKU.findUnique({
+        where: { id, isDeleted: false },
+      });
+
+      if (!entity) {
+        throw new NotFoundException('Product SKU not found');
+      }
+      await tx.productSKU.update({
+        where: { id },
+        data: { isDeleted: true },
+      });
+      await this.recalcProductPriceRange(entity.productId, tx);
+      return {
+        deleteCount: 1,
+      };
     });
+  }
 
-    const sku = await this.prisma.productSKU.findUnique({
-      where: { id },
+  async restore(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const entity = await this.prisma.productSKU.findUnique({
+        where: { id, isDeleted: true },
+      });
+
+      if (!entity) {
+        throw new NotFoundException('Product SKU not found');
+      }
+      await tx.productSKU.update({
+        where: { id },
+        data: { isDeleted: false },
+      });
+      await this.recalcProductPriceRange(entity.productId, tx);
+      return {
+        message: 'Product SKU restored successfully',
+      };
     });
+  }
 
-    if (sku?.imageUrl) {
-      await this.firebaseService.deleteFile(sku?.imageUrl);
-    }
+  async forceDelete(id: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const entity = await tx.productSKU.findUnique({
+        where: { id },
+      });
 
-    return this.prisma.productSKU.delete({ where: { id } });
+      if (!entity) {
+        throw new NotFoundException('Product SKU not found');
+      }
+      await tx.productSKU.delete({
+        where: { id },
+      });
+      await this.recalcProductPriceRange(entity.productId, tx);
+      return {
+        message: 'Product SKU deleted successfully',
+      };
+    });
   }
 }

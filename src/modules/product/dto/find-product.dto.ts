@@ -7,15 +7,4 @@ export class FindProductsDto extends BaseQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
-
-  @IsOptional()
-  @IsString()
-  categoryIds?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (!value) return undefined;
-    return value.split(',').map((type: string) => type as ProductStatus);
-  })
-  statuses?: ProductStatus[];
 }

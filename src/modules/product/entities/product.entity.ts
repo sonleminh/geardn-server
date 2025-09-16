@@ -1,7 +1,7 @@
 import { Product, ProductStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 // import { TagDto } from '../dto/tag.dto';
-import { JsonValue } from '@prisma/client/runtime/library';
+import { Decimal, JsonValue } from '@prisma/client/runtime/library';
 
 export interface TagDto {
   value: string;
@@ -41,6 +41,12 @@ export class ProductEntity implements Product {
 
   @ApiProperty({ required: true })
   isVisible: boolean;
+
+  @ApiProperty()
+  priceMin: Decimal;
+
+  @ApiProperty()
+  priceMax: Decimal;
 
   @ApiProperty({ required: true })
   isDeleted: boolean;

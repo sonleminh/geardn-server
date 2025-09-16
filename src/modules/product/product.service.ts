@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryService } from '../category/category.service';
 import { ProductSkuService } from '../product-sku/product-sku.service';
-import { generateSlug } from 'src/utils/slug.until';
+import { generateSlug } from 'src/utils/slug';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
@@ -34,23 +34,13 @@ export class ProductService {
   }
 
   async findAll(query: FindProductsDto) {
-    const { categoryIds, page = 1, limit = 10, search, statuses } = query;
+    const { sort, page = 1, limit = 10, search } = query;
     const skip = (page - 1) * limit;
-    // Convert categoryIds string to array of numbers if it exists
-    const categoryIdArray = categoryIds
-      ? categoryIds.split(',').map(Number)
-      : undefined;
 
     const where: Prisma.ProductWhereInput = {
       AND: [
         // Search filter
         ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
-        // Category filter
-        ...(categoryIdArray?.length
-          ? [{ categoryId: { in: categoryIdArray } }]
-          : []),
-        // Status filter
-        ...(statuses ? [{ status: { in: statuses } }] : []),
         { isDeleted: false },
       ],
     };
@@ -347,7 +337,11 @@ export class ProductService {
     ]);
 
     const formattedProducts = products.map((product) => {
-      const totalStock = product.skus.reduce((sum, sku) => sum + sku.stocks.reduce((sum, stock) => sum + stock.quantity, 0), 0);
+      const totalStock = product.skus.reduce(
+        (sum, sku) =>
+          sum + sku.stocks.reduce((sum, stock) => sum + stock.quantity, 0),
+        0,
+      );
       return {
         ...product,
         totalStock,
@@ -424,8 +418,7 @@ export class ProductService {
     };
   }
 
-  async restoreProduct(id: number) {
-
+  async restore(id: number) {
     const entity = await this.prisma.product.findUnique({
       where: { id, isDeleted: true },
     });
