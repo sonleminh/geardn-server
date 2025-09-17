@@ -13,7 +13,7 @@ export class WarehouseService {
 
   async findAll() {
     const [res, total] = await Promise.all([
-      this.prisma.warehouse.findMany({ where: { isDeleted: false } }),
+      this.prisma.warehouse.findMany(),
       this.prisma.warehouse.count(),
     ]);
 

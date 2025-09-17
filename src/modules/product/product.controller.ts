@@ -27,6 +27,7 @@ import { ProductEntity } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
+import { FindSkusByProductDto } from '../product-sku/dto/find-skus-by-product.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -88,8 +89,11 @@ export class ProductController {
 
   @Get(':id/skus')
   @ApiCreatedResponse({ type: ProductEntity })
-  findSkusByProductId(@Param('id') id: number) {
-    return this.productSkuService.findByProduct(+id);
+  findSkusByProductId(
+    @Param('id') id: number,
+    @Query() query: FindSkusByProductDto,
+  ) {
+    return this.productSkuService.findByProduct(+id, query.state);
   }
 
   @Get('tags')

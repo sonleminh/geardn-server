@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductSkuDto } from './dto/create-product-sku.dto';
 import { UpdateProductSkuDto } from './dto/update-product-sku.dto';
 import { Prisma } from '@prisma/client';
+import { RecordState } from './dto/find-skus-by-product.dto';
 
 @Injectable()
 export class ProductSkuService {
@@ -199,9 +200,13 @@ export class ProductSkuService {
     };
   }
 
-  async findByProduct(id: number) {
+  async findByProduct(id: number, state: RecordState) {
+    const where: Prisma.ProductSKUWhereInput = { productId: id };
+    if (state === RecordState.ACTIVE) where.isDeleted = false;
+    else if (state === RecordState.DELETED) where.isDeleted = true;
+
     const res = await this.prisma.productSKU.findMany({
-      where: { productId: id },
+      where,
       select: {
         id: true,
         sku: true,
@@ -237,6 +242,7 @@ export class ProductSkuService {
           },
         },
         stocks: true,
+        isDeleted: true,
       },
     });
     if (!res) {
@@ -348,21 +354,31 @@ export class ProductSkuService {
   }
 
   async forceDelete(id: number) {
-    return this.prisma.$transaction(async (tx) => {
-      const entity = await tx.productSKU.findUnique({
+    await this.prisma.$transaction(async (tx) => {
+      const [orderCnt, importCnt, exportCnt, adjustCnt, stockCnt, cartCnt] =
+        await Promise.all([
+          tx.orderItem.count({ where: { skuId: id } }),
+          tx.importLogItem.count({ where: { skuId: id } }),
+          tx.exportLogItem.count({ where: { skuId: id } }),
+          tx.adjustmentLogItem.count({ where: { skuId: id } }),
+          tx.stock.count({ where: { skuId: id } }),
+          tx.cartItem.count({ where: { skuId: id } }),
+        ]);
+
+      if (orderCnt || importCnt || exportCnt || adjustCnt || stockCnt) {
+        throw new Error('SKU đã có lịch sử. Chỉ được soft-delete.');
+      }
+
+      if (cartCnt) await tx.cartItem.deleteMany({ where: { skuId: id } });
+      await tx.productSKUAttribute.deleteMany({ where: { skuId: id } });
+
+      const sku = await tx.productSKU.findUniqueOrThrow({
         where: { id },
+        select: { productId: true },
       });
 
-      if (!entity) {
-        throw new NotFoundException('Product SKU not found');
-      }
-      await tx.productSKU.delete({
-        where: { id },
-      });
-      await this.recalcProductPriceRange(entity.productId, tx);
-      return {
-        message: 'Product SKU deleted successfully',
-      };
+      await tx.productSKU.delete({ where: { id } });
+      await this.recalcProductPriceRange(sku.productId, tx);
     });
   }
 }
