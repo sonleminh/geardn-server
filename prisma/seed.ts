@@ -10,11 +10,13 @@ const categorySeedList = [
   { name: 'Chuột', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230300189-mouse-icon.png', slug: 'chuot' },
   {
     name: 'Giá treo màn hình',
-    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230308503-arm-icon.jpg',
+    icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1758180530732-desk-mount.png',
     slug: 'gia-treo-man-hinh',
   },
   { name: 'Màn hình', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230318576-monitor-icon.png', slug: 'man-hinh' },
   { name: 'Phụ kiện', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1755230291682-assessories-icon.png', slug: 'phu-kien' },
+  { name: 'Bàn, ghế', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1758179359300-workspace-icon.png', slug: 'ban-ghe' },
+  { name: 'Hàng cũ', icon: 'https://storage.googleapis.com/geardn-a6c28.appspot.com/1758179359300-workspace-icon.png', slug: 'hang-cu' },
 ];
 
 const warehouseSeedList = [

@@ -7,8 +7,8 @@ import { Prisma } from '@prisma/client';
 export class StockService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: FindStocksDto) {
-    const { page = 1, limit = 10, search } = query;
+  async findAll(dto: FindStocksDto) {
+    const { page = 1, limit = 10, search } = dto;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = search
@@ -104,6 +104,7 @@ export class StockService {
                 id: true,
                 quantity: true,
                 unitCost: true,
+                warehouseId: true,
               },
             },
             productSkuAttributes: {

@@ -28,6 +28,7 @@ import { ProductService } from './product.service';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { FindSkusByProductDto } from '../product-sku/dto/find-skus-by-product.dto';
+import { FindProductsByCateDto } from './dto/find-product-by-cate.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -46,8 +47,8 @@ export class ProductController {
 
   @Get()
   @ApiCreatedResponse({ type: ProductEntity, isArray: true })
-  findAll(@Query() query: FindProductsDto) {
-    return this.productService.findAll(query);
+  findAll(@Query() dto: FindProductsDto) {
+    return this.productService.findAll(dto);
   }
 
   @UseGuards(JwtAdminAuthGuard)
@@ -58,8 +59,8 @@ export class ProductController {
     description: 'Products retrieved successfully',
     type: [ProductEntity],
   })
-  async adminFindAll(@Query() query: AdminFindProductsDto) {
-    return this.productService.adminFindAll(query);
+  async adminFindAll(@Query() dto: AdminFindProductsDto) {
+    return this.productService.adminFindAll(dto);
   }
 
   @Get(':id')
@@ -74,26 +75,26 @@ export class ProductController {
     return this.productService.getProductBySlug(slug);
   }
 
-  @Get('/category/:id')
-  async getProductByCate(@Param('id') id: number) {
-    return await this.productService.getProductsByCategory(+id);
-  }
+  // @Get('/category/:id')
+  // async getProductByCate(@Param('id') id: number) {
+  //   return await this.productService.getProductsByCategory(+id);
+  // }
 
   @Get('/category/:slug')
   async getProductByCateSlug(
     @Param('slug') slug: string,
-    @Query() query: FindProductsDto,
+    @Query() dto: FindProductsByCateDto,
   ) {
-    return await this.productService.getProductsByCategorySlug(slug, query);
+    return await this.productService.getProductsByCategorySlug(slug, dto);
   }
 
   @Get(':id/skus')
   @ApiCreatedResponse({ type: ProductEntity })
   findSkusByProductId(
     @Param('id') id: number,
-    @Query() query: FindSkusByProductDto,
+    @Query() dto: FindSkusByProductDto,
   ) {
-    return this.productSkuService.findByProduct(+id, query.state);
+    return this.productSkuService.findByProduct(+id, dto.state);
   }
 
   @Get('tags')

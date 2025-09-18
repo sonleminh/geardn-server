@@ -145,7 +145,7 @@ export class OrderService {
     return order;
   }
 
-  async findAll(query: FindOrdersDto) {
+  async findAll(dto: FindOrdersDto) {
     const {
       productIds,
       statuses,
@@ -155,7 +155,7 @@ export class OrderService {
       page = 1,
       limit = 10,
       sort = 'desc',
-    } = query || {};
+    } = dto || {};
     const skip = (page - 1) * limit;
 
     // Build where clause

@@ -17,8 +17,8 @@ export class ExportLogController {
   }
 
   @Get()
-  findAll(@Query() query: FindExportLogsDto) {
-    return this.exportLogService.findAll(query);
+  findAll(@Query() dto: FindExportLogsDto) {
+    return this.exportLogService.findAll(dto);
   }
 
   @Get(':id')

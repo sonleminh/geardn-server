@@ -16,7 +16,7 @@ export class OrderReturnRequestService {
     private readonly importLogService: ImportLogService,
   ) {}
 
-  async findAll(query: FindOrdersReturnRequestDto) {
+  async findAll(dto: FindOrdersReturnRequestDto) {
     const {
       page = 1,
       limit = 10,
@@ -27,7 +27,7 @@ export class OrderReturnRequestService {
       fromDate,
       toDate,
       search,
-    } = query || {};
+    } = dto || {};
     const skip = (page - 1) * limit;
 
     // Build where clause

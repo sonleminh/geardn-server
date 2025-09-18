@@ -16,7 +16,7 @@ export class CategoryService {
 
   async findAll() {
     const [res, total] = await Promise.all([
-      this.prisma.category.findMany({ where: { isDeleted: false } }),
+      this.prisma.category.findMany({ where: { isDeleted: false }, orderBy: { createdAt: 'asc' } }),
       this.prisma.category.count(),
     ]);
     return {

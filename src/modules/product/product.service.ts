@@ -8,8 +8,10 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
 import { createSearchFilter } from '../../common/helpers/query.helper';
 import { FindProductsDto } from './dto/find-product.dto';
-import { ProductStatus } from '@prisma/client';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
+import { FindProductsByCateDto } from './dto/find-product-by-cate.dto';
+
+type OpaqueCursor = { c: string; id: number };
 
 @Injectable()
 export class ProductService {
@@ -18,6 +20,19 @@ export class ProductService {
     private readonly categoryService: CategoryService,
     private readonly productSkuService: ProductSkuService,
   ) {}
+
+  encodeCursor(c: OpaqueCursor) {
+    return Buffer.from(JSON.stringify(c)).toString('base64url');
+  }
+  decodeCursor(raw?: string): OpaqueCursor | null {
+    if (!raw) return null;
+    try {
+      return JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+    } catch {
+      return null;
+    }
+  }
+
   async create(createProductDto: CreateProductDto) {
     const data = {
       ...createProductDto,
@@ -33,8 +48,8 @@ export class ProductService {
     };
   }
 
-  async findAll(query: FindProductsDto) {
-    const { sort, page = 1, limit = 10, search } = query;
+  async findAll(dto: FindProductsDto) {
+    const { page = 1, limit = 10, search } = dto;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProductWhereInput = {
@@ -50,6 +65,7 @@ export class ProductService {
         where,
         skip,
         take: limit,
+        orderBy: dto.sort ? { priceMin: dto.sort } : { createdAt: 'desc' },
         include: {
           category: {
             select: {
@@ -58,15 +74,15 @@ export class ProductService {
               slug: true,
             },
           },
-          skus: {
-            select: {
-              sellingPrice: true,
-            },
-            orderBy: {
-              sellingPrice: 'asc',
-            },
-            take: 1,
-          },
+          // skus: {
+          //   select: {
+          //     sellingPrice: true,
+          //   },
+          //   orderBy: {
+          //     sellingPrice: 'asc',
+          //   },
+          //   take: 1,
+          // },
         },
       }),
       this.prisma.product.count({ where }),
@@ -222,50 +238,52 @@ export class ProductService {
     };
   }
 
-  async getProductsByCategorySlug(slug: string, query: FindProductsDto) {
+  async getProductsByCategorySlug(slug: string, dto: FindProductsByCateDto) {
+    const limit = dto.limit ?? 20;
+
+    const decoded = this.decodeCursor(dto.cursor);
+
     const category = await this.categoryService.findOneBySlug(slug);
 
-    if (!category?.data) {
-      throw new NotFoundException('No products found based on category');
-    }
+    const where = {
+      isDeleted: false,
+      ...(category?.data?.id ? { categoryId: category.data.id } : {}),
+    };
 
-    const total = await this.prisma.product.count({
-      where: { categoryId: category.data.id },
-    });
+    const [items, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        take: limit + 1, // over-fetch to decide hasMore
+        ...(decoded
+          ? {
+              cursor: { createdAt: new Date(decoded.c), id: decoded.id },
+              skip: 1, // move past cursor
+            }
+          : {}),
+        orderBy: dto.sort ? { priceMin: dto.sort } : { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          images: true,
+          priceMin: true,
+          priceMax: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
 
-    const res = await this.prisma.product.findMany({
-      where: { categoryId: category.data.id },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        skus: {
-          select: {
-            id: true,
-            productId: true,
-            sku: true,
-            sellingPrice: true,
-            imageUrl: true,
-            productSkuAttributes: {
-              select: {
-                id: true,
-                attributeValue: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: query.sort || 'desc',
-      },
-    });
+    const hasMore = items.length > limit;
+    const sliced = hasMore ? items.slice(0, limit) : items;
+
+    const last = sliced[sliced.length - 1];
+    const nextCursor = last
+      ? this.encodeCursor({ c: last.createdAt.toISOString(), id: last.id })
+      : null;
 
     return {
-      data: res,
-      total: total,
+      data: { items: sliced, nextCursor, hasMore, total },
       message: 'Product list retrieved successfully',
     };
   }
@@ -436,9 +454,47 @@ export class ProductService {
   }
 
   async forceDelete(id: number) {
-    await this.prisma.product.delete({
-      where: { id },
+    await this.prisma.$transaction(async (tx) => {
+      // Check for dependencies that should prevent hard deletion
+      const [orderItemCnt, cartItemCnt, skuCnt] = await Promise.all([
+        tx.orderItem.count({ where: { productId: id } }),
+        tx.cartItem.count({ where: { productId: id } }),
+        tx.productSKU.count({ where: { productId: id } }),
+      ]);
+
+      // If there are order items, don't allow hard delete (historical data)
+      if (orderItemCnt || cartItemCnt || skuCnt) {
+        throw new Error(
+          'Product đã có lịch sử đơn hàng. Chỉ được soft-delete.',
+        );
+      }
+
+      // Clean up cart items and SKUs first
+      if (cartItemCnt > 0) {
+        await tx.cartItem.deleteMany({ where: { productId: id } });
+      }
+
+      if (skuCnt > 0) {
+        // Delete all SKUs and their dependencies
+        const skuIds = await tx.productSKU.findMany({
+          where: { productId: id },
+          select: { id: true },
+        });
+
+        for (const sku of skuIds) {
+          // Delete SKU attributes
+          await tx.productSKUAttribute.deleteMany({ where: { skuId: sku.id } });
+          // Delete stocks
+          await tx.stock.deleteMany({ where: { skuId: sku.id } });
+          // Delete SKU
+          await tx.productSKU.delete({ where: { id: sku.id } });
+        }
+      }
+
+      // Finally delete the product
+      await tx.product.delete({ where: { id } });
     });
+
     return {
       message: 'Product deleted successfully',
     };

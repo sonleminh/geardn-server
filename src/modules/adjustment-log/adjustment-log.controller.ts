@@ -22,14 +22,14 @@ export class AdjustmentLogController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Post()
-  create(@Req() req: Request, @Body() query: CreateAdjustmentLogDto) {
+  create(@Req() req: Request, @Body() dto: CreateAdjustmentLogDto) {
     const userId = req.user?.id;
-    return this.adjustmentLogService.create(query, userId);
+    return this.adjustmentLogService.create(dto, userId);
   }
 
   @Get()
-  findAll(@Query() query: FindAdjustmentLogsDto) {
-    return this.adjustmentLogService.findAll(query);
+  findAll(@Query() dto: FindAdjustmentLogsDto) {
+    return this.adjustmentLogService.findAll(dto);
   }
 
   @Get(':id')

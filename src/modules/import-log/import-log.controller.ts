@@ -18,8 +18,8 @@ export class ImportLogController {
   }
 
   @Get()
-  findAll(@Query() query: FindImportLogsDto) {
-    return this.importLogService.findAll(query);
+  findAll(@Query() dto: FindImportLogsDto) {
+    return this.importLogService.findAll(dto);
   }
 
   @Get(':id')

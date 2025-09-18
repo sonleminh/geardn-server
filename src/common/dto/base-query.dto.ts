@@ -4,7 +4,7 @@ import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 export class BaseQueryDto {
   @IsOptional()
   @IsString()
-  sort?: 'asc' | 'desc' = 'desc';
+  sort?: 'asc' | 'desc';
 
   @IsOptional()
   @IsNumber()

@@ -22,8 +22,8 @@ export class AdminNotificationsController {
   constructor(private readonly svc: NotificationsService) {}
 
   @Get('')
-  getNotifications(@Query() q: GetNotificationsDto, @Req() req) {
-    return this.svc.getNotifications(req.user.id, q);
+  getNotifications(@Query() dto: GetNotificationsDto, @Req() req) {
+    return this.svc.getNotifications(req.user.id, dto);
   }
 
   @Get('stats')

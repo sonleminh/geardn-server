@@ -34,8 +34,8 @@ export class OrderController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Get()
-  findAll(@Query() query: FindOrdersDto) {
-    return this.orderService.findAll(query);
+  findAll(@Query() dto: FindOrdersDto) {
+    return this.orderService.findAll(dto);
   }
 
   // @UseGuards(JwtAuthGuard)
@@ -47,8 +47,8 @@ export class OrderController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Get('update-history-logs')
-  findOrderStatusHistory(@Query() query: FindOrderStatusHistoryDto) {
-    return this.orderService.findOrderStatusHistory(query);
+  findOrderStatusHistory(@Query() dto: FindOrderStatusHistoryDto) {
+    return this.orderService.findOrderStatusHistory(dto);
   }
 
   @Get(':id')

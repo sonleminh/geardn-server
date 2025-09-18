@@ -202,7 +202,7 @@ export class ProductSkuService {
 
   async findByProduct(id: number, state: RecordState) {
     const where: Prisma.ProductSKUWhereInput = { productId: id };
-    if (state === RecordState.ACTIVE) where.isDeleted = false;
+    if (state === RecordState.ACTIVE || !state) where.isDeleted = false;
     else if (state === RecordState.DELETED) where.isDeleted = true;
 
     const res = await this.prisma.productSKU.findMany({

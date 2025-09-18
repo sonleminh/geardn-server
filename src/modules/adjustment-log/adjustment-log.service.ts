@@ -163,7 +163,7 @@ export class AdjustmentLogService {
     }
   }
 
-  async findAll(query: FindAdjustmentLogsDto) {
+  async findAll(dto: FindAdjustmentLogsDto) {
     const {
       warehouseIds,
       types,
@@ -173,7 +173,7 @@ export class AdjustmentLogService {
       toDate,
       page = 1,
       limit = 10,
-    } = query;
+    } = dto;
 
     const skip = (page - 1) * limit;
 

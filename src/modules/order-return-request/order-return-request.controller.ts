@@ -23,8 +23,8 @@ export class OrderReturnRequestController {
 
   @UseGuards(JwtAdminAuthGuard)
   @Get()
-  findAll(@Query() query: FindOrdersReturnRequestDto) {
-    return this.orderReturnRequestService.findAll(query);
+  findAll(@Query() dto: FindOrdersReturnRequestDto) {
+    return this.orderReturnRequestService.findAll(dto);
   }
 
   @Get(':id')
