@@ -185,6 +185,12 @@ export class ProductService {
                 },
               },
             },
+            stocks: {
+              select: {
+                id: true,
+                quantity: true,
+              },
+            },
           },
         },
       },
@@ -249,6 +255,8 @@ export class ProductService {
       isDeleted: false,
       ...(category?.data?.id ? { categoryId: category.data.id } : {}),
     };
+
+    console.log('dto:', dto.sort);
 
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
