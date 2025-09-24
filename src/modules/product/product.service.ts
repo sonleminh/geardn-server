@@ -256,8 +256,6 @@ export class ProductService {
       ...(category?.data?.id ? { categoryId: category.data.id } : {}),
     };
 
-    console.log('dto:', dto.sort);
-
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
