@@ -179,7 +179,17 @@ export class CartService {
                 productSkuAttributes: {
                   select: {
                     id: true,
-                    attributeValue: true,
+                    attributeValue: {
+                      select: {
+                        id: true,
+                        attribute: {
+                          select: {
+                            name: true,
+                          },
+                        },
+                        value: true,
+                      },
+                    },
                     // {
                     //   select: {
                     //     id: true,

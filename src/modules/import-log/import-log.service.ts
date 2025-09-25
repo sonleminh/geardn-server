@@ -70,11 +70,7 @@ export class ImportLogService {
             },
           },
         });
-        console.log('start:', new Date(new Date().setHours(0, 0, 0, 0)));
-        console.log('end:', new Date(new Date().setHours(23, 59, 59, 999)));
-        console.log('countToday:', countToday);
         const referenceCode = `IMP-${localToday}-${String(countToday + 1).padStart(4, '0')}`;
-        console.log('referenceCode:', referenceCode);
         // 1. Tạo bản ghi import log
         const importLog = await tx.importLog.create({
           data: {
