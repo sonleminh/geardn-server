@@ -16,40 +16,40 @@ export class CreateOrderItemDto {
   @IsNotEmpty()
   skuId: number;
 
-  @ApiProperty()
-  skuCode: string;
+  // @ApiProperty()
+  // skuCode: string;
 
-  @ApiProperty()
-  productId: number;
+  // @ApiProperty()
+  // productId: number;
 
-  @ApiProperty()
-  productName: string;
+  // @ApiProperty()
+  // productName: string;
 
-  @ApiProperty()
-  productSlug: string;
+  // @ApiProperty()
+  // productSlug: string;
 
-  @ApiProperty()
-  imageUrl: string;
+  // @ApiProperty()
+  // imageUrl: string;
 
   @ApiProperty()
   quantity: number;
 
-  @ApiProperty()
-  sellingPrice: number;
+  // @ApiProperty()
+  // sellingPrice: number;
 
-  @ApiProperty()
-  @IsOptional()
-  unitCost?: number;
+  // @ApiProperty()
+  // @IsOptional()
+  // unitCost?: number;
 
-  @ApiProperty()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SkuAttributeDto)
-  skuAttributes: SkuAttributeDto[];
+  // @ApiProperty()
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => SkuAttributeDto)
+  // skuAttributes: SkuAttributeDto[];
 
-  @ApiProperty()
-  @IsOptional()
-  orderId?: number;
+  // @ApiProperty()
+  // @IsOptional()
+  // orderId?: number;
 
   @ApiProperty()
   createdAt: Date;

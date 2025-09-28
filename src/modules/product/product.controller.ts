@@ -75,12 +75,12 @@ export class ProductController {
     return this.productService.getProductBySlug(slug);
   }
 
-  // @Get('/category/:id')
-  // async getProductByCate(@Param('id') id: number) {
-  //   return await this.productService.getProductsByCategory(+id);
-  // }
+  @Get('/category/:id')
+  async getProductByCate(@Param('id') id: number) {
+    return await this.productService.getProductsByCategory(+id);
+  }
 
-  @Get('/category/:slug')
+  @Get('/category/slug/:slug')
   async getProductByCateSlug(
     @Param('slug') slug: string,
     @Query() dto: FindProductsByCateDto,

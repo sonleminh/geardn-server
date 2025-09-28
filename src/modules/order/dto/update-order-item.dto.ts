@@ -23,39 +23,39 @@ export class UpdateOrderItemDto {
   @IsNotEmpty()
   skuId: number;
 
-  @IsString()
-  @IsNotEmpty()
-  skuCode: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // skuCode: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  productId: number;
+  // @IsNumber()
+  // @IsNotEmpty()
+  // productId: number;
 
-  @IsString()
-  @IsNotEmpty()
-  productName: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // productName: string;
 
-  @IsString()
-  @IsNotEmpty()
-  productSlug: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // productSlug: string;
 
-  @IsString()
-  @IsOptional()
-  imageUrl?: string;
+  // @IsString()
+  // @IsOptional()
+  // imageUrl?: string;
 
   @IsNumber()
   @Min(1)
   quantity: number;
 
-  sellingPrice: number;
+  // sellingPrice: number;
 
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  unitCost?: number; 
+  // @IsNumber()
+  // @Min(0)
+  // @IsOptional()
+  // unitCost?: number; 
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SkuAttributeDto)
-  skuAttributes: SkuAttributeDto[];
+  // @IsArray()
+  // @ValidateNested({ each: true })
+  // @Type(() => SkuAttributeDto)
+  // skuAttributes: SkuAttributeDto[];
 }

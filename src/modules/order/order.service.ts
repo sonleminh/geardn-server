@@ -60,6 +60,10 @@ export class OrderService {
         where: {
           id: { in: orderItems.map((item) => item.skuId) },
         },
+        include: {
+          product: true,
+          productSkuAttributes: true,
+        }
       });
 
       let totalPrice = 0;
@@ -69,17 +73,28 @@ export class OrderService {
         totalPrice += Number(sku.sellingPrice) * item.quantity;
 
         return {
-          productId: item.productId,
-          skuId: item.skuId,
+          // productId: item.productId,
+          // skuId: item.skuId,
+          // quantity: item.quantity,
+          // sellingPrice: item.sellingPrice,
+          // imageUrl: item.imageUrl,
+          // productName: item.productName,
+          // productSlug: item.productSlug,
+          // skuCode: item.skuCode,
+          // skuAttributes: item.skuAttributes,
+          productId: sku.productId,
+          skuId: sku.id,
           quantity: item.quantity,
-          sellingPrice: item.sellingPrice,
-          imageUrl: item.imageUrl,
-          productName: item.productName,
-          productSlug: item.productSlug,
-          skuCode: item.skuCode,
-          skuAttributes: item.skuAttributes,
+          sellingPrice: sku.sellingPrice,
+          imageUrl: sku.imageUrl ?? sku.product.images[0],
+          productName: sku.product.name,
+          productSlug: sku.product.slug,
+          skuCode: sku.sku,
+          skuAttributes: sku.productSkuAttributes,
         };
       });
+
+      console.log('orderItemsData', orderItemsData)
 
       const tempOrder = await tx.order.create({
         data: {
@@ -370,42 +385,45 @@ export class OrderService {
     await this.prisma.$transaction(async (tx) => {
       for (const [skuId, newItem] of newMap.entries()) {
         const existing = existingMap.get(skuId);
-
+         const sku = await tx.productSKU.findUnique({
+            where: { id: Number(skuId) },
+            include: {
+              product: true,
+              productSkuAttributes: true,
+            },
+          });
         if (!existing) {
           // Add new order item
           await tx.orderItem.create({
             data: {
               orderId,
-              productId: newItem.productId,
-              skuId: newItem.skuId,
+              productId: sku.productId,
+              skuId: +skuId,
               quantity: newItem.quantity,
-              sellingPrice: newItem.sellingPrice,
-              unitCost: newItem.unitCost,
-              imageUrl: newItem.imageUrl,
-              productName: newItem.productName,
-              productSlug: newItem.productSlug,
-              skuCode: newItem.skuCode,
-              skuAttributes: JSON.parse(JSON.stringify(newItem.skuAttributes)),
+              sellingPrice: sku.sellingPrice,
+              imageUrl: sku.imageUrl ?? sku.product.images[0],
+              productName: sku.product.name,
+              productSlug: sku.product.slug,
+              skuCode: sku.sku,
+              skuAttributes: sku.productSkuAttributes,
             },
           });
         } else {
           // So sánh nếu quantity hoặc price thay đổi thì update
           if (
             newItem.quantity !== existing.quantity ||
-            newItem.sellingPrice !== Number(existing.sellingPrice)
+            Number(sku.sellingPrice) !== Number(existing.sellingPrice)
           ) {
             await tx.orderItem.update({
               where: { id: existing.id },
               data: {
                 quantity: newItem.quantity,
-                sellingPrice: newItem.sellingPrice,
-                imageUrl: newItem.imageUrl,
-                productName: newItem.productName,
-                productSlug: newItem.productSlug,
-                skuCode: newItem.skuCode,
-                skuAttributes: JSON.parse(
-                  JSON.stringify(newItem.skuAttributes),
-                ),
+                sellingPrice: sku.sellingPrice,
+                imageUrl: sku.imageUrl ?? sku.product.images[0],
+                productName: sku.product.name,
+                productSlug: sku.product.slug,
+                skuCode: sku.sku,
+                skuAttributes: sku.productSkuAttributes,
               },
             });
           }
