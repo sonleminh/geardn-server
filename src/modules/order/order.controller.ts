@@ -51,9 +51,9 @@ export class OrderController {
     return this.orderService.findOrderStatusHistory(dto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
+  @Get(':orderCode')
+  findOne(@Param('orderCode') orderCode: string) {
+    return this.orderService.findOne(orderCode);
   }
 
   @UseGuards(JwtAdminAuthGuard)
@@ -158,12 +158,5 @@ export class OrderController {
       reasonCode,
       reasonNote,
     );
-  }
-
-  @Get('/cc/getToday')
-  getToday() {
-    const gte = new Date(new Date().setHours(0, 0, 0, 0));
-    const lte = new Date(new Date().setHours(23, 59, 59, 999));
-    return { gte, lte };
   }
 }

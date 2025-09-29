@@ -260,10 +260,11 @@ export class OrderService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(orderCode: string) {
+    console.log('orderCode:', orderCode)
     const res = await this.prisma.order.findUnique({
       where: {
-        id,
+        orderCode,
       },
       include: {
         orderItems: {
