@@ -345,11 +345,21 @@ export class CartService {
   }
 
   async getStockForSkus(skuIds: number[]) {
-    return await this.prisma.productSKU.findMany({
-      where: { id: { in: skuIds } },
-      // select: { id: true, quantity: true },
-      select: { id: true },
+    if (!skuIds || skuIds.length === 0) {
+      return [] as { id: number; quantity: number }[];
+    }
+
+    const grouped = await this.prisma.stock.groupBy({
+      by: ['skuId'],
+      where: { skuId: { in: skuIds } },
+      _sum: { quantity: true },
     });
+
+    const quantityBySkuId = new Map<number, number>(
+      grouped.map((g) => [g.skuId, g._sum.quantity ?? 0]),
+    );
+
+    return skuIds.map((id) => ({ id, quantity: quantityBySkuId.get(id) ?? 0 }));
   }
 
   async removeCartItem(cartItemId: number) {

@@ -62,8 +62,24 @@ export class OrderService {
         },
         include: {
           product: true,
-          productSkuAttributes: true,
-        }
+          productSkuAttributes: {
+            select: {
+              id: true,
+              attributeValue: {
+                select: {
+                  value: true,
+                  attribute: {
+                    select: {
+                      id: true,
+                      name: true,
+                      label: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       let totalPrice = 0;
@@ -90,11 +106,16 @@ export class OrderService {
           productName: sku.product.name,
           productSlug: sku.product.slug,
           skuCode: sku.sku,
-          skuAttributes: sku.productSkuAttributes,
+          skuAttributes: sku.productSkuAttributes.map(
+            (productSkuAttribute) => ({
+              attribute: productSkuAttribute.attributeValue.attribute.label,
+              value: productSkuAttribute.attributeValue.value,
+            }),
+          ),
         };
       });
 
-      console.log('orderItemsData', orderItemsData)
+      console.log('orderItemsData', orderItemsData);
 
       const tempOrder = await tx.order.create({
         data: {
@@ -120,10 +141,6 @@ export class OrderService {
 
       const paddedId = String(tempOrder.id).padStart(6, '0');
       const orderCode = `GDN-${paddedId}`;
-      await tx.order.update({
-        where: { id: tempOrder.id },
-        data: { orderCode },
-      });
 
       await tx.outbox.create({
         data: {
@@ -136,6 +153,11 @@ export class OrderService {
             createdBy: userId,
           },
         },
+      });
+
+      return await tx.order.update({
+        where: { id: tempOrder.id },
+        data: { orderCode },
       });
     });
 
@@ -157,7 +179,8 @@ export class OrderService {
         }
       }
     }
-    return order;
+    console.log('order', order);
+    return { data: order };
   }
 
   async findAll(dto: FindOrdersDto) {
@@ -385,13 +408,29 @@ export class OrderService {
     await this.prisma.$transaction(async (tx) => {
       for (const [skuId, newItem] of newMap.entries()) {
         const existing = existingMap.get(skuId);
-         const sku = await tx.productSKU.findUnique({
-            where: { id: Number(skuId) },
-            include: {
-              product: true,
-              productSkuAttributes: true,
+        const sku = await tx.productSKU.findUnique({
+          where: { id: Number(skuId) },
+          include: {
+            product: true,
+            productSkuAttributes: {
+              select: {
+                id: true,
+                attributeValue: {
+                  select: {
+                    value: true,
+                    attribute: {
+                      select: {
+                        id: true,
+                        name: true,
+                        label: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
-          });
+          },
+        });
         if (!existing) {
           // Add new order item
           await tx.orderItem.create({
@@ -405,7 +444,12 @@ export class OrderService {
               productName: sku.product.name,
               productSlug: sku.product.slug,
               skuCode: sku.sku,
-              skuAttributes: sku.productSkuAttributes,
+              skuAttributes: sku.productSkuAttributes.map(
+                (productSkuAttribute) => ({
+                  attribute: productSkuAttribute.attributeValue.attribute.label,
+                  value: productSkuAttribute.attributeValue.value,
+                }),
+              ),
             },
           });
         } else {
@@ -423,7 +467,13 @@ export class OrderService {
                 productName: sku.product.name,
                 productSlug: sku.product.slug,
                 skuCode: sku.sku,
-                skuAttributes: sku.productSkuAttributes,
+                skuAttributes: sku.productSkuAttributes.map(
+                  (productSkuAttribute) => ({
+                    attribute:
+                      productSkuAttribute.attributeValue.attribute.label,
+                    value: productSkuAttribute.attributeValue.value,
+                  }),
+                ),
               },
             });
           }
