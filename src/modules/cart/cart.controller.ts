@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  ParseArrayPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -63,10 +65,21 @@ export class CartController {
     return this.cartService.getCart(userId);
   }
 
-  @Get('stock')
-  async getCartStock(@Query('skuIds') skuIds: string) {
-    const skuIdArray = skuIds.split(',').map(Number);
-    return this.cartService.getStockForSkus(skuIdArray);
+  @Get('stocks')
+  async getCartStock(
+    @Query(
+      'skuIds',
+      new ParseArrayPipe({ items: Number, separator: ',', optional: false }),
+    )
+    skuIds: number[],
+  ) {
+    if (!skuIds?.length) throw new BadRequestException('skuIds required');
+    const ids = Array.from(
+      new Set(skuIds.filter((n) => Number.isInteger(n) && n > 0)),
+    );
+    if (!ids.length) throw new BadRequestException('invalid skuIds');
+    if (ids.length > 100) throw new BadRequestException('too many skuIds');
+    return this.cartService.getStockForSkus(ids);
   }
 
   @UseGuards(JwtAuthGuard)

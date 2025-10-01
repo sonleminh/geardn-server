@@ -67,7 +67,11 @@ export class CartService {
     }
   }
 
-  async updateQuantity(userId: number, id: number, updateQuantityDto: UpdateQuantityDto) {
+  async updateQuantity(
+    userId: number,
+    id: number,
+    updateQuantityDto: UpdateQuantityDto,
+  ) {
     const { quantity } = updateQuantityDto;
 
     const cart = await this.prisma.cart.findFirst({
@@ -84,8 +88,14 @@ export class CartService {
 
     if (!existingItem) throw new Error('Item not found in cart');
 
+    const stock = await this.getStockForSkus([existingItem.skuId])
+
+    console.log('stock', stock[0].quantity)
+
     if (quantity <= 0) {
       await this.removeCartItem(existingItem.id);
+    } else if (quantity > stock[0].quantity){
+      throw new Error('Quantity exceeding inventory')
     } else {
       await this.prisma.cartItem.update({
         where: {
@@ -350,7 +360,10 @@ export class CartService {
       grouped.map((g) => [g.skuId, g._sum.quantity ?? 0]),
     );
 
-    return skuIds.map((id) => ({ id, quantity: quantityBySkuId.get(id) ?? 0 }));
+    return skuIds.map((id) => ({
+      id,
+      quantity: quantityBySkuId.get(id) ?? 0,
+    }));
   }
 
   async removeCartItem(id: number) {
