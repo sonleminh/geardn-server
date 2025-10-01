@@ -4,6 +4,8 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -23,20 +25,21 @@ export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('add')
+  @Post('items')
   async addToCart(@Req() req: Request, @Body() addToCartDto: AddToCartDto) {
     const userId = req.user?.id;
     return this.cartService.addToCart(userId, addToCartDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('update-quantity')
-  async updateQuantity(
+  @Patch('items/:id')
+  async updateQty(
     @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateQuantityDto: UpdateQuantityDto,
   ) {
     const userId = req.user?.id;
-    return this.cartService.updateQuantity(userId, updateQuantityDto);
+    return this.cartService.updateQuantity(userId, id, updateQuantityDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -67,8 +70,8 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/remove-item/:id')
-  async removeCartItem(@Param('id') id: number) {
+  @Delete('/items/:id')
+  async removeCartItem(@Param('id', ParseIntPipe) id: number) {
     return this.cartService.removeCartItem(id);
   }
 

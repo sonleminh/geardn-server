@@ -67,8 +67,8 @@ export class CartService {
     }
   }
 
-  async updateQuantity(userId: number, updateQuantityDto: UpdateQuantityDto) {
-    const { skuId, quantity } = updateQuantityDto;
+  async updateQuantity(userId: number, id: number, updateQuantityDto: UpdateQuantityDto) {
+    const { quantity } = updateQuantityDto;
 
     const cart = await this.prisma.cart.findFirst({
       where: { userId: userId },
@@ -76,22 +76,13 @@ export class CartService {
 
     if (!cart) throw new Error('Cart not found');
 
-    const existingItem = await this.prisma.cartItem.findFirst({
+    const existingItem = await this.prisma.cartItem.findUnique({
       where: {
-        cartId: cart.id,
-        skuId: skuId,
+        id: id,
       },
     });
 
     if (!existingItem) throw new Error('Item not found in cart');
-
-    const sku = await this.prisma.productSKU.findUnique({
-      where: { id: skuId },
-    });
-
-    // if (quantity > sku?.quantity) {
-    //   throw new Error('Exceed the amount that can be added');
-    // }
 
     if (quantity <= 0) {
       await this.removeCartItem(existingItem.id);
@@ -362,9 +353,9 @@ export class CartService {
     return skuIds.map((id) => ({ id, quantity: quantityBySkuId.get(id) ?? 0 }));
   }
 
-  async removeCartItem(cartItemId: number) {
+  async removeCartItem(id: number) {
     return await this.prisma.cartItem.delete({
-      where: { id: cartItemId },
+      where: { id: id },
     });
   }
 

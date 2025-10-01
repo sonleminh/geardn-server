@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -35,36 +36,36 @@ export class AttributeController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attributeService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.attributeService.findOne(id);
   }
-  
+
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateAttributeDto: UpdateAttributeDto,
   ) {
-    return this.attributeService.update(+id, updateAttributeDto);
+    return this.attributeService.update(id, updateAttributeDto);
   }
 
   @UseGuards(JwtAdminAuthGuard)
   @Delete(':id')
   @ApiCreatedResponse({ type: AttributeEntity })
-  remove(@Param('id') id: string) {
-    return this.attributeService.softDelete(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.attributeService.softDelete(id);
   }
 
   @UseGuards(JwtAdminAuthGuard)
   @Patch(':id/restore')
   @ApiCreatedResponse({ type: AttributeEntity })
-  restore(@Param('id') id: string) {
-    return this.attributeService.restore(+id);
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.attributeService.restore(id);
   }
 
   @UseGuards(JwtAdminAuthGuard)
   @Delete(':id/permanent')
   @ApiCreatedResponse({ type: AttributeEntity })
-  forceDelete(@Param('id') id: string) {
-    return this.attributeService.forceDelete(+id);
+  forceDelete(@Param('id', ParseIntPipe) id: number) {
+    return this.attributeService.forceDelete(id);
   }
 }
