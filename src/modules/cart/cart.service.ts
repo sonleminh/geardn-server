@@ -112,7 +112,7 @@ export class CartService {
     });
   }
 
-  async syncCart(userId: number, syncCartItems: SyncCartItemsDto[]) {
+  async syncCart(userId: number, syncCartItems: SyncCartItemsDto) {
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
     });
@@ -120,8 +120,8 @@ export class CartService {
     if (!cart) {
       cart = await this.prisma.cart.create({ data: { userId } });
     }
-    if (syncCartItems.length) {
-      for (const item of syncCartItems) {
+    if (syncCartItems.items.length) {
+      for (const item of syncCartItems.items) {
         const existingItem = await this.prisma.cartItem.findUnique({
           where: {
             cartId_productId_skuId: {
@@ -210,7 +210,7 @@ export class CartService {
     return { message: 'Cart synced successfully', data: updatedCart };
   }
 
-  async syncCartReload(userId: number, syncCartItems: SyncCartItemsDto[]) {
+  async syncCartReload(userId: number, syncCartItems: SyncCartItemsDto) {
     const cart = await this.prisma.cart.findUnique({
       where: { userId },
     });
@@ -218,8 +218,8 @@ export class CartService {
     if (!cart) {
       throw new Error('Cart not found');
     }
-    if (syncCartItems.length) {
-      for (const item of syncCartItems) {
+    if (syncCartItems.items.length) {
+      for (const item of syncCartItems.items) {
         const existingItem = await this.prisma.cartItem.findUnique({
           where: {
             cartId_productId_skuId: {

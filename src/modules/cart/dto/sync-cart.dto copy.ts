@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
-export class SyncCartItemsDto {
+class SyncCartItemDto {
   @ApiProperty()
   @IsNotEmpty()
   productId: number;
@@ -13,4 +13,9 @@ export class SyncCartItemsDto {
   @ApiProperty()
   @IsNotEmpty()
   quantity: number;
+}
+export class SyncCartItemsDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  items: SyncCartItemDto[];
 }
