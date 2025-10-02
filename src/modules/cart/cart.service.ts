@@ -16,8 +16,8 @@ import { SyncCartItemsDto } from './dto/sync-cart.dto copy';
 @Injectable()
 export class CartService {
   constructor(private prisma: PrismaService) {}
-  async addToCart(userId: number, addToCartDto: AddToCartDto) {
-    const { productId, skuId, quantity } = addToCartDto;
+  async addToCart(userId: number, dto: AddToCartDto) {
+    const { productId, skuId, quantity } = dto;
 
     let cart = await this.prisma.cart.findUnique({
       where: { userId: userId },
@@ -38,13 +38,14 @@ export class CartService {
       },
     });
 
-    const sku = await this.prisma.productSKU.findUnique({
-      where: { id: skuId },
-    });
+    const stock = await this.getStockForSkus([skuId])
 
-    // if (existingItem?.quantity + quantity > sku?.quantity) {
-    //   throw new Error('Exceed the amount that can be added');
-    // }
+    if (existingItem?.quantity + quantity > stock[0]?.quantity) {
+      throw new Error('Exceed the amount that can be added');
+    }
+    if (quantity > stock[0]?.quantity) {
+      throw new Error('Exceed the amount that can be added');
+    }
 
     if (existingItem) {
       return this.prisma.cartItem.update({
@@ -89,8 +90,6 @@ export class CartService {
     if (!existingItem) throw new Error('Item not found in cart');
 
     const stock = await this.getStockForSkus([existingItem.skuId])
-
-    console.log('stock', stock[0].quantity)
 
     if (quantity <= 0) {
       await this.removeCartItem(existingItem.id);
