@@ -51,7 +51,16 @@ export class UserService {
   async findAndVerify(authCredentialsDto: { email: string; password: string }) {
     try {
       const { email, password } = authCredentialsDto;
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          password: true,
+          role: true,
+        },
+      });
       if (!user) {
         throw new UnauthorizedException('Invalid user or password');
       }
@@ -59,7 +68,12 @@ export class UserService {
       if (!compare) {
         throw new UnauthorizedException('Invalid user or password');
       }
-      return user;
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      };
     } catch (error) {
       throw error;
     }
@@ -71,5 +85,48 @@ export class UserService {
       throw new NotFoundException('Cannot find user!');
     }
     return { data: res };
+  }
+
+  async upsertGoogleUser(payload: {
+    googleId: string;
+    email: string;
+    name: string;
+  }) {
+    const byGoogle = await this.prisma.user.findUnique({
+      where: { googleId: payload.googleId },
+    });
+    if (byGoogle) {
+      return this.prisma.user.update({
+        where: { id: byGoogle.id },
+        data: {
+          name: payload.name ?? byGoogle.name,
+          provider: 'GOOGLE',
+          updatedAt: new Date(),
+        },
+      });
+    }
+    const byEmail = await this.prisma.user.findUnique({
+      where: { email: payload.email },
+    });
+    if (byEmail) {
+      return this.prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          googleId: payload.googleId,
+          provider: 'GOOGLE',
+          name: payload.name ?? byEmail.name,
+          updatedAt: new Date(),
+        },
+      });
+    }
+    return this.prisma.user.create({
+      data: {
+        email: payload.email,
+        googleId: payload.googleId,
+        name: payload.name ?? '',
+        password: null,
+        provider: 'GOOGLE',
+      },
+    });
   }
 }

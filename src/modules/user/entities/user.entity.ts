@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User, UserRole } from '@prisma/client';
+import { AuthProvider, User, UserRole } from '@prisma/client';
 
 export class UserEntity implements User {
 
@@ -12,11 +12,17 @@ export class UserEntity implements User {
   @ApiProperty({ required: true, uniqueItems: true })
   email: string;
 
+  @ApiProperty({ uniqueItems: true })
+  googleId: string;
+
   @ApiProperty({ required: true })
   name: string;
 
   @ApiProperty({ default: 'user' })
   role: UserRole;
+
+  @ApiProperty({ default: 'local' })
+  provider: AuthProvider;
 
   @ApiProperty()
   createdAt: Date;

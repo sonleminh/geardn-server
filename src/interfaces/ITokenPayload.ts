@@ -1,7 +1,6 @@
-import { User } from "@prisma/client";
+import { UserRole } from '@prisma/client';
 
-export interface ITokenPayload extends Pick<User, 'email'> {
+export interface ITokenPayload {
   id: number;
-  name: string;
-  role: string;
+  role: UserRole;
 }

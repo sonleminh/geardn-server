@@ -8,28 +8,18 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request as expressRequest, Response } from 'express';
-import { RegisterDTO } from './dto/register.dto';
 import { UserService } from '../user/user.service';
 import { ILoginResponse } from 'src/interfaces/IUser';
 import { ITokenPayload } from 'src/interfaces/ITokenPayload';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 @Injectable()
 export class AuthService {
-  private ATSecret: string;
-  private RTSecret: string;
-  private CKPath: string;
-  private JwtSecretKey: string;
 
   constructor(
     private userService: UserService,
     private configService: ConfigService,
     private readonly jwtService: JwtService,
-  ) {
-    this.ATSecret = this.configService.get('AT_SECRET');
-    this.RTSecret = this.configService.get('RT_SECRET');
-    this.CKPath = this.configService.get('CK_PATH');
-    this.JwtSecretKey = this.configService.get('JWT_SECRET_KEY');
-  }
+  ) {}
 
   async validateUser(email: string, password: string) {
     const userData = await this.userService.findAndVerify({
@@ -51,16 +41,13 @@ export class AuthService {
     try {
       const { access_token, refresh_token } = await this.generaTokens({
         id: user.id,
-        email: user.email,
-        name: user.name,
         role: user.role,
       });
 
       this.storeToken(res, 'access_token', access_token, 2);
       this.storeToken(res, 'refresh_token', refresh_token, 48);
 
-      const { password, ...tempUser } = user;
-      return tempUser;
+      return user;
     } catch (error) {
       throw error;
     }

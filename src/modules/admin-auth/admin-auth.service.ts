@@ -50,16 +50,13 @@ export class AdminAuthService {
     try {
       const { access_token, refresh_token } = await this.generaTokens({
         id: user.id,
-        email: user.email,
-        name: user.name,
         role: user.role,
       });
 
       this.storeToken(res, 'access_token', access_token, 2);
       this.storeToken(res, 'refresh_token', refresh_token, 48);
 
-      const { password, ...tempUser } = user;
-      return tempUser;
+      return user;
     } catch (error) {
       throw error;
     }
