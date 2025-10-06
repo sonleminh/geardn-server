@@ -8,6 +8,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserModule } from '../user/user.module';
 import { GoogleOAuthService } from './social/google.oauth.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { GoogleOAuthService } from './social/google.oauth.service';
       }),
       inject: [ConfigService],
     }),
+    PrismaModule,
   ],
   providers: [AuthService, GoogleOAuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],

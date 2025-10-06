@@ -12,10 +12,11 @@ import { UserService } from '../user/user.service';
 import { ILoginResponse } from 'src/interfaces/IUser';
 import { ITokenPayload } from 'src/interfaces/ITokenPayload';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class AuthService {
-
   constructor(
+    private prisma: PrismaService,
     private userService: UserService,
     private configService: ConfigService,
     private readonly jwtService: JwtService,
@@ -137,5 +138,19 @@ export class AuthService {
     } catch {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
     }
+  }
+
+  async getProfile(user: { id: number; role: string }) {
+    const me = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        provider: true,
+      },
+    });
+    return { message: 'OK', data: me };
   }
 }

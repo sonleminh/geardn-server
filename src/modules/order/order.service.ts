@@ -14,7 +14,7 @@ import {
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import * as dayjs from 'dayjs';
-import { OrderStatus } from 'src/common/enums/order-status.enum';
+import { OrderStatus, typeToStatusMap } from 'src/common/enums/order-status.enum';
 import { ReturnStatus } from '@prisma/client';
 
 const ALLOWED_STATUS_TRANSITIONS: Readonly<
@@ -89,15 +89,6 @@ export class OrderService {
         totalPrice += Number(sku.sellingPrice) * item.quantity;
 
         return {
-          // productId: item.productId,
-          // skuId: item.skuId,
-          // quantity: item.quantity,
-          // sellingPrice: item.sellingPrice,
-          // imageUrl: item.imageUrl,
-          // productName: item.productName,
-          // productSlug: item.productSlug,
-          // skuCode: item.skuCode,
-          // skuAttributes: item.skuAttributes,
           productId: sku.productId,
           skuId: sku.id,
           quantity: item.quantity,
@@ -114,8 +105,6 @@ export class OrderService {
           ),
         };
       });
-
-      console.log('orderItemsData', orderItemsData);
 
       const tempOrder = await tx.order.create({
         data: {
@@ -865,5 +854,14 @@ export class OrderService {
         },
       });
     });
+  }
+
+   async getUserPurchases(userId: number, type: number) {
+    const status = typeToStatusMap[type];
+    const orders = await this.prisma.order.findMany({
+      where: { userId, status: status },
+      include: { orderItems: { include: { product: true, sku: true } } },
+    });
+    return { data: orders };
   }
 }

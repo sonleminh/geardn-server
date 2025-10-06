@@ -3,7 +3,7 @@ import {
   Controller,
   Get,
   Post,
-  Request,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -29,29 +29,31 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req, @Res({ passthrough: true }) res) {
+  async login(@Req() req, @Res({ passthrough: true }) res) {
     return this.authService.login(req.user, res);
   }
 
   @Post('logout')
-  async logout(@Request() req, @Res({ passthrough: true }) res) {
+  async logout(@Req() req, @Res({ passthrough: true }) res) {
     return this.authService.logout(req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('whoami')
-  async getProfile(@Request() req) {
-    return req.user;
+  async getProfile(@Req() req) {
+    return this.authService.getProfile(req.user);
   }
 
   @Get('refresh-token')
-  async refresh(@Request() req, @Res({ passthrough: true }) res) {
+  async refresh(@Req() req, @Res({ passthrough: true }) res) {
     return this.authService.refreshToken(req, res);
   }
 
   @Post('google/verify-id-token')
-  async verifyGoogle(@Body('idToken') idToken: string, @Res() res: Response) {
-    console.log('idToken', idToken);
+  async verifyGoogle(
+    @Body('idToken') idToken: string,
+    @Res({ passthrough: true }) res,
+  ) {
     const payload = await this.google.verifyIdToken(idToken);
     const user = await this.userService.upsertGoogleUser(payload);
 
@@ -64,7 +66,6 @@ export class AuthController {
 
     this.authService.storeToken(res, 'access_token', access_token, 2);
     this.authService.storeToken(res, 'refresh_token', refresh_token, 2);
-
     return user;
   }
 }

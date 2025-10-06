@@ -38,12 +38,12 @@ export class OrderController {
     return this.orderService.findAll(dto);
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Get('user-purchases')
-  // getUserPurchases(@Req() req: Request, @Query('type') type: string) {
-  //   const userId = req.user?.id;
-  //   return this.orderService.getUserPurchases(userId, +type);
-  // }
+  @UseGuards(JwtAuthGuard)
+  @Get('user-purchases')
+  getUserPurchases(@Req() req: Request, @Query('type') type: string) {
+    const userId = req.user?.id;
+    return this.orderService.getUserPurchases(userId, +type);
+  }
 
   @UseGuards(JwtAdminAuthGuard)
   @Get('update-history-logs')

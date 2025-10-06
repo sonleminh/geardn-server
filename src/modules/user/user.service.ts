@@ -98,6 +98,7 @@ export class UserService {
     if (byGoogle) {
       return this.prisma.user.update({
         where: { id: byGoogle.id },
+        select: { id: true, name: true, email: true, role: true },
         data: {
           name: payload.name ?? byGoogle.name,
           provider: 'GOOGLE',
@@ -111,6 +112,7 @@ export class UserService {
     if (byEmail) {
       return this.prisma.user.update({
         where: { id: byEmail.id },
+        select: { id: true, name: true, email: true, role: true },
         data: {
           googleId: payload.googleId,
           provider: 'GOOGLE',
@@ -120,11 +122,11 @@ export class UserService {
       });
     }
     return this.prisma.user.create({
+      select: { id: true, name: true, email: true, role: true },
       data: {
         email: payload.email,
         googleId: payload.googleId,
         name: payload.name ?? '',
-        password: null,
         provider: 'GOOGLE',
       },
     });
