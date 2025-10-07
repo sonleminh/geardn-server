@@ -15,7 +15,7 @@ import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
 import * as dayjs from 'dayjs';
 import { OrderStatus, typeToStatusMap } from 'src/common/enums/order-status.enum';
-import { ReturnStatus } from '@prisma/client';
+import { Prisma, ReturnStatus } from '@prisma/client';
 
 const ALLOWED_STATUS_TRANSITIONS: Readonly<
   Record<OrderStatus, readonly OrderStatus[]>
@@ -31,6 +31,14 @@ const ALLOWED_STATUS_TRANSITIONS: Readonly<
   [OrderStatus.DELIVERY_FAILED]: [OrderStatus.CANCELED],
   [OrderStatus.CANCELED]: [],
 } as const;
+
+type CountSumByStatus = {
+  status: OrderStatus;
+  _count: { _all: number };
+  _sum: { grandTotal: number | null }; // đổi field nếu bạn dùng tên khác, ví dụ totalAmount
+};
+
+type Row = { status: OrderStatus; count: bigint; sum: number | null };
 
 @Injectable()
 export class OrderService {
@@ -856,12 +864,33 @@ export class OrderService {
     });
   }
 
-   async getUserPurchases(userId: number, type: number) {
-    const status = typeToStatusMap[type];
-    const orders = await this.prisma.order.findMany({
-      where: { userId, status: status },
+  async getUserPurchases(userId: number, type: number) {
+  const status = typeToStatusMap[type];
+
+  const [orders, grouped] = await this.prisma.$transaction([
+    this.prisma.order.findMany({
+      where: { userId, status },
       include: { orderItems: { include: { product: true, sku: true } } },
-    });
-    return { data: orders };
-  }
+      orderBy: { createdAt: 'desc' },
+    }),
+    this.prisma.$queryRaw<Row[]>`
+      SELECT "status",
+             COUNT(*)::bigint AS count
+      FROM "Order"
+      WHERE "userId" = ${userId}
+      GROUP BY "status"
+    `,
+  ]);
+
+  const countsByStatus = Object.values(OrderStatus).reduce((acc, s) => {
+    const r = grouped.find(g => g.status === s);
+    acc[s] = r ? Number(r.count) : 0;
+    return acc;
+  }, {} as Record<OrderStatus, number>);
+
+  const overallCount = grouped.reduce((n, r) => n + Number(r.count), 0);
+  const overallSum = grouped.reduce((n, r) => n + Number(r.sum ?? 0), 0);
+
+  return { data: orders, meta: { countsByStatus, overall: { count: overallCount, sum: overallSum } } };
+}
 }
