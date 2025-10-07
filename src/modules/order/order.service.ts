@@ -1,21 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JsonObject } from '@prisma/client/runtime/library';
-import { PrismaService } from '../prisma/prisma.service';
 import { OrderReasonCode } from 'src/common/enums/order-reason-code';
+import { PrismaService } from '../prisma/prisma.service';
 
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { CartService } from '../cart/cart.service';
-import { ExportLogService } from '../export-log/export-log.service';
+import { Prisma } from '@prisma/client';
+import * as dayjs from 'dayjs';
+import {
+  OrderStatus,
+  typeToStatusMap,
+} from 'src/common/enums/order-status.enum';
+import { UIOrderStatus, mapToUIStatus } from 'src/utils/mapToUIStatus';
 import {
   createDateRangeFilter,
   createSearchFilter,
 } from '../../common/helpers/query.helper';
+import { CartService } from '../cart/cart.service';
+import { CreateOrderDto } from './dto/create-order.dto';
 import { FindOrderStatusHistoryDto } from './dto/find-order-status-history.dto';
 import { FindOrdersDto } from './dto/find-orders.dto';
-import * as dayjs from 'dayjs';
-import { OrderStatus, typeToStatusMap } from 'src/common/enums/order-status.enum';
-import { Prisma, ReturnStatus } from '@prisma/client';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 const ALLOWED_STATUS_TRANSITIONS: Readonly<
   Record<OrderStatus, readonly OrderStatus[]>
@@ -32,13 +35,13 @@ const ALLOWED_STATUS_TRANSITIONS: Readonly<
   [OrderStatus.CANCELED]: [],
 } as const;
 
-type CountSumByStatus = {
-  status: OrderStatus;
-  _count: { _all: number };
-  _sum: { grandTotal: number | null }; // đổi field nếu bạn dùng tên khác, ví dụ totalAmount
+const typeToWhere: Record<string, Prisma.OrderWhereInput> = {
+  PENDING: { status: 'PENDING' },
+  PROCESSING: { status: 'PROCESSING' },
+  SHIPPED: { status: 'SHIPPED' },
+  DELIVERED: { status: 'DELIVERED' },
+  CANCELED: { status: { in: ['DELIVERY_FAILED', 'CANCELED'] } },
 };
-
-type Row = { status: OrderStatus; count: bigint; sum: number | null };
 
 @Injectable()
 export class OrderService {
@@ -258,7 +261,7 @@ export class OrderService {
   }
 
   async findOne(orderCode: string) {
-    console.log('orderCode:', orderCode)
+    console.log('orderCode:', orderCode);
     const res = await this.prisma.order.findUnique({
       where: {
         orderCode,
@@ -865,32 +868,46 @@ export class OrderService {
   }
 
   async getUserPurchases(userId: number, type: number) {
-  const status = typeToStatusMap[type];
+    const statusValue = typeToStatusMap[type];
+    const where = { userId, ...(typeToWhere[statusValue] ?? {}) };
 
-  const [orders, grouped] = await this.prisma.$transaction([
-    this.prisma.order.findMany({
-      where: { userId, status },
+    const orders = await this.prisma.order.findMany({
+      where,
       include: { orderItems: { include: { product: true, sku: true } } },
       orderBy: { createdAt: 'desc' },
-    }),
-    this.prisma.$queryRaw<Row[]>`
-      SELECT "status",
-             COUNT(*)::bigint AS count
-      FROM "Order"
-      WHERE "userId" = ${userId}
-      GROUP BY "status"
-    `,
-  ]);
+    });
 
-  const countsByStatus = Object.values(OrderStatus).reduce((acc, s) => {
-    const r = grouped.find(g => g.status === s);
-    acc[s] = r ? Number(r.count) : 0;
-    return acc;
-  }, {} as Record<OrderStatus, number>);
+    const data = orders.map((o) => ({
+      ...o,
+      uiStatus: mapToUIStatus(o.status),
+    }));
 
-  const overallCount = grouped.reduce((n, r) => n + Number(r.count), 0);
-  const overallSum = grouped.reduce((n, r) => n + Number(r.sum ?? 0), 0);
+    const [light, totalCount] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { userId },
+        select: { status: true, totalPrice: true },
+      }),
+      this.prisma.order.count({ where: { userId } }),
+    ]);
 
-  return { data: orders, meta: { countsByStatus, overall: { count: overallCount, sum: overallSum } } };
-}
+    const counts: Record<UIOrderStatus, number> = {
+      PENDING: 0,
+      PROCESSING: 0,
+      SHIPPED: 0,
+      DELIVERED: 0,
+      CANCELED: 0,
+    };
+
+    for (const r of light) {
+      const u = mapToUIStatus(r.status as OrderStatus);
+      counts[u] += 1;
+    }
+    return {
+      data: data,
+      meta: {
+        countsByStatus: counts,
+        overall: { count: totalCount },
+      },
+    };
+  }
 }

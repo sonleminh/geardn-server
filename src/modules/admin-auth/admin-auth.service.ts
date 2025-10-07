@@ -4,7 +4,6 @@ import {
   Injectable,
   InternalServerErrorException,
   Request,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -137,7 +136,7 @@ export class AdminAuthService {
         {
           secret: this.configService.get<string>('JWT_SECRET_KEY'),
           expiresIn: '2h',
-        },  
+        },
       );
       this.storeToken(res, 'access_token', newAccessToken, 2);
 
