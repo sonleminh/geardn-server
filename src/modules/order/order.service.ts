@@ -873,7 +873,11 @@ export class OrderService {
 
     const orders = await this.prisma.order.findMany({
       where,
-      include: { orderItems: { include: { product: true, sku: true } } },
+      include: { orderItems: { include: { product: {
+        select: { id: true, name: true, slug: true, category: {
+          select: { id: true, name: true, slug: true }
+        }}
+      }, sku: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
