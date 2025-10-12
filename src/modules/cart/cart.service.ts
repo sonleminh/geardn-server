@@ -106,10 +106,7 @@ export class CartService {
       });
     }
 
-    return this.prisma.cart.findUnique({
-      where: { id: cart.id },
-      include: { items: true },
-    });
+    return { message: 'Cart item quantity updated successfully' };
   }
 
   async syncCart(userId: number, syncCartItems: SyncCartItemsDto) {

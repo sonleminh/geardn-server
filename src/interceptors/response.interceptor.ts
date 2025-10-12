@@ -55,6 +55,13 @@ export class ResponseInterceptor implements NestInterceptor {
           response.meta = meta;
         }
 
+        if (isObject) {
+          const reserved = new Set(['data', 'meta', 'message', 'success']);
+          for (const [k, v] of Object.entries(originalData as any)) {
+            if (!reserved.has(k) && v !== undefined) response[k] = v;
+          }
+        }
+
         return response;
       }),
     );

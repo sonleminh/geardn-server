@@ -11,7 +11,11 @@ import { FindProductsDto } from './dto/find-product.dto';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
 import { FindProductsByCateDto } from './dto/find-product-by-cate.dto';
 
-type OpaqueCursor = { c: string; id: number };
+type CursorV1 =
+  | { v: 1; k: 'createdAt'; c: string; id: number }
+  | { v: 1; k: 'priceMin'; p: number; id: number };
+
+type OpaqueCursor = { c: string; p: string; id: number };
 
 @Injectable()
 export class ProductService {
@@ -21,13 +25,19 @@ export class ProductService {
     private readonly productSkuService: ProductSkuService,
   ) {}
 
-  encodeCursor(c: OpaqueCursor) {
+  encodeCursor(c: CursorV1): string {
     return Buffer.from(JSON.stringify(c)).toString('base64url');
   }
-  decodeCursor(raw?: string): OpaqueCursor | null {
-    if (!raw) return null;
+  decodeCursor(s?: string | null): CursorV1 | null {
+    if (!s) return null;
     try {
-      return JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+      const obj = JSON.parse(Buffer.from(s, 'base64url').toString('utf8'));
+      if (obj?.v !== 1 || typeof obj?.id !== 'number') return null;
+      if (obj.k === 'createdAt' && typeof obj.c === 'string')
+        return obj as CursorV1;
+      if (obj.k === 'priceMin' && typeof obj.p === 'number')
+        return obj as CursorV1;
+      return null;
     } catch {
       return null;
     }
@@ -247,7 +257,18 @@ export class ProductService {
   async getProductsByCategorySlug(slug: string, dto: FindProductsByCateDto) {
     const limit = dto.limit ?? 20;
 
-    const decoded = this.decodeCursor(dto.cursor);
+    const cur = this.decodeCursor(dto.cursor);
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = dto.sort
+      ? [{ priceMin: dto.sort }, { id: 'asc' }]
+      : [{ createdAt: 'desc' }, { id: 'desc' }];
+
+    const cursor =
+      cur?.k === 'priceMin'
+        ? { priceMin: cur.p, id: cur.id }
+        : cur?.k === 'createdAt'
+          ? { createdAt: new Date(cur.c), id: cur.id }
+          : undefined;
 
     const category = await this.categoryService.findOneBySlug(slug);
 
@@ -259,14 +280,9 @@ export class ProductService {
     const [items, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
-        take: limit + 1, // over-fetch to decide hasMore
-        ...(decoded
-          ? {
-              cursor: { createdAt: new Date(decoded.c), id: decoded.id },
-              skip: 1, // move past cursor
-            }
-          : {}),
-        orderBy: dto.sort ? { priceMin: dto.sort } : { createdAt: 'desc' },
+        take: limit + 1,
+        orderBy,
+        ...(cursor ? { cursor, skip: 1 } : {}),
         select: {
           id: true,
           name: true,
@@ -284,12 +300,34 @@ export class ProductService {
     const sliced = hasMore ? items.slice(0, limit) : items;
 
     const last = sliced[sliced.length - 1];
-    const nextCursor = last
-      ? this.encodeCursor({ c: last.createdAt.toISOString(), id: last.id })
-      : null;
-
+    const nextCursor =
+      hasMore && last
+        ? dto.sort
+          ? this.encodeCursor({
+              v: 1,
+              k: 'priceMin',
+              p: +last.priceMin,
+              id: last.id,
+            })
+          : this.encodeCursor({
+              v: 1,
+              k: 'createdAt',
+              c: last.createdAt.toISOString(),
+              id: last.id,
+            })
+        : null;
     return {
-      data: { items: sliced, nextCursor, hasMore, total },
+      data: sliced,
+      meta: {
+        nextCursor,
+        hasMore,
+        total,
+      },
+      category: {
+        id: category?.data?.id,
+        slug: category?.data?.slug,
+        name: category?.data?.name,
+      },
       message: 'Product list retrieved successfully',
     };
   }

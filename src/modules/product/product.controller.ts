@@ -72,6 +72,7 @@ export class ProductController {
   @Get('slug/:slug')
   @ApiCreatedResponse({ type: ProductEntity })
   getProductBySlug(@Param('slug') slug: string) {
+    console.log('slug', slug);
     return this.productService.getProductBySlug(slug);
   }
 
@@ -85,6 +86,7 @@ export class ProductController {
     @Param('slug') slug: string,
     @Query() dto: FindProductsByCateDto,
   ) {
+    // console.log('dto', dto);
     return await this.productService.getProductsByCategorySlug(slug, dto);
   }
 
