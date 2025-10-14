@@ -193,8 +193,14 @@ export class OrderService {
       page = 1,
       limit = 10,
       sort = 'desc',
+      sortField
     } = dto || {};
     const skip = (page - 1) * limit;
+
+    const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
+      { ['createdAt']: sort },
+      { id: 'desc' }, // tie-breaker ổn định
+    ];
 
     // Build where clause
     const where: any = {
@@ -242,7 +248,7 @@ export class OrderService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: sort },
+        orderBy,
         include: { orderItems: true },
       }),
       this.prisma.order.count({ where }),
@@ -255,6 +261,10 @@ export class OrderService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+        sort,
+        sortField,
       },
       message: 'Order list retrieved successfully',
     };
@@ -873,11 +883,23 @@ export class OrderService {
 
     const orders = await this.prisma.order.findMany({
       where,
-      include: { orderItems: { include: { product: {
-        select: { id: true, name: true, slug: true, category: {
-          select: { id: true, name: true, slug: true }
-        }}
-      }, sku: true } } },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                category: {
+                  select: { id: true, name: true, slug: true },
+                },
+              },
+            },
+            sku: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
 

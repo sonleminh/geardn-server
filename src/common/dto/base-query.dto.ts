@@ -1,28 +1,38 @@
-import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+
+const SORT_FIELDS = ['createdAt', 'price', 'sold'] as const;
+type SortField = (typeof SORT_FIELDS)[number];
 
 export class BaseQueryDto {
+  /** asc|desc. Hỗ trợ alias: order */
   @IsOptional()
-  @IsString()
-  sort?: 'asc' | 'desc';
+  @IsEnum(['asc', 'desc'])
+  @Transform(({ obj, value }) => obj.order ?? value ?? 'desc')
+  sort: 'asc' | 'desc' = 'desc';
 
+  /** field sắp xếp. Hỗ trợ alias: sortBy (Shopee) */
   @IsOptional()
-  @IsNumber()
+  @Transform(({ obj, value }) => obj.sortBy ?? value ?? 'createdAt')
+  sortField?: SortField = 'createdAt';
+
+  /** page 1-based nội bộ. Hỗ trợ Shopee page=0-based */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
   @Min(1)
   @Transform(({ value }) => {
-    if (!value) return 1;
-    const num = Number(value);
-    return isNaN(num) ? 1 : num;
+    // Cho phép client gửi 0-based: 0 -> 1, 1 -> 2, ...
+    const n = Number(value);
+    if (Number.isNaN(n)) return 1;
+    return n >= 1 ? n : n + 1; // nếu 0 thì +1
   })
-  page?: number = 1;
+  page: number = 1;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   @Min(1)
-  @Transform(({ value }) => {
-    if (!value) return 10;
-    const num = Number(value);
-    return isNaN(num) ? 10 : num;
-  })
-  limit?: number = 10;
-} 
+  @Max(100)
+  limit: number = 12;
+}

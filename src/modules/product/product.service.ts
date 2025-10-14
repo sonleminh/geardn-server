@@ -59,40 +59,45 @@ export class ProductService {
   }
 
   async findAll(dto: FindProductsDto) {
-    const { page = 1, limit = 10, search } = dto;
+    const { page = 1, limit: rawLimit = 12, search, sort, sortField } = dto;
+
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
     const skip = (page - 1) * limit;
+
+    const sortFieldMap: Record<
+      string,
+      keyof Prisma.ProductOrderByWithRelationInput
+    > = {
+      createdAt: 'createdAt',
+      price: 'priceMin',
+    };
+    const orderByField = sortFieldMap[sortField] ?? 'createdAt';
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
+      { [orderByField]: sort },
+      { id: 'desc' },
+    ];
 
     const where: Prisma.ProductWhereInput = {
       AND: [
-        // Search filter
-        ...(search ? [{ OR: [{ name: createSearchFilter(search) }] }] : []),
+        search
+          ? {
+              OR: [{ name: createSearchFilter(search) }],
+            }
+          : {},
         { isDeleted: false },
       ],
     };
 
-    const [products, total] = await Promise.all([
+    const [products, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
         skip,
         take: limit,
-        orderBy: dto.sort ? { priceMin: dto.sort } : { createdAt: 'desc' },
+        orderBy,
         include: {
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          // skus: {
-          //   select: {
-          //     sellingPrice: true,
-          //   },
-          //   orderBy: {
-          //     sellingPrice: 'asc',
-          //   },
-          //   take: 1,
-          // },
+          category: { select: { id: true, name: true, slug: true } },
+          // có thể thêm select tối ưu nếu bảng to
         },
       }),
       this.prisma.product.count({ where }),
@@ -105,6 +110,10 @@ export class ProductService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+        sort,
+        sortField,
       },
       message: 'Product list retrieved successfully',
     };
@@ -246,7 +255,6 @@ export class ProductService {
         },
       },
     });
-
     return {
       data: res,
       total: total,
@@ -316,6 +324,9 @@ export class ProductService {
               id: last.id,
             })
         : null;
+    // console.log('dto.sort', dto.sort);
+    // console.log('items', items);
+    // console.log('sliced2', sliced);
     return {
       data: sliced,
       meta: {

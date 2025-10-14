@@ -86,7 +86,6 @@ export class ProductController {
     @Param('slug') slug: string,
     @Query() dto: FindProductsByCateDto,
   ) {
-    // console.log('dto', dto);
     return await this.productService.getProductsByCategorySlug(slug, dto);
   }
 
