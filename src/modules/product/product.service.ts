@@ -59,7 +59,8 @@ export class ProductService {
   }
 
   async findAll(dto: FindProductsDto) {
-    const { page = 1, limit: rawLimit = 12, search, sort, sortField } = dto;
+    const { page = 1, limit: rawLimit = 9, search, sort, sortField } = dto;
+    console.log('dto', dto);
 
     const limit = Math.min(Math.max(rawLimit, 1), 100);
     const skip = (page - 1) * limit;
@@ -102,6 +103,7 @@ export class ProductService {
       }),
       this.prisma.product.count({ where }),
     ]);
+    // console.log('products', products);
 
     return {
       data: products,
@@ -263,34 +265,75 @@ export class ProductService {
   }
 
   async getProductsByCategorySlug(slug: string, dto: FindProductsByCateDto) {
-    const limit = dto.limit ?? 20;
+    const rawLimit = dto.limit ?? 20;
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
 
-    const cur = this.decodeCursor(dto.cursor);
+    // sort theo priceMin nếu có dto.sort, mặc định theo createdAt desc
+    const sortDir: 'asc' | 'desc' = dto.sort ?? 'desc';
+    const sortByPrice = !!dto.sort;
 
-    const orderBy: Prisma.ProductOrderByWithRelationInput[] = dto.sort
-      ? [{ priceMin: dto.sort }, { id: 'asc' }]
-      : [{ createdAt: 'desc' }, { id: 'desc' }];
+    // decode cursor đầu vào (nếu có). Nên để decode trả về null nếu hỏng.
+    const cur = this.decodeCursor(dto.cursor); // { v:1, k:'priceMin'|'createdAt', p?:number, c?:string, id:number }
 
-    const cursor =
-      cur?.k === 'priceMin'
-        ? { priceMin: cur.p, id: cur.id }
-        : cur?.k === 'createdAt'
-          ? { createdAt: new Date(cur.c), id: cur.id }
-          : undefined;
+    // Lấy category
+    const cat = await this.categoryService.findOneBySlug(slug);
+    const categoryId = cat?.data?.id;
+    if (!categoryId) {
+      return {
+        data: [],
+        meta: { nextCursor: null, hasMore: false, total: 0 },
+        category: { id: undefined, slug, name: undefined },
+        message: 'Category not found',
+      };
+    }
 
-    const category = await this.categoryService.findOneBySlug(slug);
-
-    const where = {
+    // where cơ bản
+    const baseWhere: Prisma.ProductWhereInput = {
       isDeleted: false,
-      ...(category?.data?.id ? { categoryId: category.data.id } : {}),
+      categoryId,
     };
 
-    const [items, total] = await Promise.all([
+    // Seek condition cho trang tiếp theo, thay vì Prisma cursor
+    const seekWhere: Prisma.ProductWhereInput = (() => {
+      if (!cur) return {};
+      if (sortByPrice && cur.k === 'priceMin' && typeof cur.p === 'number') {
+        // (priceMin > p) OR (priceMin = p AND id > lastId) với asc
+        // Ngược lại dùng < và id < cho desc
+        const cmpPrice = sortDir === 'asc' ? 'gt' : 'lt';
+        const cmpId = sortDir === 'asc' ? 'gt' : 'lt';
+        return {
+          OR: [
+            { priceMin: { [cmpPrice]: cur.p } } as any,
+            { AND: [{ priceMin: cur.p }, { id: { [cmpId]: cur.id } }] },
+          ],
+        };
+      }
+      if (!sortByPrice && cur.k === 'createdAt' && cur.c) {
+        const lastC = new Date(cur.c);
+        const cmpDate = sortDir === 'asc' ? 'gt' : 'lt';
+        const cmpId = sortDir === 'asc' ? 'gt' : 'lt';
+        return {
+          OR: [
+            { createdAt: { [cmpDate]: lastC } } as any,
+            { AND: [{ createdAt: lastC }, { id: { [cmpId]: cur.id } }] },
+          ],
+        };
+      }
+      return {};
+    })();
+
+    const where: Prisma.ProductWhereInput = { AND: [baseWhere, seekWhere] };
+
+    // Order ổn định với tie-breaker id
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = sortByPrice
+      ? [{ priceMin: sortDir }, { id: 'asc' }]
+      : [{ createdAt: sortDir }, { id: 'desc' }];
+
+    const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
         take: limit + 1,
         orderBy,
-        ...(cursor ? { cursor, skip: 1 } : {}),
         select: {
           id: true,
           name: true,
@@ -301,16 +344,17 @@ export class ProductService {
           createdAt: true,
         },
       }),
-      this.prisma.product.count({ where }),
+      this.prisma.product.count({ where: baseWhere }),
     ]);
 
     const hasMore = items.length > limit;
     const sliced = hasMore ? items.slice(0, limit) : items;
 
-    const last = sliced[sliced.length - 1];
+    // Tạo nextCursor theo khóa sắp xếp hiện tại
+    const last = sliced.at(-1);
     const nextCursor =
       hasMore && last
-        ? dto.sort
+        ? sortByPrice
           ? this.encodeCursor({
               v: 1,
               k: 'priceMin',
@@ -324,21 +368,11 @@ export class ProductService {
               id: last.id,
             })
         : null;
-    // console.log('dto.sort', dto.sort);
-    // console.log('items', items);
-    // console.log('sliced2', sliced);
+
     return {
       data: sliced,
-      meta: {
-        nextCursor,
-        hasMore,
-        total,
-      },
-      category: {
-        id: category?.data?.id,
-        slug: category?.data?.slug,
-        name: category?.data?.name,
-      },
+      meta: { nextCursor, hasMore, total, limit },
+      category: { id: categoryId, slug: cat.data.slug, name: cat.data.name },
       message: 'Product list retrieved successfully',
     };
   }

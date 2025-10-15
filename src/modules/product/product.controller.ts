@@ -48,6 +48,7 @@ export class ProductController {
   @Get()
   @ApiCreatedResponse({ type: ProductEntity, isArray: true })
   findAll(@Query() dto: FindProductsDto) {
+    console.log('dto', dto);
     return this.productService.findAll(dto);
   }
 

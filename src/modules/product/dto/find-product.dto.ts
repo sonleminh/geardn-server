@@ -7,4 +7,7 @@ export class FindProductsDto extends BaseQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  limit: number = 9;
 }
