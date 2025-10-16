@@ -167,7 +167,7 @@ export class AdjustmentLogService {
     const {
       warehouseIds,
       types,
-      sort,
+      order,
       productIds,
       fromDate,
       toDate,
@@ -234,7 +234,7 @@ export class AdjustmentLogService {
           },
         },
         orderBy: {
-          createdAt: sort || 'desc',
+          createdAt: order || 'desc',
         },
         skip,
         take: limit,

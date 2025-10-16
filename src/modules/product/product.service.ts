@@ -59,7 +59,7 @@ export class ProductService {
   }
 
   async findAll(dto: FindProductsDto) {
-    const { page = 1, limit: rawLimit = 9, search, sort, sortField } = dto;
+    const { page = 1, limit: rawLimit = 9, search, sortBy, order } = dto;
     console.log('dto', dto);
 
     const limit = Math.min(Math.max(rawLimit, 1), 100);
@@ -72,10 +72,10 @@ export class ProductService {
       createdAt: 'createdAt',
       price: 'priceMin',
     };
-    const orderByField = sortFieldMap[sortField] ?? 'createdAt';
+    const orderByField = sortFieldMap[sortBy] ?? 'createdAt';
 
     const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
-      { [orderByField]: sort },
+      { [orderByField]: order },
       { id: 'desc' },
     ];
 
@@ -114,8 +114,8 @@ export class ProductService {
         totalPages: Math.ceil(total / limit),
         hasNextPage: page * limit < total,
         hasPrevPage: page > 1,
-        sort,
-        sortField,
+        sortBy,
+        order,
       },
       message: 'Product list retrieved successfully',
     };
@@ -269,8 +269,8 @@ export class ProductService {
     const limit = Math.min(Math.max(rawLimit, 1), 100);
 
     // sort theo priceMin nếu có dto.sort, mặc định theo createdAt desc
-    const sortDir: 'asc' | 'desc' = dto.sort ?? 'desc';
-    const sortByPrice = !!dto.sort;
+    const sortDir: 'asc' | 'desc' = dto.order ?? 'desc';
+    const sortByPrice = !!dto.order;
 
     // decode cursor đầu vào (nếu có). Nên để decode trả về null nếu hỏng.
     const cur = this.decodeCursor(dto.cursor); // { v:1, k:'priceMin'|'createdAt', p?:number, c?:string, id:number }

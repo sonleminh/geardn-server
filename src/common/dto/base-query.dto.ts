@@ -1,20 +1,20 @@
 import { Type, Transform } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 
-const SORT_FIELDS = ['createdAt', 'price', 'sold'] as const;
-type SortField = (typeof SORT_FIELDS)[number];
+const SORT_BY = ['createdAt', 'price', 'sold'] as const;
+type SortBy = (typeof SORT_BY)[number];
 
 export class BaseQueryDto {
   /** asc|desc. Hỗ trợ alias: order */
   @IsOptional()
   @IsEnum(['asc', 'desc'])
   @Transform(({ obj, value }) => obj.order ?? value ?? 'desc')
-  sort: 'asc' | 'desc' = 'desc';
+  order: 'asc' | 'desc' = 'desc';
 
   /** field sắp xếp. Hỗ trợ alias: sortBy (Shopee) */
   @IsOptional()
   @Transform(({ obj, value }) => obj.sortBy ?? value ?? 'createdAt')
-  sortField?: SortField = 'createdAt';
+  sortBy?: SortBy = 'createdAt';
 
   /** page 1-based nội bộ. Hỗ trợ Shopee page=0-based */
   @IsOptional()

@@ -192,13 +192,13 @@ export class OrderService {
       search,
       page = 1,
       limit = 10,
-      sort = 'desc',
-      sortField
+      sortBy,  
+      order = 'desc',
     } = dto || {};
     const skip = (page - 1) * limit;
 
     const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
-      { ['createdAt']: sort },
+      { ['createdAt']: order },
       { id: 'desc' }, // tie-breaker ổn định
     ];
 
@@ -263,8 +263,8 @@ export class OrderService {
         totalPages: Math.ceil(total / limit),
         hasNextPage: page * limit < total,
         hasPrevPage: page > 1,
-        sort,
-        sortField,
+        sortBy,
+        order,
       },
       message: 'Order list retrieved successfully',
     };
