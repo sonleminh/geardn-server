@@ -6,7 +6,7 @@ import { ProductStatus } from '@prisma/client';
 export class FindProductsDto extends BaseQueryDto {
   @IsOptional()
   @IsString()
-  search?: string;
+  keyword?: string;
 
   @IsOptional()
   limit: number = 9;

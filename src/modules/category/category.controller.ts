@@ -48,6 +48,12 @@ export class CategoryController {
     return this.categoryService.findOne(+id);
   }
 
+  @Get('slug/:slug')
+  @ApiCreatedResponse({ type: CategoryEntity })
+  getProductBySlug(@Param('slug') slug: string) {
+    return this.categoryService.findOneBySlug(slug);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

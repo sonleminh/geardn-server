@@ -1,71 +1,114 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
+import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
 
 import { ILoginResponse } from 'src/interfaces/IUser';
 import { getAccessTokenFromCookies } from 'src/utils/getAccessToken';
-import { getCartTokenFromCookies } from 'src/utils/getCartToken';
 
 import { PrismaService } from '../prisma/prisma.service';
 
 import { AddToCartDto } from './dto/add-to-cart.dto';
-import { UpdateQuantityDto } from './dto/update-quantity.dto';
 import { SyncCartItemsDto } from './dto/sync-cart.dto copy';
+import { UpdateQuantityDto } from './dto/update-quantity.dto';
 
 @Injectable()
 export class CartService {
   constructor(private prisma: PrismaService) {}
   async addToCart(userId: number, dto: AddToCartDto) {
     const { productId, skuId, quantity } = dto;
+    if (quantity <= 0) throw new ConflictException('QUANTITY_INVALID');
 
-    let cart = await this.prisma.cart.findUnique({
-      where: { userId: userId },
+    return this.prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.upsert({
+        where: { userId: userId ?? -1 },
+        update: {},
+        create: { userId },
+        select: { id: true, userId: true },
+      });
+
+      const [stock] = await this.getStockForSkus([skuId]);
+      const sku = await tx.productSKU.findUnique({
+        where: { id: skuId },
+        select: {
+          id: true,
+          product: { select: { id: true, name: true, status: true } },
+        },
+      });
+      if (!sku) throw new ConflictException('SKU_NOT_FOUND');
+
+      const existing = await tx.cartItem.findFirst({
+        where: { cartId: cart.id, skuId },
+        select: { id: true, quantity: true },
+      });
+      console.log('2')
+
+      const nextQty = (existing?.quantity ?? 0) + quantity;
+      const available = Number(stock?.quantity ?? 0);
+      if (nextQty > available) {
+        throw new ConflictException({
+          code: 'CART_STOCK_EXCEEDED',
+          message: 'Exceed the amount that can be added',
+          context: { skuId, available, requested: nextQty },
+        });
+      }
+
+      console.log('3')
+
+      // 4) Tạo mới hoặc cập nhật
+      const created = !existing;
+      created
+        ? await tx.cartItem.create({
+            data: {
+              cartId: cart.id,
+              productId,
+              skuId,
+              quantity: nextQty,
+            },
+            select: { id: true, skuId: true, quantity: true },
+          })
+        : await tx.cartItem.update({
+            where: { id: existing!.id },
+            data: { quantity: nextQty },
+            select: { id: true, skuId: true, quantity: true },
+          });
+
+      // 5) Lấy snapshot giỏ hàng sau cập nhật
+      // const rawItems = await tx.cartItem.findMany({
+      //   where: { cartId: cart.id },
+      //   select: {
+      //     id: true,
+      //     productId: true,
+      //     skuId: true,
+      //     quantity: true,
+      //     product: true,
+      //   },
+      //   orderBy: { id: 'asc' },
+      // });
+
+      // const items = rawItems.map((r) => {
+      //   return {
+      //     id: r.id,
+      //     productId: r.productId,
+      //     skuId: r.skuId,
+      //     name: r.product?.name || '',
+      //     imageUrl: r.product?.images[0] || null,
+      //     quantity: r.quantity,
+      //   };
+      // });
+
+      return {
+        // cart: {
+        //   id: cart.id,
+        //   userId: cart.userId,
+        //   items,
+        // },
+        message: 'Item added to cart successfully',
+      };
     });
-
-    if (!cart) {
-      cart = await this.prisma.cart.create({
-        data: {
-          userId: userId,
-        },
-      });
-    }
-
-    const existingItem = await this.prisma.cartItem.findFirst({
-      where: {
-        cartId: cart.id,
-        skuId: skuId,
-      },
-    });
-
-    const stock = await this.getStockForSkus([skuId])
-
-    if (existingItem?.quantity + quantity > stock[0]?.quantity) {
-      throw new Error('Exceed the amount that can be added');
-    }
-    if (quantity > stock[0]?.quantity) {
-      throw new Error('Exceed the amount that can be added');
-    }
-
-    if (existingItem) {
-      return this.prisma.cartItem.update({
-        where: {
-          id: existingItem?.id,
-        },
-        data: {
-          quantity: existingItem.quantity + quantity,
-        },
-      });
-    } else {
-      return await this.prisma.cartItem.create({
-        data: {
-          cartId: cart.id,
-          productId: productId,
-          skuId: skuId,
-          quantity: quantity,
-        },
-      });
-    }
   }
 
   async updateQuantity(
@@ -89,12 +132,12 @@ export class CartService {
 
     if (!existingItem) throw new Error('Item not found in cart');
 
-    const stock = await this.getStockForSkus([existingItem.skuId])
+    const stock = await this.getStockForSkus([existingItem.skuId]);
 
     if (quantity <= 0) {
       await this.removeCartItem(existingItem.id);
-    } else if (quantity > stock[0].quantity){
-      throw new Error('Quantity exceeding inventory')
+    } else if (quantity > stock[0].quantity) {
+      throw new Error('Quantity exceeding inventory');
     } else {
       await this.prisma.cartItem.update({
         where: {

@@ -15,8 +15,6 @@ type CursorV1 =
   | { v: 1; k: 'createdAt'; c: string; id: number }
   | { v: 1; k: 'priceMin'; p: number; id: number };
 
-type OpaqueCursor = { c: string; p: string; id: number };
-
 @Injectable()
 export class ProductService {
   constructor(
@@ -59,7 +57,7 @@ export class ProductService {
   }
 
   async findAll(dto: FindProductsDto) {
-    const { page = 1, limit: rawLimit = 9, search, sortBy, order } = dto;
+    const { page = 1, limit: rawLimit = 9, keyword, sortBy, order } = dto;
     console.log('dto', dto);
 
     const limit = Math.min(Math.max(rawLimit, 1), 100);
@@ -81,9 +79,9 @@ export class ProductService {
 
     const where: Prisma.ProductWhereInput = {
       AND: [
-        search
+        keyword
           ? {
-              OR: [{ name: createSearchFilter(search) }],
+              OR: [{ name: createSearchFilter(keyword) }],
             }
           : {},
         { isDeleted: false },
