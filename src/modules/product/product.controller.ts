@@ -21,14 +21,15 @@ import { ENUM_LABELS } from 'src/common/constants/enum-labels';
 import { ProductTag } from 'src/common/enums/product-tag.enum';
 import { ProductSkuService } from '../product-sku/product-sku.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import { FindProductsDto } from './dto/find-product.dto';
+import { ProductListQueryDto } from './dto/product-list.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
 import { ProductService } from './product.service';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
 import { JwtAdminAuthGuard } from '../admin-auth/guards/jwt-admin-auth.guard';
 import { FindSkusByProductDto } from '../product-sku/dto/find-skus-by-product.dto';
-import { FindProductsByCateDto } from './dto/find-product-by-cate.dto';
+import { ProductListByCateQueryDto } from './dto/product-list-by-cate.dto';
+import { SearchProductsDto } from './dto/search-product.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -47,7 +48,7 @@ export class ProductController {
 
   @Get()
   @ApiCreatedResponse({ type: ProductEntity, isArray: true })
-  findAll(@Query() dto: FindProductsDto) {
+  findAll(@Query() dto: ProductListQueryDto) {
     console.log('dto', dto);
     return this.productService.findAll(dto);
   }
@@ -64,11 +65,20 @@ export class ProductController {
     return this.productService.adminFindAll(dto);
   }
 
+  @Get('search')
+  @ApiCreatedResponse({ type: ProductEntity })
+  searchProduct(@Query() dto: SearchProductsDto) {
+    console.log('dtoc', dto);
+    return this.productService.search(dto);
+  }
+
   @Get(':id')
   @ApiCreatedResponse({ type: ProductEntity })
   findOne(@Param('id') id: number) {
     return this.productService.findOne(+id);
   }
+
+ 
 
   @Get('slug/:slug')
   @ApiCreatedResponse({ type: ProductEntity })
@@ -84,7 +94,7 @@ export class ProductController {
   @Get('/category/slug/:slug')
   async getProductByCateSlug(
     @Param('slug') slug: string,
-    @Query() dto: FindProductsByCateDto,
+    @Query() dto: ProductListByCateQueryDto,
   ) {
     console.log('dto', dto)
     return await this.productService.getProductsByCategorySlug(slug, dto);

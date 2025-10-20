@@ -7,9 +7,10 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Prisma } from '@prisma/client';
 import { createSearchFilter } from '../../common/helpers/query.helper';
-import { FindProductsDto } from './dto/find-product.dto';
+import { ProductListQueryDto } from './dto/product-list.dto';
 import { AdminFindProductsDto } from './dto/admin-find-products.dto';
-import { FindProductsByCateDto } from './dto/find-product-by-cate.dto';
+import { ProductListByCateQueryDto } from './dto/product-list-by-cate.dto';
+import { SearchProductsDto } from './dto/search-product.dto';
 
 type CursorV1 =
   | { v: 1; k: 'createdAt'; c: string; id: number }
@@ -56,9 +57,8 @@ export class ProductService {
     };
   }
 
-  async findAll(dto: FindProductsDto) {
-    const { page = 1, limit: rawLimit = 9, keyword, sortBy, order } = dto;
-    console.log('dto', dto);
+  async findAll(dto: ProductListQueryDto) {
+    const { page = 1, limit: rawLimit = 9, sortBy, order } = dto;
 
     const limit = Math.min(Math.max(rawLimit, 1), 100);
     const skip = (page - 1) * limit;
@@ -78,14 +78,7 @@ export class ProductService {
     ];
 
     const where: Prisma.ProductWhereInput = {
-      AND: [
-        keyword
-          ? {
-              OR: [{ name: createSearchFilter(keyword) }],
-            }
-          : {},
-        { isDeleted: false },
-      ],
+      AND: [{ isDeleted: false }],
     };
 
     const [products, total] = await this.prisma.$transaction([
@@ -116,6 +109,107 @@ export class ProductService {
         order,
       },
       message: 'Product list retrieved successfully',
+    };
+  }
+
+  async search(dto: SearchProductsDto) {
+    const rawLimit = dto.limit ?? 20;
+    const limit = Math.min(Math.max(rawLimit, 1), 100);
+
+    const sortDir: 'asc' | 'desc' = dto.order ?? 'desc';
+    const sortByPrice = !!dto.order;
+
+    const cur = this.decodeCursor(dto.cursor); // { v:1, k:'priceMin'|'createdAt', p?:number, c?:string, id:number }
+
+    const baseWhere: Prisma.ProductWhereInput = {
+      AND: [
+        dto.keyword ? { OR: [{ name: createSearchFilter(dto.keyword) }] } : {},
+        { isDeleted: false },
+      ],
+    };
+
+    // điều kiện “seek”
+    const seekWhere: Prisma.ProductWhereInput = (() => {
+      if (!cur) return {};
+      if (sortByPrice && cur.k === 'priceMin' && typeof cur.p === 'number') {
+        // (priceMin > p) OR (priceMin = p AND id > lastId) với asc
+        // Ngược lại dùng < và id < cho desc
+        const cmpPrice = sortDir === 'asc' ? 'gt' : 'lt';
+        const cmpId = sortDir === 'asc' ? 'gt' : 'lt';
+        return {
+          OR: [
+            { priceMin: { [cmpPrice]: cur.p } } as any,
+            { AND: [{ priceMin: cur.p }, { id: { [cmpId]: cur.id } }] },
+          ],
+        };
+      }
+      if (!sortByPrice && cur.k === 'createdAt' && cur.c) {
+        const lastC = new Date(cur.c);
+        const cmpDate = sortDir === 'asc' ? 'gt' : 'lt';
+        const cmpId = sortDir === 'asc' ? 'gt' : 'lt';
+        return {
+          OR: [
+            { createdAt: { [cmpDate]: lastC } } as any,
+            { AND: [{ createdAt: lastC }, { id: { [cmpId]: cur.id } }] },
+          ],
+        };
+      }
+      return {};
+    })();
+
+    const where: Prisma.ProductWhereInput = { AND: [baseWhere, seekWhere] };
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] = sortByPrice
+      ? [{ priceMin: sortDir }, { id: 'asc' }]
+      : [{ createdAt: sortDir }, { id: 'desc' }];
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        take: limit + 1,
+        orderBy,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          images: true,
+          priceMin: true,
+          priceMax: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.product.count({ where: baseWhere }),
+    ]);
+
+    const hasMore = items.length > limit;
+    const sliced = hasMore ? items.slice(0, limit) : items;
+
+    const last = sliced.at(-1);
+    const nextCursor =
+      hasMore && last
+        ? sortByPrice
+          ? this.encodeCursor({
+              v: 1,
+              k: 'priceMin',
+              p: +last.priceMin,
+              id: last.id,
+            })
+          : this.encodeCursor({
+              v: 1,
+              k: 'createdAt',
+              c: last.createdAt.toISOString(),
+              id: last.id,
+            })
+        : null;
+
+    return {
+      data: sliced,
+      meta: {
+        nextCursor,
+        hasMore,
+        total,
+        limit,
+      },
     };
   }
 
@@ -262,7 +356,10 @@ export class ProductService {
     };
   }
 
-  async getProductsByCategorySlug(slug: string, dto: FindProductsByCateDto) {
+  async getProductsByCategorySlug(
+    slug: string,
+    dto: ProductListByCateQueryDto,
+  ) {
     const rawLimit = dto.limit ?? 20;
     const limit = Math.min(Math.max(rawLimit, 1), 100);
 
