@@ -23,8 +23,8 @@ export class AuthController {
     private readonly google: GoogleOAuthService,
   ) {}
   @Post('signup')
-  async signUp(@Body() createProductDto: CreateUserDto) {
-    return this.authService.signUp(createProductDto);
+  async signUp(@Body() dto: CreateUserDto) {
+    return this.authService.signUp(dto);
   }
 
   @UseGuards(LocalAuthGuard)
