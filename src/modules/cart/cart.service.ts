@@ -44,7 +44,6 @@ export class CartService {
         where: { cartId: cart.id, skuId },
         select: { id: true, quantity: true },
       });
-      console.log('2')
 
       const nextQty = (existing?.quantity ?? 0) + quantity;
       const available = Number(stock?.quantity ?? 0);
@@ -55,8 +54,6 @@ export class CartService {
           context: { skuId, available, requested: nextQty },
         });
       }
-
-      console.log('3')
 
       // 4) Tạo mới hoặc cập nhật
       const created = !existing;

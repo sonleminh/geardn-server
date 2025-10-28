@@ -179,7 +179,6 @@ export class OrderService {
         }
       }
     }
-    console.log('order', order);
     return { data: order };
   }
 
@@ -271,7 +270,6 @@ export class OrderService {
   }
 
   async findOne(orderCode: string) {
-    console.log('orderCode:', orderCode);
     const res = await this.prisma.order.findUnique({
       where: {
         orderCode,

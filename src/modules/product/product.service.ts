@@ -94,7 +94,6 @@ export class ProductService {
       }),
       this.prisma.product.count({ where }),
     ]);
-    // console.log('products', products);
 
     return {
       data: products,
