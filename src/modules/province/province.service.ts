@@ -3,12 +3,12 @@ import axios from 'axios';
 
 @Injectable()
 export class ProvinceService {
-  private readonly API_URL = 'https://provinces.open-api.vn/api/v1';
+  private readonly API_URL = 'https://provinces.open-api.vn/api/v2';
 
   async getProvinceList() {
     try {
       const res = await axios.get(`${this.API_URL}/`);
-      return { data: res.data };
+      return res.data 
     } catch (error) {
       throw new Error(`Failed to fetch provinces: ${error.message}`);
     }
@@ -16,8 +16,9 @@ export class ProvinceService {
 
   async getProvinceByCode(code: number) {
     try {
-      const response = await axios.get(`${this.API_URL}/p/${code}?depth=2`);
-      return response.data;
+      const res = await axios.get(`${this.API_URL}/p/${code}?depth=2`);
+      return res.data 
+
     } catch (error) {
       throw new Error(`Failed to fetch province: ${error.message}`);
     }
