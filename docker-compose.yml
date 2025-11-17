@@ -1,17 +1,25 @@
-# docker-compose.yml
+version: '3.9'
 
-version: '3.8'
 services:
-  postgres:
-    image: postgres:13.5
+  api:
+    build: .
+    container_name: geardn-api
     restart: always
-    environment:
-      - POSTGRES_USER=geardn
-      - POSTGRES_PASSWORD=wherefuture
-    volumes:
-      - postgres:/var/lib/postgresql/data
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
     ports:
-      - '5432:5432'
+      - '3000:3000'
+    # Nếu bạn dùng Neon/Postgres cloud thì không cần DB container
+    # Nếu có queue, cron, Bull đều chạy trong cùng process này
 
-volumes:
-  postgres:
+  redis:
+    image: redis:7-alpine
+    container_name: geardn-redis
+    restart: always
+    # Không expose ra ngoài Internet, chỉ để internal Docker
+    # Nếu cần debug thì có thể mở:
+    # ports:
+    #   - "6379:6379"
+    command: ['redis-server', '--appendonly', 'yes']
