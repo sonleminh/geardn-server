@@ -42,6 +42,6 @@ COPY --from=builder /app/dist ./dist
 # Nếu cần, copy schema để sau này migrate (optional)
 COPY prisma ./prisma
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["node", "dist/src/main.js"]

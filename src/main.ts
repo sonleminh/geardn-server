@@ -13,7 +13,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = await app.resolve(LoggerFactory);
 
-  const port = configService.get<number>('PORT');
+  const port = configService.get<number>('PORT') || 8080;
   const apiPrefix = configService.get<string>('API_PREFIX');
 
   const config = new DocumentBuilder()

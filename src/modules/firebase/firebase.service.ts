@@ -10,12 +10,41 @@ export class FirebaseService {
   private serviceAccount: any;
 
   constructor(private configService: ConfigService) {
-    const data = JSON.parse(fs.readFileSync('service_account.json', 'utf8'));
-    this.serviceAccount = data;
-    admin.initializeApp({
-      credential: admin.credential.cert(this.serviceAccount),
-      storageBucket: `${this?.serviceAccount?.project_id}.appspot.com`,
-    });
+    const projectId = this.configService.get<string>('FIREBASE_PROJECT_ID');
+    const clientEmail = this.configService.get<string>('FIREBASE_CLIENT_EMAIL');
+    const privateKey = this.configService
+      .get<string>('FIREBASE_PRIVATE_KEY')
+      ?.replace(/\\n/g, '\n');
+
+    const storageBucket = this.configService.get<string>(
+      'FIREBASE_STORAGE_BUCKET',
+    );
+
+    if (!projectId || !clientEmail || !privateKey) {
+      throw new Error(
+        'Firebase credentials are not set in environment variables',
+      );
+    }
+
+    const serviceAccount: admin.ServiceAccount = {
+      projectId,
+      clientEmail,
+      privateKey,
+    };
+
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket,
+      });
+    }
+
+    // const data = JSON.parse(fs.readFileSync('service_account.json', 'utf8'));
+    // this.serviceAccount = data;
+    // admin.initializeApp({
+    //   credential: admin.credential.cert(this.serviceAccount),
+    //   storageBucket: `${this?.serviceAccount?.project_id}.appspot.com`,
+    // });
     this.storage = admin.storage();
   }
 

@@ -25,7 +25,7 @@ import { ExportLogModule } from './modules/export-log/export-log.module';
 import { AdjustmentLogModule } from './modules/adjustment-log/adjustment-log.module';
 import { ProvinceModule } from './modules/province/province.module';
 import { StatisticsModule } from './modules/statistics/statistic.module';
-import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
+// import { GoogleAnalyticsModule } from './modules/google-analytics/google-analytics.module';
 import { OrderReturnRequestModule } from './modules/order-return-request/order-return-request.module';
 import { DiagModule } from './modules/diag/diag.module';
 import { RealtimegModule } from './modules/realtime/realtime.module';
@@ -77,7 +77,7 @@ import { NotificationsModule } from './modules/notification/notification.module'
     StockModule,
     ProvinceModule,
     StatisticsModule,
-    GoogleAnalyticsModule,
+    // GoogleAnalyticsModule,
     DiagModule,
     RealtimegModule,
     NotificationsModule,
