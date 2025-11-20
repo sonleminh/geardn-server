@@ -13,8 +13,8 @@ import {
 import { JsonValue } from '@prisma/client/runtime/library';
 import { Type } from 'class-transformer';
 import { TagDto } from './tag.dto';
-import { ProductTag } from 'src/common/enums/product-tag.enum';
 import { ProductStatus } from '@prisma/client';
+import { ProductTag } from 'src/common/enums/product-tag.enum';
 
 export class CreateProductDto {
   @ApiProperty()

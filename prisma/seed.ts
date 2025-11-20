@@ -1,6 +1,6 @@
 // prisma/seed.ts
 
-import { PrismaClient, ProductStatus, UserRole } from '@prisma/client';
+import { PrismaClient, ProductStatus } from '@prisma/client';
 
 // initialize Prisma Client
 const prisma = new PrismaClient();

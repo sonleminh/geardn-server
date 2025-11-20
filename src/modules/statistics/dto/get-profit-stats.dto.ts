@@ -1,5 +1,5 @@
-import { IsOptional, IsArray, IsEnum, IsDateString } from 'class-validator';
 import { OrderStatus } from '@prisma/client';
+import { IsOptional, IsArray, IsEnum, IsDateString } from 'class-validator';
 
 export class GetProfitStatsDto {
   @IsOptional()

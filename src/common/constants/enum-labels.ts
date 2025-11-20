@@ -1,11 +1,15 @@
-import { AdjustmentType, OrderReasonCode, ProductStatus } from '@prisma/client';
+import {
+  AdjustmentReason,
+  AdjustmentType,
+} from '../enums/adjustment-type.enum';
 import { ExportType } from '../enums/export-type.enum';
 import { ImportType } from '../enums/import-type.enum';
-import { AdjustmentReason } from '../enums/adjustment-type.enum';
-import { ProductTag } from '../enums/product-tag.enum';
+import { OrderReasonCode } from '../enums/order-reason-code';
 import { OrderStatus } from '../enums/order-status.enum';
-import { ReturnType } from '../enums/return-type.enum';
+import { ProductStatus } from '../enums/product-status.enum';
+import { ProductTag } from '../enums/product-tag.enum';
 import { ReturnStatus } from '../enums/return-status.enum';
+import { ReturnType } from '../enums/return-type.enum';
 
 export const ENUM_LABELS = {
   'order-status': [
