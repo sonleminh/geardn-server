@@ -1,4 +1,5 @@
 node_modules;
-dist.git.gitignore;
-Dockerfile;
-npm - debug.log.vscode.idea;
+dist;
+npm - debug.log;
+Dockerfile.git.gitignore;
+readme.md;

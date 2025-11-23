@@ -370,6 +370,9 @@ export class CartService {
               },
             },
           },
+          orderBy: {
+            updatedAt: 'desc',
+          },
         },
         user: true,
       },

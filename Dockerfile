@@ -1,47 +1,50 @@
-# Stage 1: Build + Prisma generate
+###################
+# STAGE 1: BUILDER
+###################
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy file định nghĩa dependency + prisma
+# Copy file dependency
 COPY package*.json ./
-COPY prisma ./prisma
+COPY prisma ./prisma/
 
-# Cài deps đầy đủ (cả devDeps để có prisma CLI)
+# Cài đặt tất cả dependencies (bao gồm devDependencies để build)
 RUN npm ci
 
-# Generate Prisma Client (dựa trên prisma/schema.prisma)
-RUN npx prisma generate
-
-# Copy toàn bộ source
+# Copy source code
 COPY . .
 
-# Build NestJS -> dist
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build code ra thư mục dist
 RUN npm run build
 
-
-# Stage 2: Runtime
+###################
+# STAGE 2: RUNNER
+###################
 FROM node:20-alpine AS runner
 
 WORKDIR /app
+
 ENV NODE_ENV=production
 
-# Copy package.json để cài deps runtime
+# Copy package.json để cài lại dependencies cho production
 COPY package*.json ./
+COPY prisma ./prisma/
 
-# Cài deps production
+# --- QUAN TRỌNG: Cài lại deps production tại đây để fix lỗi bcrypt ---
+# Lệnh này chỉ cài dependencies cần thiết, bỏ qua devDependencies -> Nhẹ & Chuẩn OS
 RUN npm ci --omit=dev
 
-# Copy Prisma client đã generate từ stage build
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Generate lại Prisma Client cho môi trường Runner (đảm bảo an toàn nhất)
+RUN npx prisma generate
 
-# Copy dist đã build
+# Copy folder dist đã build từ Stage 1 sang
 COPY --from=builder /app/dist ./dist
-
-# Nếu cần, copy schema để sau này migrate (optional)
-COPY prisma ./prisma
 
 EXPOSE 8080
 
+# Chạy app bằng node trực tiếp (nhẹ hơn npm run start:prod)
 CMD ["node", "dist/src/main.js"]
